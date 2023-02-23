@@ -15,14 +15,14 @@ from plus2jsonParser import plus2jsonParser
 
 class JobDefn:
     """PLUS Job Definition"""
-    population = []                                        # instance population (pattern for all)
+    instances = []                                        # instance population (pattern for all)
     def __init__(self, name):
         self.JobDefinitionName = name                      # created when the name is encountered
         self.sequences = []                                # job may contain multiple peer sequences
-        JobDefn.population.append(self)
+        JobDefn.instances.append(self)
     def output_json(self):
         json = ""
-        for job_defn in JobDefn.population:
+        for job_defn in JobDefn.instances:
             json += "{ \"JobDefinitionName\":" + job_defn.JobDefinitionName + ",\n"
             json += "\"Events\": [\n"
             seqdelim = ""
@@ -40,7 +40,7 @@ class JobDefn:
                     if ae.SequenceEnd: json += "\"SequenceEnd\": true,"
                     if ae.isBreak: json += "\"isBreak\": true,"
                     # look for linked DynamicControl
-                    dcs = [dc for dc in DynamicControl.population if dc.source_event is ae]
+                    dcs = [dc for dc in DynamicControl.instances if dc.source_event is ae]
                     for dc in dcs: # preparing for when multiple DynamicControls are allowed.
                         json += "\"DynamicControl\": {"
                         json += "\"DynamicControlName\": \"" + dc.DynamicControlName + "\","
@@ -67,7 +67,7 @@ class JobDefn:
         json += "\n}\n"
         print( json )
     def pretty_print(self):
-        for job_defn in JobDefn.population:
+        for job_defn in JobDefn.instances:
             print("job defn:", job_defn.JobDefinitionName)
             for seq in job_defn.sequences:
                 print("sequence:", seq.SequenceName)
@@ -79,7 +79,7 @@ class JobDefn:
                     bcnt = ""
                     lcnt = ""
                     mcnt = ""
-                    dcs = [dc for dc in DynamicControl.population if dc.source_event is ae]
+                    dcs = [dc for dc in DynamicControl.instances if dc.source_event is ae]
                     for dc in dcs:
                         su = "s=" + dc.src_evt_txt + "(" + dc.src_occ_txt + ")"
                         su += "u=" + dc.user_evt_txt + "(" + dc.user_occ_txt + ")"
@@ -95,7 +95,7 @@ class JobDefn:
                     # look for linked Invariant
                     einv = ""
                     iinv = ""
-                    inv = [inv for inv in Invariant.population if inv.source_event is ae]
+                    inv = [inv for inv in Invariant.instances if inv.source_event is ae]
                     if inv:
                         su = ""
                         if "" != inv[-1].src_evt_txt:
@@ -106,7 +106,7 @@ class JobDefn:
                             einv = "einv:" + inv[-1].Name + "-" + su
                         elif inv[-1].Type == "IINV":
                             iinv = "iinv:" + inv[-1].Name + "-" + su
-                    inv = [inv for inv in Invariant.population if ae in inv.user_events]
+                    inv = [inv for inv in Invariant.instances if ae in inv.user_events]
                     if inv:
                         su = ""
                         if "" != inv[-1].src_evt_txt:
@@ -154,20 +154,20 @@ class JobDefn:
 
 class SequenceDefn:
     """PLUS Sequence Definition"""
-    population = []
+    instances = []
     c_current_sequence = None                              # set at creation, emptied at exit
     def __init__(self, name):
         self.SequenceName = name                           # created when the name is encountered
-        if any( s.SequenceName == name for s in SequenceDefn.population ):
+        if any( s.SequenceName == name for s in SequenceDefn.instances ):
             print( "ERROR:  duplicate sequence detected:", name )
             sys.exit()
-        JobDefn.population[-1].sequences.append(self)
+        JobDefn.instances[-1].sequences.append(self)
         self.audit_events = []                             # appended with each new event encountered
         self.start_events = []                             # start_events get added by the first event
                                                            # ... that sees an empty list
                                                            # ... and by any event preceded by HIDE
         SequenceDefn.c_current_sequence = self
-        SequenceDefn.population.append(self)
+        SequenceDefn.instances.append(self)
     def play(self, pretty):
         """interpret the sequence"""
         if pretty:
@@ -177,7 +177,7 @@ class SequenceDefn:
 
 class AuditEvent:
     """PLUS Audit Event Definition"""
-    population = []
+    instances = []
     ApplicationName = "default"                            # not presently used
     BlockedAuditEventDuration = "PT1H"                     # default for AE Simulator
     StaleAuditEventDuration = "PT2H"                       # default for AE Simulator
@@ -206,24 +206,24 @@ class AuditEvent:
             self.SequenceStart = True
         self.previous_events = []                          # extended at creation when c_current_event exists
                                                            # emptied at sequence exit
-        if Fork.population:                                # get fork, split or if previous event
-            if Fork.population[-1].fork_point_usage:
-                self.previous_events.append( Fork.population[-1].fork_point_usage )
-                Fork.population[-1].fork_point_usage = None
-            if Fork.population[-1].merge_usage:            # get merge previous events
-                self.previous_events.extend( Fork.population[-1].merge_usage )
-                Fork.population.pop()                      # done with this Fork
+        if Fork.instances:                                # get fork, split or if previous event
+            if Fork.instances[-1].fork_point_usage:
+                self.previous_events.append( Fork.instances[-1].fork_point_usage )
+                Fork.instances[-1].fork_point_usage = None
+            if Fork.instances[-1].merge_usage:            # get merge previous events
+                self.previous_events.extend( Fork.instances[-1].merge_usage )
+                Fork.instances.pop()                      # done with this Fork
         if AuditEvent.c_current_event:
             self.previous_events.append( PreviousAuditEvent( AuditEvent.c_current_event ) )
             AuditEvent.c_current_event = None
         # detect loop
         # if it exists but has no starting event, add this one
-        if Loop.population and not Loop.population[-1].start_event:
-            Loop.population[-1].start_event = self
+        if Loop.instances and not Loop.instances[-1].start_event:
+            Loop.instances[-1].start_event = self
         # Interpret/play variables.
         self.visit_count = 0
         AuditEvent.c_current_event = self
-        AuditEvent.population.append(self)
+        AuditEvent.instances.append(self)
     def play(self, pretty, delim):
         """interpret the event"""
         self.visit_count += 1
@@ -248,7 +248,7 @@ class AuditEvent:
                 eligible_next_aes.append( next_ae )
         # loop detection
         if len( eligible_next_aes ) == 2:
-            if AuditEvent.population.index( eligible_next_aes[0] ) < AuditEvent.population.index( self ):
+            if AuditEvent.instances.index( eligible_next_aes[0] ) < AuditEvent.instances.index( self ):
                 # loop detected in 0 event
                 if self.visit_count < 4:
                     # Loop back by selecting the lower index event.  Clear the go forward event.
@@ -256,7 +256,7 @@ class AuditEvent:
                 else:
                     # Carry on.
                     eligible_next_aes.remove( eligible_next_aes[0] )
-            elif AuditEvent.population.index( eligible_next_aes[1] ) < AuditEvent.population.index( self ):
+            elif AuditEvent.instances.index( eligible_next_aes[1] ) < AuditEvent.instances.index( self ):
                 # loop detected in 1 event
                 if self.visit_count < 4:
                     # Loop back by selecting the lower index event.  Clear the go forward event.
@@ -302,17 +302,17 @@ class AuditEvent:
 # previous event to the current event.
 class PreviousAuditEvent:
     """PreviousAuditEvents are instances pointing to an AuditEvent"""
-    population = []
+    instances = []
     def __init__(self, ae):
         self.previous_event = ae
         self.ConstraintValue = ""
         self.ConstraintDefinitionId = ""
-        PreviousAuditEvent.population.append(self)
+        PreviousAuditEvent.instances.append(self)
 
 class Fork:
     """A Fork keeps linkages to fork and merge points."""
     # Instances of Fork are stacked to allow nesting.
-    population = []
+    instances = []
     c_scope = -1
     c_number = 1
     def __init__(self, flavor):
@@ -330,37 +330,37 @@ class Fork:
         self.merge_usage = []                              # used for previous events after 'end split',
                                                            # 'end fork', 'endswitch' and 'end if'
         Fork.c_scope += 1
-        Fork.population.append(self)
+        Fork.instances.append(self)
     def __del__(self):
         #Fork.print_forks()
         Fork.c_scope -= 1
     def begin(self):
         # instead of c_current_event, I might need to copy from the fork_point stack
         if AuditEvent.c_current_event: # We may be starting with HIDE.
-            Fork.population[-1].fork_point = PreviousAuditEvent( AuditEvent.c_current_event )
+            Fork.instances[-1].fork_point = PreviousAuditEvent( AuditEvent.c_current_event )
             AuditEvent.c_current_event = None
-            Fork.population[-1].fork_point.ConstraintValue = self.flavor
-            Fork.population[-1].fork_point.ConstraintDefinitionId = Fork.population[-1].id
-            Fork.population[-1].fork_point_usage = Fork.population[-1].fork_point
+            Fork.instances[-1].fork_point.ConstraintValue = self.flavor
+            Fork.instances[-1].fork_point.ConstraintDefinitionId = Fork.instances[-1].id
+            Fork.instances[-1].fork_point_usage = Fork.instances[-1].fork_point
         else:
             # detecting a nested fork (combined split, fork and/or if)
             # Look to the previous (outer scope) fork in the stack.
-            if Fork.population[Fork.c_scope-1].fork_point_usage:
-                Fork.population[-1].fork_point = PreviousAuditEvent( Fork.population[Fork.c_scope-1].fork_point_usage.previous_event )
-                Fork.population[-1].fork_point.ConstraintValue = self.flavor
-                Fork.population[-1].fork_point.ConstraintDefinitionId = Fork.population[-1].id
-                Fork.population[-1].fork_point_usage = Fork.population[-1].fork_point
+            if Fork.instances[Fork.c_scope-1].fork_point_usage:
+                Fork.instances[-1].fork_point = PreviousAuditEvent( Fork.instances[Fork.c_scope-1].fork_point_usage.previous_event )
+                Fork.instances[-1].fork_point.ConstraintValue = self.flavor
+                Fork.instances[-1].fork_point.ConstraintDefinitionId = Fork.instances[-1].id
+                Fork.instances[-1].fork_point_usage = Fork.instances[-1].fork_point
     def again(self):
         if AuditEvent.c_current_event: # We may have 'detach'd and have no c_current_event.
-            Fork.population[-1].merge_inputs.append( PreviousAuditEvent( AuditEvent.c_current_event ) )
+            Fork.instances[-1].merge_inputs.append( PreviousAuditEvent( AuditEvent.c_current_event ) )
             AuditEvent.c_current_event = None
-        if Fork.population[-1].fork_point:
-            Fork.population[-1].fork_point_usage = Fork.population[-1].fork_point
+        if Fork.instances[-1].fork_point:
+            Fork.instances[-1].fork_point_usage = Fork.instances[-1].fork_point
     def end(self):
         if AuditEvent.c_current_event: # We may have 'detach'd and have no c_current_event.
             self.merge_inputs.append( PreviousAuditEvent( AuditEvent.c_current_event ) )
             AuditEvent.c_current_event = None
-        self.merge_usage.extend( Fork.population[-1].merge_inputs )
+        self.merge_usage.extend( Fork.instances[-1].merge_inputs )
         self.merge_inputs.clear()
         self.fork_point_usage = None
     def print_fork(self):
@@ -385,7 +385,7 @@ class Fork:
         print( "Fork:", Fork.c_scope, self.flavor, "fp:" + fp, "fu:" + fu, "mis:" + merge_inputs, "mus:" + merge_usages )
     @classmethod
     def print_forks(cls):
-        for f in Fork.population:
+        for f in Fork.instances:
             f.print_fork()
 
 # Dynamic control must deal with forward references.
@@ -393,9 +393,9 @@ class Fork:
 # At the end of the walk and before output, resolve all DynamicControls.
 class DynamicControl:
     """branch and loop information"""
-    population = []
+    instances = []
     def __init__(self, name, control_type):
-        if any( dc.DynamicControlName == name for dc in DynamicControl.population ):
+        if any( dc.DynamicControlName == name for dc in DynamicControl.instances ):
             print( "ERROR:  duplicate dynamic control detected:", name )
             sys.exit()
         self.DynamicControlName = name                     # unique name
@@ -411,17 +411,17 @@ class DynamicControl:
         self.user_occ_txt = AuditEvent.c_current_event.OccurrenceId
         self.source_event = None                           # audit event hosting the control
         self.user_event = None                             # audit event to be dynamically tested
-        DynamicControl.population.append(self)
+        DynamicControl.instances.append(self)
     @classmethod
     def resolve_event_linkage(cls):
-        for dc in DynamicControl.population:
-            sae = [ae for ae in AuditEvent.population if ae.EventName == dc.src_evt_txt and ae.OccurrenceId == dc.src_occ_txt]
+        for dc in DynamicControl.instances:
+            sae = [ae for ae in AuditEvent.instances if ae.EventName == dc.src_evt_txt and ae.OccurrenceId == dc.src_occ_txt]
             if sae:
                 dc.source_event = sae[-1]
             else:
                 print( "ERROR:  unresolved SRC event in dynamic control:", dc.DynamicControlName, "with name:", dc.src_evt_txt  )
                 sys.exit()
-            uae = [ae for ae in AuditEvent.population if ae.EventName == dc.user_evt_txt and ae.OccurrenceId == dc.user_occ_txt]
+            uae = [ae for ae in AuditEvent.instances if ae.EventName == dc.user_evt_txt and ae.OccurrenceId == dc.user_occ_txt]
             if uae:
                 dc.user_event = uae[-1]
             else:
@@ -430,7 +430,7 @@ class DynamicControl:
     @classmethod
     def print_dynamic_control(cls):
         print( "Print Dynamic Control" )
-        for dc in DynamicControl.population:
+        for dc in DynamicControl.instances:
             print( "dc:", dc.DynamicControlName, "src:", dc.src_evt_txt, "src_occ:", dc.src_occ_txt, "user:", dc.user_evt_txt, "uocc:", dc.user_occ_txt  )
 
 # Invariants must deal with forward references.
@@ -438,9 +438,9 @@ class DynamicControl:
 # At the end of the walk and before output, resolve all Invariants.
 class Invariant:
     """intra- and extra- job invariant information"""
-    population = []
+    instances = []
     def __init__(self, name, invariant_type):
-        if any( inv.Name == name for inv in Invariant.population ):
+        if any( inv.Name == name for inv in Invariant.instances ):
             print( "ERROR:  duplicate invariant detected:", name )
             sys.exit()
         self.Name = name                                   # unique name
@@ -455,15 +455,15 @@ class Invariant:
         self.user_occ_txt = "0"                            # USER event textual OccurrenceId (default)
         self.source_event = None                           # audit event hosting the invariant
         self.user_events = []                              # audit events to be dynamically tested
-        Invariant.population.append(self)
+        Invariant.instances.append(self)
     @classmethod
     def resolve_event_linkage(cls):
-        for inv in Invariant.population:
+        for inv in Invariant.instances:
             #print( "Resolving invariants:", inv.src_evt_txt, inv.src_occ_txt, inv.user_evt_txt, inv.user_occ_txt )
-            sae = [ae for ae in AuditEvent.population if ae.EventName == inv.src_evt_txt and ae.OccurrenceId == inv.src_occ_txt]
+            sae = [ae for ae in AuditEvent.instances if ae.EventName == inv.src_evt_txt and ae.OccurrenceId == inv.src_occ_txt]
             if sae:
                 inv.source_event = sae[-1]
-            uaes = [ae for ae in AuditEvent.population if ae.EventName == inv.user_evt_txt and ae.OccurrenceId == inv.user_occ_txt]
+            uaes = [ae for ae in AuditEvent.instances if ae.EventName == inv.user_evt_txt and ae.OccurrenceId == inv.user_occ_txt]
             if uaes:
                 # We can have more than one user for an invariant.
                 for uae in uaes:
@@ -472,15 +472,15 @@ class Invariant:
     @classmethod
     def output_json(cls):
         # Output invariants separately.
-        if Invariant.population:
+        if Invariant.instances:
             ijson = "["
             idelim = ""
-            for invariant in Invariant.population:
+            for invariant in Invariant.instances:
                 ijson += idelim + "\n{"
                 ijson += "\"EventDataName\": \"" + invariant.Name + "\","
                 invariant_type = "INTRAJOBINV" if invariant.Type == "IINV" else "EXTRAJOBINV"
                 ijson += "\"EventDataType\": \"" + invariant_type + "\","
-                ijson += "\"SourceEventJobDefinitionName\": " + JobDefn.population[-1].JobDefinitionName + ","
+                ijson += "\"SourceEventJobDefinitionName\": " + JobDefn.instances[-1].JobDefinitionName + ","
                 ijson += "\"SourceEventType\": \"" + invariant.src_evt_txt + "\","
                 ijson += "\"SourceOccurrenceId\": " + invariant.src_occ_txt + ","
                 ijson += "\"UserEvents\": [\n"
@@ -495,8 +495,8 @@ class Invariant:
 
 class Loop:
     """data collected from PLUS repeat loop"""
-    population = []
+    instances = []
     c_scope = 0
     def __init__(self):
         self.start_event = None                            # first event encountered
-        Loop.population.append(self)
+        Loop.instances.append(self)

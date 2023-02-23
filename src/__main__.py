@@ -47,16 +47,16 @@ python plus2json.pyz j.puml --job | python -m json.tool   # format output JSON
         walker.walk(run, tree)
     if "--job" in sys.argv or "-j" in sys.argv:
         if "--print" in sys.argv or "-p" in sys.argv:
-            JobDefn.population[-1].pretty_print()
+            JobDefn.instances[-1].pretty_print()
         else:
-            JobDefn.population[-1].output_json()
+            JobDefn.instances[-1].output_json()
     elif "--audit_event_data" in sys.argv or "-d" in sys.argv:
         Invariant.output_json()
     elif "--play" in sys.argv:
         if "--print" in sys.argv or "-p" in sys.argv:
-            JobDefn.population[-1].play(True)
+            JobDefn.instances[-1].play(True)
         else:
-            JobDefn.population[-1].play(False)
+            JobDefn.instances[-1].play(False)
 
  
 if __name__ == '__main__':
