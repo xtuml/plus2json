@@ -5,9 +5,6 @@ from plus2jsonParser import plus2jsonParser
 from plus2jsonListener import plus2jsonListener
 from plus2json_run import plus2json_run
 from plus_job_defn import *
-from plus_job_defn_aeo import *
-from plus_job_defn_json import *
-from plus_job_defn_play import *
 
 def main(argv):
 
@@ -23,10 +20,10 @@ Options
 =======
 --help, -h               show this help message and exit
 --job, -j                output PLUS Job Definition (JSON)      default: off
---audit_event_data, -d   output PLUS audit event data           default: off
+--audit_event_data, -d   output PLUS audit event data (JSON)    default: off
 --play                   interpret the job and produce events   default: off
---aeo_config             output AEOrdering config.json          default: off
---print, -p              print human readable output            default: off
+--aeo_config             output AEOrdering config.json (JSON)   default: off
+--print, -p              pretty print human readable output     default: off
 
 Examples:
 
@@ -53,9 +50,9 @@ python plus2json.pyz j.puml --job | python -m json.tool   # format output JSON
         if "--print" in sys.argv or "-p" in sys.argv:
             JobDefn.instances[-1].pretty_print()
         else:
-            JobDefn.instances[-1].output_json()
+            JobDefn.instances[-1].json()
     elif "--audit_event_data" in sys.argv or "-d" in sys.argv:
-        Invariant.output_json()
+        Invariant.json()
     elif "--play" in sys.argv:
         if "--print" in sys.argv or "-p" in sys.argv:
             JobDefn.instances[-1].play(True)

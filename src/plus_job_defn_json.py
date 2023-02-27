@@ -11,13 +11,13 @@ import plus_job_defn
 
 class JobDefn_JSON:
     """Job Definition JSON"""
-    def output_json(self):
+    def json(self):
         json = "{ \"JobDefinitionName\":" + self.JobDefinitionName + ",\n"
         json += "\"Events\": ["
         print( json )
         seqdelim = ""
         for seq in self.sequences:
-            seq.output_json( seqdelim )
+            seq.json( seqdelim )
             seqdelim = ","
         # All events for all sequences are defined together.
         json = "]"
@@ -26,15 +26,15 @@ class JobDefn_JSON:
 
 class SequenceDefn_JSON:
     """Sequence Definition JSON"""
-    def output_json(self, seqdelim):
+    def json(self, seqdelim):
         aedelim = seqdelim
         for ae in self.audit_events:
-            ae.output_json( aedelim )
+            ae.json( aedelim )
             aedelim = ","
 
 class AuditEvent_JSON:
     """Audit Event Definition JSON"""
-    def output_json(self, aedelim):
+    def json(self, aedelim):
         json = aedelim
         aedelim = ",\n"
         json += "{ \"EventName\": \"" + self.EventName + "\","
@@ -45,25 +45,63 @@ class AuditEvent_JSON:
         if self.isBreak: json += "\"isBreak\": true,"
         # look for linked DynamicControl
         dcs = [dc for dc in plus_job_defn.DynamicControl.instances if dc.source_event is self]
-        for dc in dcs: # preparing for when multiple DynamicControls are allowed.
-            json += "\"DynamicControl\": {"
-            json += "\"DynamicControlName\": \"" + dc.DynamicControlName + "\","
-            json += "\"DynamicControlType\": \"" + dc.DynamicControlType + "\","
-            json += "\"UserEventType\": \"" + dc.user_evt_txt + "\","
-            json += "\"UserOccurrenceId\": " + dc.user_occ_txt
-            json += "},"
+        for dc in dcs: # preparing for when multiple DynamicControls are allowed
+            json += dc.json()
         prev_aes = ""
         pdelim = ""
         for prev_ae in self.previous_events:
-            constraintid = "" if "" == prev_ae.ConstraintDefinitionId else ", \"ConstraintDefinitionId\": \"" + prev_ae.ConstraintDefinitionId + "\""
-            constraint = "" if "" == prev_ae.ConstraintValue else ", \"ConstraintValue\": \"" + prev_ae.ConstraintValue + "\""
-            prev_aes = ( prev_aes + pdelim +
-                  "{ \"PreviousEventName\": \"" + prev_ae.previous_event.EventName + "\","
-                  "\"PreviousOccurrenceId\": " + prev_ae.previous_event.OccurrenceId +
-                  constraintid + constraint +
-                  " }" )
+            prev_aes += prev_ae.json( pdelim )
             pdelim = ","
         if "" != prev_aes: json += "\"PreviousEvents\": [ " + prev_aes + "],"
         json += "\"Application\": \"" + plus_job_defn.AuditEvent.ApplicationName + "\""
         json += "}"
         print( json )
+
+class PreviousAuditEvent_JSON:
+    """Previous Audit Event Definition JSON"""
+    def json( self, pdelim ):
+        constraintid = "" if "" == self.ConstraintDefinitionId else ", \"ConstraintDefinitionId\": \"" + self.ConstraintDefinitionId + "\""
+        constraint = "" if "" == self.ConstraintValue else ", \"ConstraintValue\": \"" + self.ConstraintValue + "\""
+        json = ( pdelim +
+              "{ \"PreviousEventName\": \"" + self.previous_event.EventName + "\","
+              "\"PreviousOccurrenceId\": " + self.previous_event.OccurrenceId +
+              constraintid + constraint +
+              " }" )
+        return json
+
+class DynamicControl_JSON:
+    """branch and loop information"""
+    def json( self ):
+        json = "\"DynamicControl\": {"
+        json += "\"DynamicControlName\": \"" + self.DynamicControlName + "\","
+        json += "\"DynamicControlType\": \"" + self.DynamicControlType + "\","
+        json += "\"UserEventType\": \"" + self.user_evt_txt + "\","
+        json += "\"UserOccurrenceId\": " + self.user_occ_txt
+        json += "},"
+        return json
+
+class Invariant_JSON:
+    """Produce Invariant JSON"""
+    @classmethod
+    def json(cls):
+        # Output invariants separately.
+        if plus_job_defn.Invariant.instances:
+            json = "["
+            idelim = ""
+            for invariant in plus_job_defn.Invariant.instances:
+                json += idelim + "\n{"
+                json += "\"EventDataName\": \"" + invariant.Name + "\","
+                invariant_type = "INTRAJOBINV" if invariant.Type == "IINV" else "EXTRAJOBINV"
+                json += "\"EventDataType\": \"" + invariant_type + "\","
+                json += "\"SourceEventJobDefinitionName\": " + plus_job_defn.JobDefn.instances[-1].JobDefinitionName + ","
+                json += "\"SourceEventType\": \"" + invariant.src_evt_txt + "\","
+                json += "\"SourceOccurrenceId\": " + invariant.src_occ_txt + ","
+                json += "\"UserEvents\": [\n"
+                json += "{ \"UserEventName\": \"" + invariant.user_evt_txt + "\","
+                json += "\"UserOccurrenceId\": " + invariant.user_occ_txt + ","
+                json += "\"UserEventDataItemName\": \"" + invariant.Name + "\" }"
+                json += "]\n"
+                json += "}"
+                idelim = ","
+            json += "]\n"
+            print( json )

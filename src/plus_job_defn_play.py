@@ -37,6 +37,8 @@ class SequenceDefn_play:
             start_event.play( pretty, "", job_defn )
 
 class AuditEvent_play:
+    def __init__(self):
+        self.visit_count = 0                     # Count visits to this audit event.
     def play(self, pretty, delim, job_defn):
         """interpret the event"""
         self.visit_count += 1

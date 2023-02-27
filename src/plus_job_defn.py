@@ -1,6 +1,6 @@
 """
 
-Provide a listener to the PLUS parser and tree walker.
+This is the data model to capture the PLUS Job Definition.
 
 """
 
@@ -15,9 +15,9 @@ from plus_job_defn_print import *
 # !include
 # Use a notational mark and some data to indicate where instance forks occur.
 
-# The 3 primary classes (JobDefn, SequenceDefn, AuditEvent) are inheriting from
-# classes that provide methods for various forms of output.  This is a "mixin" pattern.
-# This allows cohesive packaging of special-purpose output routines in one file each.
+# 4 primary classes (JobDefn, SequenceDefn, AuditEvent, Invariant) are inheriting from
+# classes that provide methods for various forms of output.  This is a "mixin" pattern,
+# which allows cohesive packaging of special-purpose output routines in one file each.
 
 class JobDefn( JobDefn_AEO, JobDefn_JSON, JobDefn_play, JobDefn_print ):
     """PLUS Job Definition"""
@@ -71,8 +71,8 @@ class AuditEvent( AuditEvent_AEO, AuditEvent_JSON, AuditEvent_play, AuditEvent_p
         if not self.sequence.start_events:                 # ... or when no starting event, yet
             self.sequence.start_events.append( self )
             self.SequenceStart = True
-        # Interpret/play variables.
-        self.visit_count = 0
+        # Initialize instance of JSON supertype.
+        super( AuditEvent_JSON, self ).__init__()
         self.previous_events = []                          # extended at creation when c_current_event exists
                                                            # emptied at sequence exit
         if Fork.instances:                                 # get fork, split or if previous event
@@ -95,7 +95,7 @@ class AuditEvent( AuditEvent_AEO, AuditEvent_JSON, AuditEvent_play, AuditEvent_p
 # A previous audit event contains a reference to the previous event
 # but also contains attributes that decorate the "edge" from the
 # previous event to the current event.
-class PreviousAuditEvent:
+class PreviousAuditEvent( PreviousAuditEvent_JSON ):
     """PreviousAuditEvents are instances pointing to an AuditEvent"""
     instances = []
     def __init__(self, ae):
@@ -186,7 +186,7 @@ class Fork:
 # Dynamic control must deal with forward references.
 # During the walk, capture the audit EventNames and OccurrenceIds as text.
 # At the end of the walk and before output, resolve all DynamicControls.
-class DynamicControl:
+class DynamicControl( DynamicControl_JSON ):
     """branch and loop information"""
     instances = []
     def __init__(self, name, control_type):
@@ -231,7 +231,7 @@ class DynamicControl:
 # Invariants must deal with forward references.
 # During the walk, capture the audit EventNames and OccurrenceIds as text.
 # At the end of the walk and before output, resolve all Invariants.
-class Invariant:
+class Invariant( Invariant_JSON ):
     """intra- and extra- job invariant information"""
     instances = []
     def __init__(self, name, invariant_type):
@@ -264,29 +264,6 @@ class Invariant:
                 for uae in uaes:
                     #print( "Resolving invariant users:", inv.src_evt_txt, inv.src_occ_txt, inv.user_evt_txt, inv.user_occ_txt )
                     inv.user_events.append( uae )
-    @classmethod
-    def output_json(cls):
-        # Output invariants separately.
-        if Invariant.instances:
-            ijson = "["
-            idelim = ""
-            for invariant in Invariant.instances:
-                ijson += idelim + "\n{"
-                ijson += "\"EventDataName\": \"" + invariant.Name + "\","
-                invariant_type = "INTRAJOBINV" if invariant.Type == "IINV" else "EXTRAJOBINV"
-                ijson += "\"EventDataType\": \"" + invariant_type + "\","
-                ijson += "\"SourceEventJobDefinitionName\": " + JobDefn.instances[-1].JobDefinitionName + ","
-                ijson += "\"SourceEventType\": \"" + invariant.src_evt_txt + "\","
-                ijson += "\"SourceOccurrenceId\": " + invariant.src_occ_txt + ","
-                ijson += "\"UserEvents\": [\n"
-                ijson += "{ \"UserEventName\": \"" + invariant.user_evt_txt + "\","
-                ijson += "\"UserOccurrenceId\": " + invariant.user_occ_txt + ","
-                ijson += "\"UserEventDataItemName\": \"" + invariant.Name + "\" }"
-                ijson += "]\n"
-                ijson += "}"
-                idelim = ","
-            ijson += "]\n"
-            print( ijson )
 
 class Loop:
     """data collected from PLUS repeat loop"""
