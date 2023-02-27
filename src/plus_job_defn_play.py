@@ -10,36 +10,45 @@ import plus_job_defn
 # This file provides mixin methods to the 3 primary classes to
 # interpret and "play out" the job definition.  It will produce
 # a valid sequence of events based upon the forks, merges, loops
-# and sequencing of audit event definitions.  Two forms of output
+# and sequencing of audit event definitions.  Three forms of output
 # are supported, one for playing out the audit events instances
-# in JSON format and one for playout the events in a human
-# readable form for visual inspection.
+# in JSON format, one for outputting AESimulator event template
+# configuration and one for playout the events in a human readable
+# form for visual inspection.
 
 class JobDefn_play:
     """Play Job Definition"""
-    def play(self, pretty):
+    def play(self, flavor):
         """interpret the job"""
-        if pretty:
+        json = ""
+        if "pretty" == flavor:
             print( "job:", self.JobDefinitionName )
+        elif "aesim" == flavor:
+            json = self.aesim_config()
         else:
             print( "[" )
+        # Play out the sequences.
         for seq in self.sequences:
-            seq.play( pretty, self )
-        if not pretty:
+            seq.play( flavor, self )
+        if "pretty" == flavor:
+            print( json ) # NOP
+        elif "aesim" == flavor:
+            print( json )
+        else:
             print( "]" )
 
 class SequenceDefn_play:
-    def play( self, pretty, job_defn ):
+    def play( self, flavor, job_defn ):
         """interpret the sequence"""
-        if pretty:
+        if "pretty" == flavor:
             print( "seq:", self.SequenceName )
         for start_event in self.start_events:
-            start_event.play( pretty, "", job_defn )
+            start_event.play( flavor, "", job_defn )
 
 class AuditEvent_play:
     def __init__(self):
         self.visit_count = 0                     # Count visits to this audit event.
-    def play(self, pretty, delim, job_defn):
+    def play(self, flavor, delim, job_defn):
         """interpret the event"""
         self.visit_count += 1
         next_aes = []
@@ -97,11 +106,14 @@ class AuditEvent_play:
         # Give some indication that we are forking.
         fork_count = len( next_aes )
         fork_text = "" if fork_count < 2 else "f" + str( fork_count )
-        if pretty:
+        if "pretty" == flavor:
             print( self.EventName,
                    "[" + str( self.visit_count ) + "]" if self.visit_count > 1 else "",
                    fork_text )
+        elif "aesim" == flavor:
+            self.aesim_config( delim )
         else:
+            # TODO - This is a start at actually simulating audit events.
             json = delim + "{"
             json += "\"timestamp\": \"" + "{:%Y-%m-%dT%H:%M:%SZ}".format(datetime.datetime.now()) + "\","
             json += "\"applicationName\": \"" + plus_job_defn.AuditEvent.ApplicationName + "\","
@@ -112,4 +124,4 @@ class AuditEvent_play:
             json += "}"
             print( json )
         for ae in next_aes:
-            ae.play(pretty, ",", job_defn)
+            ae.play( flavor, ",", job_defn )

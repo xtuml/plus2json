@@ -43,8 +43,8 @@ class SequenceDefn_AEO:
 
 class AuditEvent_AEO:
     """AEO methods Audit Event Definition"""
-    BlockedAuditEventDuration = "PT1H"                     # default for AE Simulator
-    StaleAuditEventDuration = "PT2H"                       # default for AE Simulator
+    BlockedAuditEventDuration = "PT1H"                     # default for AEO
+    StaleAuditEventDuration = "PT2H"                       # default for AEO
     def aeo_config(self, delim):
         """output AEOrdering config.json"""
         json = delim + "{ \"EventName\": \"" + self.EventName + "\","

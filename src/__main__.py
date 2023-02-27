@@ -19,17 +19,19 @@ Usage
 Options
 =======
 --help, -h               show this help message and exit
---job, -j                output PLUS Job Definition (JSON)      default: off
---audit_event_data, -d   output PLUS audit event data (JSON)    default: off
---play                   interpret the job and produce events   default: off
---aeo_config             output AEOrdering config.json (JSON)   default: off
---print, -p              pretty print human readable output     default: off
+--job, -j                output PLUS Job Definition (JSON)
+--audit_event_data, -d   output PLUS audit event data (JSON)
+--play                   interpret the job and produce events
+--aeo_config             output AEOrdering config.json (JSON)
+--aesim_config           output AESimulator config JSON when combined with --play
+--print, -p              pretty print human readable output
 
 Examples:
 
 python plus2json.pyz Tutorial_1.puml --job                # convert Tutorial_1.puml into JSON
 python plus2json.pyz Tutorial_13.puml -d                  # produce audit event data definition as JSON
 python plus2json.pyz myjobdefn.puml --play                # interpret the job producing event instances
+python plus2json.pyz myjobdefn.puml --play --aesim_config # produce a valid AESimulator sequence
 python -m plus2json Tutorial_1.puml --job -p              # show job in human readable view
 python plus2json.pyz j.puml --job | python -m json.tool   # format output JSON
 
@@ -42,7 +44,8 @@ python plus2json.pyz j.puml --job | python -m json.tool   # format output JSON
     parser = plus2jsonParser(stream)
     tree = parser.plusdefn()
     if ( "--print" in argv or "-p" in argv or "--job" in argv or "-j" in argv or
-         "--audit_event_data" in argv or "-d" in argv or "--play" in argv or "--aeo_config" in argv ):
+         "--audit_event_data" in argv or "-d" in argv or "--play" in argv or
+        "--aeo_config" in argv or "--aesim_config" in argv ):
         run = plus2json_run() # custom listener
         walker = ParseTreeWalker()
         walker.walk(run, tree)
@@ -55,9 +58,11 @@ python plus2json.pyz j.puml --job | python -m json.tool   # format output JSON
         Invariant.json()
     elif "--play" in sys.argv:
         if "--print" in sys.argv or "-p" in sys.argv:
-            JobDefn.instances[-1].play(True)
+            JobDefn.instances[-1].play("pretty")
+        elif "--aesim_config" in sys.argv:
+            JobDefn.instances[-1].play("aesim")
         else:
-            JobDefn.instances[-1].play(False)
+            JobDefn.instances[-1].play("")
     elif "--aeo_config" in sys.argv:
         JobDefn.instances[-1].aeo_config()
     else:

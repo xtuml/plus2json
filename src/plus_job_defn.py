@@ -9,17 +9,18 @@ from plus_job_defn_aeo import *
 from plus_job_defn_json import *
 from plus_job_defn_play import *
 from plus_job_defn_print import *
+from plus_job_defn_aesim import *
 
 # TODO
 # Deal with merge-in-merge with no event in between.  This may require joining 2 merge usages.
 # !include
 # Use a notational mark and some data to indicate where instance forks occur.
 
-# 4 primary classes (JobDefn, SequenceDefn, AuditEvent, Invariant) are inheriting from
+# Key classes (JobDefn, SequenceDefn, AuditEvent, Invariant) are inheriting from
 # classes that provide methods for various forms of output.  This is a "mixin" pattern,
 # which allows cohesive packaging of special-purpose output routines in one file each.
 
-class JobDefn( JobDefn_AEO, JobDefn_JSON, JobDefn_play, JobDefn_print ):
+class JobDefn( JobDefn_AEO, JobDefn_JSON, JobDefn_play, JobDefn_print, JobDefn_AESim ):
     """PLUS Job Definition"""
     instances = []                                         # instance population (pattern for all)
     def __init__(self, name):
@@ -27,7 +28,7 @@ class JobDefn( JobDefn_AEO, JobDefn_JSON, JobDefn_play, JobDefn_print ):
         self.sequences = []                                # job may contain multiple peer sequences
         JobDefn.instances.append(self)
 
-class SequenceDefn( SequenceDefn_AEO, SequenceDefn_JSON, SequenceDefn_play, SequenceDefn_print ):
+class SequenceDefn( SequenceDefn_AEO, SequenceDefn_JSON, SequenceDefn_play, SequenceDefn_print, SequenceDefn_AESim ):
     """PLUS Sequence Definition"""
     instances = []
     c_current_sequence = None                              # set at creation, emptied at exit
@@ -44,7 +45,7 @@ class SequenceDefn( SequenceDefn_AEO, SequenceDefn_JSON, SequenceDefn_play, Sequ
         SequenceDefn.c_current_sequence = self
         SequenceDefn.instances.append(self)
 
-class AuditEvent( AuditEvent_AEO, AuditEvent_JSON, AuditEvent_play, AuditEvent_print ):
+class AuditEvent( AuditEvent_AEO, AuditEvent_JSON, AuditEvent_play, AuditEvent_print, AuditEvent_AESim ):
     """PLUS Audit Event Definition"""
     instances = []
     ApplicationName = "default"                            # not presently used
