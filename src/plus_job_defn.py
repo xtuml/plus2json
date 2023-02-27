@@ -5,154 +5,29 @@ Provide a listener to the PLUS parser and tree walker.
 """
 
 import sys
-from plus2jsonListener import plus2jsonListener
-from plus2jsonParser import plus2jsonParser
+from plus_job_defn_aeo import *
+from plus_job_defn_json import *
+from plus_job_defn_play import *
+from plus_job_defn_print import *
 
 # TODO
 # Deal with merge-in-merge with no event in between.  This may require joining 2 merge usages.
 # !include
 # Use a notational mark and some data to indicate where instance forks occur.
 
-class JobDefn:
+# The 3 primary classes (JobDefn, SequenceDefn, AuditEvent) are inheriting from
+# classes that provide methods for various forms of output.  This is a "mixin" pattern.
+# This allows cohesive packaging of special-purpose output routines in one file each.
+
+class JobDefn( JobDefn_AEO, JobDefn_JSON, JobDefn_play, JobDefn_print ):
     """PLUS Job Definition"""
-    instances = []                                        # instance population (pattern for all)
+    instances = []                                         # instance population (pattern for all)
     def __init__(self, name):
         self.JobDefinitionName = name                      # created when the name is encountered
         self.sequences = []                                # job may contain multiple peer sequences
         JobDefn.instances.append(self)
-    def output_json(self):
-        json = ""
-        for job_defn in JobDefn.instances:
-            json += "{ \"JobDefinitionName\":" + job_defn.JobDefinitionName + ",\n"
-            json += "\"Events\": [\n"
-            seqdelim = ""
-            for seq in job_defn.sequences:
-                json += seqdelim
-                seqdelim = ","
-                aedelim = ""
-                for ae in seq.audit_events:
-                    json += aedelim
-                    aedelim = ",\n"
-                    json += "{ \"EventName\": \"" + ae.EventName + "\","
-                    json += "\"OccurrenceId\": " + ae.OccurrenceId + ","
-                    json += "\"SequenceName\": " + seq.SequenceName + ","
-                    if ae.SequenceStart: json += "\"SequenceStart\": true,"
-                    if ae.SequenceEnd: json += "\"SequenceEnd\": true,"
-                    if ae.isBreak: json += "\"isBreak\": true,"
-                    # look for linked DynamicControl
-                    dcs = [dc for dc in DynamicControl.instances if dc.source_event is ae]
-                    for dc in dcs: # preparing for when multiple DynamicControls are allowed.
-                        json += "\"DynamicControl\": {"
-                        json += "\"DynamicControlName\": \"" + dc.DynamicControlName + "\","
-                        json += "\"DynamicControlType\": \"" + dc.DynamicControlType + "\","
-                        json += "\"UserEventType\": \"" + dc.user_evt_txt + "\","
-                        json += "\"UserOccurrenceId\": " + dc.user_occ_txt
-                        json += "},"
-                    prev_aes = ""
-                    pdelim = ""
-                    for prev_ae in ae.previous_events:
-                        constraintid = "" if "" == prev_ae.ConstraintDefinitionId else ", \"ConstraintDefinitionId\": \"" + prev_ae.ConstraintDefinitionId + "\""
-                        constraint = "" if "" == prev_ae.ConstraintValue else ", \"ConstraintValue\": \"" + prev_ae.ConstraintValue + "\""
-                        prev_aes = ( prev_aes + pdelim +
-                              "{ \"PreviousEventName\": \"" + prev_ae.previous_event.EventName + "\","
-                              "\"PreviousOccurrenceId\": " + prev_ae.previous_event.OccurrenceId +
-                              constraintid + constraint +
-                              " }" )
-                        pdelim = ","
-                    if "" != prev_aes: json += "\"PreviousEvents\": [ " + prev_aes + "],"
-                    json += "\"Application\": \"" + AuditEvent.ApplicationName + "\""
-                    json += "}"
-            # All events for all sequences are defined together.
-            json += "\n]"
-        json += "\n}\n"
-        print( json )
-    def pretty_print(self):
-        for job_defn in JobDefn.instances:
-            print("job defn:", job_defn.JobDefinitionName)
-            for seq in job_defn.sequences:
-                print("sequence:", seq.SequenceName)
-                for ae in seq.audit_events:
-                    ss = "start" if ae.SequenceStart else ""
-                    se = "end" if ae.SequenceEnd else ""
-                    b = "break" if ae.isBreak else "     "
-                    # look for linked DynamicControls
-                    bcnt = ""
-                    lcnt = ""
-                    mcnt = ""
-                    dcs = [dc for dc in DynamicControl.instances if dc.source_event is ae]
-                    for dc in dcs:
-                        su = "s=" + dc.src_evt_txt + "(" + dc.src_occ_txt + ")"
-                        su += "u=" + dc.user_evt_txt + "(" + dc.user_occ_txt + ")"
-                        if dc.DynamicControlType == "BRANCHCOUNT":
-                            bcnt += "bc:" + dc.DynamicControlName + "-" + su
-                        elif dc.DynamicControlType == "MERGECOUNT":
-                            mcnt += "mc:" + dc.DynamicControlName + "-" + su
-                        elif dc.DynamicControlType == "LOOPCOUNT":
-                            lcnt += "lc:" + dc.DynamicControlName + "-" + su
-                        else:
-                            print( "ERROR:  malformed dynamic control" )
-                            sys.exit()
-                    # look for linked Invariant
-                    einv = ""
-                    iinv = ""
-                    inv = [inv for inv in Invariant.instances if inv.source_event is ae]
-                    if inv:
-                        su = ""
-                        if "" != inv[-1].src_evt_txt:
-                            su += "s=" + inv[-1].src_evt_txt + "(" + inv[-1].src_occ_txt + ")"
-                        if "" != inv[-1].user_evt_txt:
-                            su += "u=" + inv[-1].user_evt_txt + "(" + inv[-1].user_occ_txt + ")"
-                        if inv[-1].Type == "EINV":
-                            einv = "einv:" + inv[-1].Name + "-" + su
-                        elif inv[-1].Type == "IINV":
-                            iinv = "iinv:" + inv[-1].Name + "-" + su
-                    inv = [inv for inv in Invariant.instances if ae in inv.user_events]
-                    if inv:
-                        su = ""
-                        if "" != inv[-1].src_evt_txt:
-                            su += "s=" + inv[-1].src_evt_txt + "(" + inv[-1].src_occ_txt + ")"
-                        if "" != inv[-1].user_evt_txt:
-                            su += "u=" + inv[-1].user_evt_txt + "(" + inv[-1].user_occ_txt + ")"
-                        if inv[-1].Type == "EINV":
-                            einv = "einv:" + inv[-1].Name + "-" + su
-                        elif inv[-1].Type == "IINV":
-                            iinv = "iinv:" + inv[-1].Name + "-" + su
-                        else:
-                            print( "ERROR:  malformed invariant type" )
-                            sys.exit()
-                    prev_aes = "    "
-                    delim = ""
-                    for prev_ae in ae.previous_events:
-                        prev_aes = ( prev_aes + delim + prev_ae.previous_event.EventName +
-                                     "(" + prev_ae.previous_event.OccurrenceId + ")" +
-                                     prev_ae.ConstraintDefinitionId + prev_ae.ConstraintValue
-                                   )
-                        delim = ","
-                    print( f'{ae.EventName+"("+ae.OccurrenceId+")":{AuditEvent.c_longest_name_length+3}}',
-                       f'{ss:{5}}', f'{se:{3}}', b, prev_aes, bcnt, mcnt, lcnt, einv, iinv )
-    def play(self, pretty):
-        """interpret the job"""
-        if pretty:
-            print( "job:", self.JobDefinitionName )
-        else:
-            json = "{ \"SpecUpdateRate\": \"PT2M\","
-            json += "\"MaxOutOfSequenceEvents\": 10,"
-            json += "\"MaximumJobTime\": \"PT10M\","
-            json += "\"JobCompletePeriod\": \"PT24H\","
-            json += "\"Jobs\": [\n"
-            json += "{ \"JobDefinitionName\": " + self.JobDefinitionName + ","
-            json += "\"JobDeprecated\": false,"
-            json += "\"JobTypeExpiryDate\": \"2022-04-11T18:08:00Z\","
-            json += "\"StaleAuditEventDuration\": \"P99W\","
-            json += "\"BlockedAuditEventDuration\": \"PT5M\","
-            json += "\n\"EventRules\": [\n"
-            print( json )
-        for seq in self.sequences:
-            seq.play(pretty)
-        if not pretty:
-            print( "\n]}]}\n" )
 
-class SequenceDefn:
+class SequenceDefn( SequenceDefn_AEO, SequenceDefn_JSON, SequenceDefn_play, SequenceDefn_print ):
     """PLUS Sequence Definition"""
     instances = []
     c_current_sequence = None                              # set at creation, emptied at exit
@@ -168,19 +43,11 @@ class SequenceDefn:
                                                            # ... and by any event preceded by HIDE
         SequenceDefn.c_current_sequence = self
         SequenceDefn.instances.append(self)
-    def play(self, pretty):
-        """interpret the sequence"""
-        if pretty:
-            print( "seq:", self.SequenceName )
-        for start_event in self.start_events:
-            start_event.play(pretty, "")
 
-class AuditEvent:
+class AuditEvent( AuditEvent_AEO, AuditEvent_JSON, AuditEvent_play, AuditEvent_print ):
     """PLUS Audit Event Definition"""
     instances = []
     ApplicationName = "default"                            # not presently used
-    BlockedAuditEventDuration = "PT1H"                     # default for AE Simulator
-    StaleAuditEventDuration = "PT2H"                       # default for AE Simulator
     c_current_event = None                                 # set at creation, reset at sequence exit
     c_longest_name_length = 0                              # Keep longest name length for pretty printing.
     def __init__(self, name, occurrence):
@@ -204,15 +71,17 @@ class AuditEvent:
         if not self.sequence.start_events:                 # ... or when no starting event, yet
             self.sequence.start_events.append( self )
             self.SequenceStart = True
+        # Interpret/play variables.
+        self.visit_count = 0
         self.previous_events = []                          # extended at creation when c_current_event exists
                                                            # emptied at sequence exit
-        if Fork.instances:                                # get fork, split or if previous event
+        if Fork.instances:                                 # get fork, split or if previous event
             if Fork.instances[-1].fork_point_usage:
                 self.previous_events.append( Fork.instances[-1].fork_point_usage )
                 Fork.instances[-1].fork_point_usage = None
-            if Fork.instances[-1].merge_usage:            # get merge previous events
+            if Fork.instances[-1].merge_usage:             # get merge previous events
                 self.previous_events.extend( Fork.instances[-1].merge_usage )
-                Fork.instances.pop()                      # done with this Fork
+                Fork.instances.pop()                       # done with this Fork
         if AuditEvent.c_current_event:
             self.previous_events.append( PreviousAuditEvent( AuditEvent.c_current_event ) )
             AuditEvent.c_current_event = None
@@ -220,85 +89,11 @@ class AuditEvent:
         # if it exists but has no starting event, add this one
         if Loop.instances and not Loop.instances[-1].start_event:
             Loop.instances[-1].start_event = self
-        # Interpret/play variables.
-        self.visit_count = 0
         AuditEvent.c_current_event = self
         AuditEvent.instances.append(self)
-    def play(self, pretty, delim):
-        """interpret the event"""
-        self.visit_count += 1
-        next_aes = []
-        eligible_next_aes = []
-        xor_included = False
-        ior_included = False # TODO:  need to select at least one
-        # Find the next event(s) to play if they exist.
-        # This requires collecting all events in the sequence that carry this event (self)
-        # as a previous event.  The list needs to be reduced based upon the following rules:
-        # (Note that contraints may be marked on the edges leading to next events.)
-        #   default:  If there is only one next event with no constraints on the edge, play it.
-        #   XOR:  for next events with XOR on the edge, select only one.
-        #   IOR:  for next events with IOR on the edge, select only one.
-        #   AND:  for next events with AND on the edge, select all of them.
-        #   loop:  for exactly 2 next events with one of them having a lower index, prefer
-        #          the lower index event (loop back) until a count has reached a threshold,
-        #          then select the event following the loop.
-        for next_ae in self.sequence.audit_events:
-            paes = [pae for pae in next_ae.previous_events if pae.previous_event is self]
-            if paes:
-                eligible_next_aes.append( next_ae )
-        # loop detection
-        if len( eligible_next_aes ) == 2:
-            if AuditEvent.instances.index( eligible_next_aes[0] ) < AuditEvent.instances.index( self ):
-                # loop detected in 0 event
-                if self.visit_count < 4:
-                    # Loop back by selecting the lower index event.  Clear the go forward event.
-                    eligible_next_aes.remove( eligible_next_aes[1] )
-                else:
-                    # Carry on.
-                    eligible_next_aes.remove( eligible_next_aes[0] )
-            elif AuditEvent.instances.index( eligible_next_aes[1] ) < AuditEvent.instances.index( self ):
-                # loop detected in 1 event
-                if self.visit_count < 4:
-                    # Loop back by selecting the lower index event.  Clear the go forward event.
-                    eligible_next_aes.remove( eligible_next_aes[0] )
-                else:
-                    # Carry on.
-                    eligible_next_aes.remove( eligible_next_aes[1] )
-        for next_ae in eligible_next_aes:
-            paes = [pae for pae in next_ae.previous_events if pae.previous_event is self]
-            if paes:
-                for pae in paes:
-                    # Check AND, IOR, XOR edges on the paes.
-                    if "AND" == pae.ConstraintValue:
-                        next_aes.append( next_ae )
-                    elif not xor_included and "XOR" == pae.ConstraintValue:
-                        next_aes.append( next_ae )
-                        xor_included = True
-                    elif not ior_included and "IOR" == pae.ConstraintValue:
-                        next_aes.append( next_ae )
-                        ior_included = True
-                    elif "" == pae.ConstraintValue:
-                        next_aes.append( next_ae )
-        # Give some indication that we are forking.
-        fork_count = len( next_aes )
-        fork_text = "" if fork_count < 2 else "f" + str( fork_count )
-        if pretty:
-            print( self.EventName,
-                   "[" + str( self.visit_count ) + "]" if self.visit_count > 1 else "",
-                   fork_text )
-        else:
-            json = delim + "{ \"EventName\": \"" + self.EventName + "\","
-            json += "\"OccurrenceId\": " + str( self.OccurrenceId ) + ","
-            json += "\"ApplicationName\": \"" + AuditEvent.ApplicationName + "\","
-            json += "\"BlockedAuditEventDuration\": \"" + AuditEvent.BlockedAuditEventDuration + "\","
-            json += "\"StaleAuditEventDuration\": \"" + AuditEvent.StaleAuditEventDuration + "\""
-            json += "}"
-            print( json )
-        for ae in next_aes:
-            ae.play(pretty, ",")
 
 # A previous audit event contains a reference to the previous event
-# but may also contain attributes that decorate the "edge" from the
+# but also contains attributes that decorate the "edge" from the
 # previous event to the current event.
 class PreviousAuditEvent:
     """PreviousAuditEvents are instances pointing to an AuditEvent"""

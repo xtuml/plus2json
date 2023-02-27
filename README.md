@@ -38,7 +38,8 @@ python plus2json.pyz j.puml --job | python -m json.tool   # format output JSON
 
 src/plus2json.g4 - anltr4 grammar for PLUS
 src/plus2son_run.py - source for the tree walker listener JSON generator
-src/plus_job_defn.py - data model for the job definition with output routines
+src/plus_job_defn.py - data model for the job definition
+src/plus_job_defn_*.py - "mixin" classes to supply output routines
 src/__main__.py
 bin/plus2json.pyz - Python 3 executable with dependencies included
 
