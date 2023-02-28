@@ -11,25 +11,26 @@ pip install plus2json
 ```
 Usage
 =====
-  python plus2json.pyz <PLUS PlantUML file> [options]
+  python3 plus2json.pyz <PLUS PlantUML file> [options]
 
   With no options, plus2json will check the syntax of the input PlantUML file.
 
 Options
 =======
 --help, -h               show this help message and exit
---job, -j                output PLUS Job Definition (JSON)      default: off
---audit_event_data, -d   output PLUS audit event data           default: off
---play                   interpret the job and produce events   default: off
---print, -p              print human readable output            default: off
-```
+--job, -j                output PLUS Job Definition (JSON)
+--audit_event_data, -d   output PLUS audit event data (JSON)
+--play                   interpret the job and produce events
+--aeo_config             output AEOrdering config.json (JSON)
+--aesim_config           output AESimulator config JSON when combined with --play
+--print, -p              pretty print human readable output
 
-Example:
+Examples:
 
-```
 python plus2json.pyz Tutorial_1.puml --job                # convert Tutorial_1.puml into JSON
 python plus2json.pyz Tutorial_13.puml -d                  # produce audit event data definition as JSON
 python plus2json.pyz myjobdefn.puml --play                # interpret the job producing event instances
+python plus2json.pyz myjobdefn.puml --play --aesim_config # produce a valid AESimulator sequence
 python -m plus2json Tutorial_1.puml --job -p              # show job in human readable view
 python plus2json.pyz j.puml --job | python -m json.tool   # format output JSON
 ```
@@ -38,7 +39,8 @@ python plus2json.pyz j.puml --job | python -m json.tool   # format output JSON
 
 src/plus2json.g4 - anltr4 grammar for PLUS
 src/plus2son_run.py - source for the tree walker listener JSON generator
-src/plus_job_defn.py - data model for the job definition with output routines
+src/plus_job_defn.py - data model for the job definition
+src/plus_job_defn_*.py - "mixin" classes to supply output routines
 src/__main__.py
 bin/plus2json.pyz - Python 3 executable with dependencies included
 

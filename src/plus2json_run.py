@@ -92,7 +92,7 @@ class plus2json_run(plus2jsonListener):
         # the invariant parameters.
         name = ctx.invname.getText()
         invariant = None
-        invariants = [inv for inv in Invariant.population if inv.Name == name]
+        invariants = [inv for inv in Invariant.instances if inv.Name == name]
         if invariants:
             invariant = invariants[-1]
         else:
@@ -134,43 +134,43 @@ class plus2json_run(plus2jsonListener):
         f.begin()
 
     def enterElseif(self, ctx:plus2jsonParser.ElseifContext):
-        Fork.population[-1].again()
+        Fork.instances[-1].again()
 
     def enterElse(self, ctx:plus2jsonParser.ElseContext):
-        Fork.population[-1].again()
+        Fork.instances[-1].again()
 
     def exitIf(self, ctx:plus2jsonParser.IfContext):
-        Fork.population[-1].end()
+        Fork.instances[-1].end()
 
     def enterSwitch(self, ctx:plus2jsonParser.SwitchContext):
         f = Fork("XOR")
         f.begin()
 
     def enterCase(self, ctx:plus2jsonParser.CaseContext):
-        Fork.population[-1].again()
+        Fork.instances[-1].again()
 
     def exitSwitch(self, ctx:plus2jsonParser.SwitchContext):
-        Fork.population[-1].end()
+        Fork.instances[-1].end()
 
     def enterFork(self, ctx:plus2jsonParser.ForkContext):
         f = Fork("AND")
         f.begin()
 
     def enterFork_again(self, ctx:plus2jsonParser.Fork_againContext):
-        Fork.population[-1].again()
+        Fork.instances[-1].again()
 
     def exitFork(self, ctx:plus2jsonParser.ForkContext):
-        Fork.population[-1].end()
+        Fork.instances[-1].end()
 
     def enterSplit(self, ctx:plus2jsonParser.SplitContext):
         f = Fork("IOR")
         f.begin()
 
     def enterSplit_again(self, ctx:plus2jsonParser.Split_againContext):
-        Fork.population[-1].again()
+        Fork.instances[-1].again()
 
     def exitSplit(self, ctx:plus2jsonParser.SplitContext):
-        Fork.population[-1].end()
+        Fork.instances[-1].end()
 
     def enterLoop(self, ctx:plus2jsonParser.LoopContext):
         Loop()
@@ -178,15 +178,15 @@ class plus2json_run(plus2jsonListener):
     # Link the last event in the loop as a previous event to the first event in the loop.
     def exitLoop(self, ctx:plus2jsonParser.LoopContext):
         if AuditEvent.c_current_event: # We may be following a fork/merge.
-            Loop.population[-1].start_event.previous_events.append( PreviousAuditEvent( AuditEvent.c_current_event ) )
+            Loop.instances[-1].start_event.previous_events.append( PreviousAuditEvent( AuditEvent.c_current_event ) )
         else:
             # ended the loop with a merge
-            if Fork.population[-1].merge_usage:
-                for mu_pe in Fork.population[-1].merge_usage:
+            if Fork.instances[-1].merge_usage:
+                for mu_pe in Fork.instances[-1].merge_usage:
                     # omit break events
                     if not mu_pe.previous_event.isBreak:
-                        Loop.population[-1].start_event.previous_events.append( mu_pe )
-        Loop.population.pop()
+                        Loop.instances[-1].start_event.previous_events.append( mu_pe )
+        Loop.instances.pop()
 
     def exitJob_defn(self, ctx:plus2jsonParser.Job_defnContext):
         # Resolve the linkage between audit events using name and occurrence.
