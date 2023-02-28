@@ -48,7 +48,7 @@ class SequenceDefn( SequenceDefn_AEO, SequenceDefn_JSON, SequenceDefn_play, Sequ
 class AuditEvent( AuditEvent_AEO, AuditEvent_JSON, AuditEvent_play, AuditEvent_print, AuditEvent_AESim ):
     """PLUS Audit Event Definition"""
     instances = []
-    ApplicationName = "default"                            # not presently used
+    ApplicationName = "default_application_name"           # not presently used
     c_current_event = None                                 # set at creation, reset at sequence exit
     c_longest_name_length = 0                              # Keep longest name length for pretty printing.
     def __init__(self, name, occurrence):
