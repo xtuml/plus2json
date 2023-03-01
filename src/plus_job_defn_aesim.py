@@ -28,16 +28,42 @@ class AuditEvent_AESim:
     """AESim methods Audit Event Definition"""
     DispatchDelay = "PT0S"                                 # default for AE Simulator
     NodeName = "default_node_name"                         # default for AE Simulator
-    def aesim_config(self, delim):
+    def aesim_config( self, delim ):
         """output AEOrdering config.json"""
-        # Calculate a small but unique number of event ID.
-        # TODO - store this for reference as previous event
-        event_id = 10 * ( plus_job_defn.AuditEvent.instances.index( self ) + 1 ) + self.visit_count
-        json = delim + "{ \"EventId\": \"" + str( event_id ) + "\","
+        json = delim + "{ \"EventId\": \"" + str( self.eventId ) + "\","
+        # Link to previous event if not starting a sequence.
+        if self.previousEventIds:
+            json += "\"PreviousEventId\": \"" + str( self.previousEventIds[-1] ) + "\","
         json += "\"EventName\": \"" + self.EventName + "\","
-        json += "\"NodeName\": \"" + AuditEvent_AESim.NodeName + "\","
         json += "\"SequenceStart\": "
         json += "\"true\"," if self.SequenceStart else "\"false\","
+        # look for linked Invariant
+        event_data = ""
+        delim = ""
+        inv = [inv for inv in plus_job_defn.Invariant.instances if inv.source_event is self]
+        if inv:
+            value = (
+                inv[-1].Type + "s-" + inv[-1].src_evt_txt +
+                "(" + inv[-1].src_occ_txt + ")" +
+                "u-" + inv[-1].user_evt_txt +
+                "(" + inv[-1].user_occ_txt + ")"
+            )
+            name = inv[-1].Name
+            event_data += "{ \"DataName\": \"" + name + "\", \"DataValue\": \"" + value + "\"}"
+            delim = ","
+        inv = [inv for inv in plus_job_defn.Invariant.instances if self in inv.user_events]
+        if inv:
+            value = (
+                inv[-1].Type + "s-" + inv[-1].src_evt_txt +
+                "(" + inv[-1].src_occ_txt + ")" +
+                "u-" + inv[-1].user_evt_txt +
+                "(" + inv[-1].user_occ_txt + ")"
+            )
+            name = inv[-1].Name
+            event_data += delim + "{ \"DataName\": \"" + name + "\", \"DataValue\": \"" + value + "\"}"
+        if "" != event_data:
+            json += "\"EventData\": [" + event_data + "],"
+        json += "\"NodeName\": \"" + AuditEvent_AESim.NodeName + "\","
         json += "\"ApplicationName\": \"" + plus_job_defn.AuditEvent.ApplicationName + "\""
         json += "}"
         print( json )
