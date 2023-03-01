@@ -28,17 +28,12 @@ class AuditEvent_AESim:
     """AESim methods Audit Event Definition"""
     DispatchDelay = "PT0S"                                 # default for AE Simulator
     NodeName = "default_node_name"                         # default for AE Simulator
-    PreviousEventId = 0                                    # cache previous event Id here
-    def aesim_config(self, delim):
+    def aesim_config( self, delim ):
         """output AEOrdering config.json"""
-        # Calculate a small but unique number of event ID.
-        # Actually, start by simply counting up.
-        #event_id = str( 10 * ( plus_job_defn.AuditEvent.instances.index( self ) + 1 ) + self.visit_count )
-        event_id = AuditEvent_AESim.PreviousEventId + 1
-        json = delim + "{ \"EventId\": \"" + str( event_id ) + "\","
+        json = delim + "{ \"EventId\": \"" + str( self.eventId ) + "\","
         # Link to previous event if not starting a sequence.
-        if not self.SequenceStart:
-            json += "\"PreviousEventId\": \"" + str( AuditEvent_AESim.PreviousEventId ) + "\","
+        if self.previousEventIds:
+            json += "\"PreviousEventId\": \"" + str( self.previousEventIds[-1] ) + "\","
         json += "\"EventName\": \"" + self.EventName + "\","
         json += "\"SequenceStart\": "
         json += "\"true\"," if self.SequenceStart else "\"false\","
@@ -72,4 +67,3 @@ class AuditEvent_AESim:
         json += "\"ApplicationName\": \"" + plus_job_defn.AuditEvent.ApplicationName + "\""
         json += "}"
         print( json )
-        AuditEvent_AESim.PreviousEventId = event_id

@@ -9,7 +9,7 @@ partition "Incl OR Fork" {
 group "Incl OR Fork"
       #green:A;
       :B;
-  if (IOR) then ("optional branch name") 
+  split 
       :C;
       :E;
       :F;
@@ -17,10 +17,10 @@ group "Incl OR Fork"
       :K;
       #red:L;
       detach
-  else ("other optional branch name")
+  split again
       #red:D;
       detach
-  endif
+  end split
 end group
 }      
 @enduml
