@@ -66,6 +66,8 @@ python ../src/__main__.py Tutorial_1.puml --job -p        # run from the raw sou
             JobDefn.instances[-1].play("")
     elif "--aeo_config" in sys.argv:
         JobDefn.instances[-1].aeo_config()
+    elif 2 == len( argv ):
+        print( "syntax check complete" )
     else:
         main( "--help" )
 
