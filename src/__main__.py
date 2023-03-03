@@ -65,7 +65,13 @@ python ../src/__main__.py Tutorial_1.puml --job -p        # run from the raw sou
         else:
             JobDefn.instances[-1].play("")
     elif "--aeo_config" in sys.argv:
-        JobDefn.instances[-1].aeo_config()
+        json = JobDefn.aeo_config_all()
+        outfile = None
+        if "--outdir" in sys.argv:
+            outdir = sys.argv[ sys.argv.index( "--outdir" ) + 1 ]
+            outfile = outdir + "/" + "config.json"
+        f = open( outfile, 'w') if outfile else sys.stdout
+        print( json, file=f )
     elif 2 == len( argv ):
         print( "syntax check complete" )
     else:

@@ -13,44 +13,60 @@ import plus_job_defn
 
 class JobDefn_AEO:
     """AEO methods for JobDefn"""
-    def aeo_config(self):
+    @classmethod
+    def aeo_config_all(cls):
         """output AEOrdering config.json"""
-        json = "{ \"SpecUpdateRate\": \"PT2M\","
-        json += "\"MaxOutOfSequenceEvents\": 10,"
-        json += "\"MaximumJobTime\": \"PT10M\","
-        json += "\"JobCompletePeriod\": \"PT24H\","
-        json += "\"Jobs\": [\n"
-        json += "{ \"JobDefinitionName\": " + self.JobDefinitionName + ","
-        json += "\"JobDeprecated\": false,"
-        json += "\"JobTypeExpiryDate\": \"2022-04-11T18:08:00Z\","
-        json += "\"StaleAuditEventDuration\": \"P99W\","
-        json += "\"BlockedAuditEventDuration\": \"PT5M\","
-        json += "\n\"EventRules\": [\n"
-        print( json )
+        j = """
+        { "SpecUpdateRate": "PT2M",
+          "MaxOutOfSequenceEvents": 10,
+          "MaximumJobTime": "PT10M",
+          "JobCompletePeriod": "PT24H",
+          "IncomingDirectory": "incoming",
+          "ProcessingDirectory": "processing",
+          "ProcessedDirectory": "processed",
+          "EventThrottleRate": "PT0S",
+          "ReceptionDeletionTime": "PT10M",
+          "ConcurrentReceptionLimit": 1,
+          "JobStoreLocation": "./JobIdStore",
+          "JobStoreAgeLimit": "P7D",
+          "InvariantStoreLoadRate": "PT2M",
+          "Jobs": [
+        """
+        for job_defn in plus_job_defn.JobDefn.instances:
+            j += job_defn.aeo_config()
+        j += "]}"
+        return j
+    def aeo_config(self):
+        """output AEOrdering json"""
+        j = '{ "JobDefinitionName": ' + self.JobDefinitionName + "," + """
+                "JobDeprecated": false,
+                "JobTypeExpiryDate": "2022-04-11T18:08:00Z",
+                "StaleAuditEventDuration": "P99W",
+                "BlockedAuditEventDuration": "PT5M",
+                "EventRules": [
+               """
         for seq in self.sequences:
-            seq.aeo_config()
-        json = "\n]}]}\n"
-        print( json )
+            j += seq.aeo_config()
+        j += ']}'
+        return j
 
 class SequenceDefn_AEO:
     """AEO methods for Sequence Definition"""
     def aeo_config(self):
-        """output AEOrdering config.json"""
-        delim = ""
-        for ae in self.audit_events:
-            ae.aeo_config( delim )
-            delim = ","
+        """output Sequence AEOrdering json"""
+        # Generate only a single event with default parameters.  The user can duplicate to make more.
+        return self.start_events[0].aeo_config( "" )
 
 class AuditEvent_AEO:
     """AEO methods Audit Event Definition"""
     BlockedAuditEventDuration = "PT1H"                     # default for AEO
     StaleAuditEventDuration = "PT2H"                       # default for AEO
     def aeo_config(self, delim):
-        """output AEOrdering config.json"""
-        json = delim + "{ \"EventName\": \"" + self.EventName + "\","
-        json += "\"OccurrenceId\": " + str( self.OccurrenceId ) + ","
-        json += "\"ApplicationName\": \"" + plus_job_defn.AuditEvent.ApplicationName + "\","
-        json += "\"BlockedAuditEventDuration\": \"" + AuditEvent_AEO.BlockedAuditEventDuration + "\","
-        json += "\"StaleAuditEventDuration\": \"" + AuditEvent_AEO.StaleAuditEventDuration + "\""
-        json += "}"
-        print( json )
+        """output AuditEvent AEOrdering json"""
+        j = delim + '{ "EventName": "' + self.EventName + '",'
+        j += '"OccurrenceId": ' + str( self.OccurrenceId ) + ','
+        j += '"ApplicationName": "' + plus_job_defn.AuditEvent.ApplicationName + '",'
+        j += '"BlockedAuditEventDuration": "' + AuditEvent_AEO.BlockedAuditEventDuration + '",'
+        j += '"StaleAuditEventDuration": "' + AuditEvent_AEO.StaleAuditEventDuration + '"'
+        j += '}'
+        return j
