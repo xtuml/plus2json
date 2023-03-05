@@ -38,7 +38,7 @@ class JobDefn_AEO:
         return j
     def aeo_config(self):
         """output AEOrdering json"""
-        j = '{ "JobDefinitionName": ' + self.JobDefinitionName + "," + """
+        j = '{ "JobDefinitionName": "' + self.JobDefinitionName + '",' + """
                 "JobDeprecated": false,
                 "JobTypeExpiryDate": "2022-04-11T18:08:00Z",
                 "StaleAuditEventDuration": "P99W",

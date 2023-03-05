@@ -20,28 +20,28 @@ class JobDefn_play:
     """Play Job Definition"""
     def play(self, flavor):
         """interpret the job"""
-        json = ""
-        if "pretty" == flavor:
-            print( "job:", self.JobDefinitionName )
-        elif "aesim" == flavor:
-            json = self.aesim_config()
+        j = ''
+        if 'pretty' == flavor:
+            print( 'job:', self.JobDefinitionName )
+        elif 'aesim' == flavor:
+            print( self.aesim_config_begin() )
         else:
-            print( "[" )
+            print( '[' )
         # Play out the sequences.
         for seq in self.sequences:
             seq.play( flavor, self )
-        if "pretty" == flavor:
-            print( json ) # NOP
-        elif "aesim" == flavor:
-            print( json )
+        if 'pretty' == flavor:
+            print( j ) # NOP
+        elif 'aesim' == flavor:
+            print( self.aesim_config_end() )
         else:
-            print( "]" )
+            print( ']' )
 
 class SequenceDefn_play:
     def play( self, flavor, job_defn ):
         """interpret the sequence"""
-        if "pretty" == flavor:
-            print( "seq:", self.SequenceName )
+        if 'pretty' == flavor:
+            print( 'seq:', self.SequenceName )
         for start_event in self.start_events:
             start_event.play( flavor, "", job_defn, None )
 
@@ -65,7 +65,7 @@ class AuditEvent_play:
         self.previousEventIds.append( previous_event_id )
         # TODO:  Detect a merge point and pass until the branches have completed.
         # Recursively traverse prevs to see if there is an AND constraint.
-        if len( self.previous_events ) > len( self.previousEventIds ) and self.drill_back_for_constraint_type() == "AND":
+        if len( self.previous_events ) > len( self.previousEventIds ) and self.drill_back_for_constraint_type() == 'AND':
             return
         self.visit_count += 1
         AuditEvent_play.idFactory += 1
@@ -112,37 +112,37 @@ class AuditEvent_play:
             if paes:
                 for pae in paes:
                     # Check AND, IOR, XOR edges on the paes.
-                    if "AND" == pae.ConstraintValue:
+                    if 'AND' == pae.ConstraintValue:
                         next_aes.append( next_ae )
-                    elif not xor_included and "XOR" == pae.ConstraintValue:
+                    elif not xor_included and 'XOR' == pae.ConstraintValue:
                         next_aes.append( next_ae )
                         xor_included = True
-                    elif not ior_included and "IOR" == pae.ConstraintValue:
+                    elif not ior_included and 'IOR' == pae.ConstraintValue:
                         next_aes.append( next_ae )
                         ior_included = True
                     elif "" == pae.ConstraintValue:
                         next_aes.append( next_ae )
         # Give some indication that we are forking.
         fork_count = len( next_aes )
-        fork_text = "" if fork_count < 2 else "f" + str( fork_count )
-        if "pretty" == flavor:
+        fork_text = "" if fork_count < 2 else 'f' + str( fork_count )
+        if 'pretty' == flavor:
             print( self.EventName,
-                   "[" + str( self.visit_count ) + "]" if self.visit_count > 1 else "",
+                   '[' + str( self.visit_count ) + ']' if self.visit_count > 1 else "",
                    fork_text )
-        elif "aesim" == flavor:
-            self.aesim_config( delim )
+        elif 'aesim' == flavor:
+            print( self.aesim_config( delim ) )
         else:
             # TODO - This is a start at actually simulating audit events.
-            json = delim + "{"
-            json += "\"jobName\": " + job_defn.JobDefinitionName + ","
-            json += "\"jobId\": \"" + "job UUID here" + "\","
-            json += "\"eventType\": \"" + self.EventName + "\","
-            json += "\"eventId\": \"" + str( self.eventId ) + " event UUID here" + "\","
+            j = delim + '{'
+            j += '"jobName": "' + job_defn.JobDefinitionName + '",'
+            j += '"jobId": "' + 'job UUID here' + '",'
+            j += '"eventType": "' + self.EventName + '",'
+            j += '"eventId": "' + str( self.eventId ) + ' event UUID here' + '",'
             if self.previousEventIds:
-                json += "\"previousEventIds\": \"" + str( self.previousEventIds[-1] ) + " prev UUID here" + "\","
-            json += "\"timestamp\": \"" + "{:%Y-%m-%dT%H:%M:%SZ}".format(datetime.datetime.now()) + "\","
-            json += "\"applicationName\": \"" + plus_job_defn.AuditEvent.ApplicationName + "\""
-            json += "}"
-            print( json )
+                j += '"previousEventIds": "' + str( self.previousEventIds[-1] ) + ' prev UUID here' + '",'
+            j += '"timestamp": "' + '{:%Y-%m-%dT%H:%M:%SZ}'.format(datetime.datetime.now()) + '",'
+            j += '"applicationName": "' + plus_job_defn.AuditEvent.ApplicationName + '"'
+            j += '}'
+            print( j )
         for ae in next_aes:
             ae.play( flavor, ",", job_defn, self.eventId )
