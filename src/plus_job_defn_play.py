@@ -20,30 +20,40 @@ class JobDefn_play:
     """Play Job Definition"""
     def play(self, flavor):
         """interpret the job"""
-        j = ''
+        j = ""
         if 'pretty' == flavor:
-            print( 'job:', self.JobDefinitionName )
+            j += 'job:' + self.JobDefinitionName + '\n'
         elif 'aesim' == flavor:
-            print( self.aesim_config_begin() )
+            j += self.aesim_config_begin()
+        elif 'aestest' == flavor:
+            j += plus_job_defn.JobDefn.aesim_test_header()
+            j += self.aesim_test()
         else:
-            print( '[' )
+            j += '[' # event instances
         # Play out the sequences.
         for seq in self.sequences:
-            seq.play( flavor, self )
+            j += seq.play( flavor, self )
         if 'pretty' == flavor:
-            print( j ) # NOP
+            j = j # NOP
         elif 'aesim' == flavor:
-            print( self.aesim_config_end() )
+            j += self.aesim_config_end()
+        elif 'aestest' == flavor:
+            j += plus_job_defn.JobDefn.aesim_test_footer()
         else:
-            print( ']' )
+            j += ']' # event instances
+        return j
 
 class SequenceDefn_play:
     def play( self, flavor, job_defn ):
         """interpret the sequence"""
+        j = ""
         if 'pretty' == flavor:
-            print( 'seq:', self.SequenceName )
+            j += 'seq:' + self.SequenceName + '\n'
         for start_event in self.start_events:
-            start_event.play( flavor, "", job_defn, None )
+            j += start_event.play( flavor, "", job_defn, None )
+        if 'aestest' == flavor:
+            j += '"'
+        return j
 
 class AuditEvent_play:
     idFactory = 0
@@ -66,7 +76,7 @@ class AuditEvent_play:
         # TODO:  Detect a merge point and pass until the branches have completed.
         # Recursively traverse prevs to see if there is an AND constraint.
         if len( self.previous_events ) > len( self.previousEventIds ) and self.drill_back_for_constraint_type() == 'AND':
-            return
+            return ""
         self.visit_count += 1
         AuditEvent_play.idFactory += 1
         self.eventId = AuditEvent_play.idFactory
@@ -122,18 +132,20 @@ class AuditEvent_play:
                         ior_included = True
                     elif "" == pae.ConstraintValue:
                         next_aes.append( next_ae )
+        j = ""
         # Give some indication that we are forking.
         fork_count = len( next_aes )
         fork_text = "" if fork_count < 2 else 'f' + str( fork_count )
         if 'pretty' == flavor:
-            print( self.EventName,
-                   '[' + str( self.visit_count ) + ']' if self.visit_count > 1 else "",
-                   fork_text )
+            visit_count_string = '[' + str( self.visit_count ) + ']' if self.visit_count > 1 else ""
+            j += self.EventName + " " +  visit_count_string + fork_text + '\n'
         elif 'aesim' == flavor:
-            print( self.aesim_config( delim ) )
+            j += self.aesim_config( delim )
+        elif 'aestest' == flavor:
+            j += self.aesim_test( delim )
         else:
             # TODO - This is a start at actually simulating audit events.
-            j = delim + '{'
+            j += delim + '{'
             j += '"jobName": "' + job_defn.JobDefinitionName + '",'
             j += '"jobId": "' + 'job UUID here' + '",'
             j += '"eventType": "' + self.EventName + '",'
@@ -143,6 +155,6 @@ class AuditEvent_play:
             j += '"timestamp": "' + '{:%Y-%m-%dT%H:%M:%SZ}'.format(datetime.datetime.now()) + '",'
             j += '"applicationName": "' + plus_job_defn.AuditEvent.ApplicationName + '"'
             j += '}'
-            print( j )
         for ae in next_aes:
-            ae.play( flavor, ",", job_defn, self.eventId )
+            j += ae.play( flavor, ",", job_defn, self.eventId )
+        return j

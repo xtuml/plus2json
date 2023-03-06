@@ -12,7 +12,7 @@ import plus_job_defn
 class JobDefn_AEStest:
     """AEStest methods for JobDefn"""
     @classmethod
-    def aesim_test_all(cls):
+    def aesim_test_header(cls):
         """output AEStest JSON"""
         j = """
         { "OneFilePerJob" : "true",
@@ -28,9 +28,10 @@ class JobDefn_AEStest:
               "TestFrequency" : "PT1S",
               "TestJobSpec" : [{
         """
-        for job_defn in plus_job_defn.JobDefn.instances:
-            j += job_defn.aesim_test()
-        j += '}]'
+        return j
+    @classmethod
+    def aesim_test_footer(cls):
+        j = '}]'
         j += '}]'
         j += '}'
         return j
@@ -38,11 +39,6 @@ class JobDefn_AEStest:
         """output AEStest JSON"""
         j = '"TestJobSpecName" : "' + self.JobDefinitionName + '",'
         j += '"EventDispatchOrder" : "'
-        seqdelim = ""
-        for seq in self.sequences:
-            j += seq.aesim_test( seqdelim )
-            seqdelim = ',' 
-        j += '"'
         return j
 
 class SequenceDefn_AEStest:
