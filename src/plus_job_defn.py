@@ -10,6 +10,7 @@ from plus_job_defn_json import *
 from plus_job_defn_play import *
 from plus_job_defn_print import *
 from plus_job_defn_aesim import *
+from plus_job_defn_aesim_test import *
 
 # TODO
 # Deal with merge-in-merge with no event in between.  This may require joining 2 merge usages.
@@ -20,7 +21,7 @@ from plus_job_defn_aesim import *
 # classes that provide methods for various forms of output.  This is a "mixin" pattern,
 # which allows cohesive packaging of special-purpose output routines in one file each.
 
-class JobDefn( JobDefn_AEO, JobDefn_JSON, JobDefn_play, JobDefn_print, JobDefn_AESim ):
+class JobDefn( JobDefn_AEO, JobDefn_JSON, JobDefn_play, JobDefn_print, JobDefn_AESim, JobDefn_AEStest ):
     """PLUS Job Definition"""
     instances = []                                         # instance population (pattern for all)
     def __init__(self, name):
@@ -28,7 +29,7 @@ class JobDefn( JobDefn_AEO, JobDefn_JSON, JobDefn_play, JobDefn_print, JobDefn_A
         self.sequences = []                                # job may contain multiple peer sequences
         JobDefn.instances.append(self)
 
-class SequenceDefn( SequenceDefn_AEO, SequenceDefn_JSON, SequenceDefn_play, SequenceDefn_print, SequenceDefn_AESim ):
+class SequenceDefn( SequenceDefn_AEO, SequenceDefn_JSON, SequenceDefn_play, SequenceDefn_print, SequenceDefn_AESim, SequenceDefn_AEStest ):
     """PLUS Sequence Definition"""
     instances = []
     c_current_sequence = None                              # set at creation, emptied at exit
@@ -45,7 +46,7 @@ class SequenceDefn( SequenceDefn_AEO, SequenceDefn_JSON, SequenceDefn_play, Sequ
         SequenceDefn.c_current_sequence = self
         SequenceDefn.instances.append(self)
 
-class AuditEvent( AuditEvent_AEO, AuditEvent_JSON, AuditEvent_play, AuditEvent_print, AuditEvent_AESim ):
+class AuditEvent( AuditEvent_AEO, AuditEvent_JSON, AuditEvent_play, AuditEvent_print, AuditEvent_AESim, AuditEvent_AEStest ):
     """PLUS Audit Event Definition"""
     instances = []
     ApplicationName = "default_application_name"           # not presently used

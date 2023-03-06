@@ -17,7 +17,7 @@ from plus_job_defn import *
 class plus2json_run(plus2jsonListener):
     """extension to tree-walker/listener for PLUS grammar"""
     def exitJob_name(self, ctx:plus2jsonParser.Job_nameContext):
-        JobDefn(ctx.identifier().getText())
+        JobDefn(ctx.identifier().getText().strip('"')) # job name is double-quoted
 
     def exitSequence_name(self, ctx:plus2jsonParser.Sequence_nameContext):
         SequenceDefn(ctx.identifier().getText())

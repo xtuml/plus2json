@@ -21,6 +21,7 @@ job definitions formatted as JSON.
  --audit_event_data, -d   output PLUS audit event data (JSON)
  --play                   interpret the job and produce events
  --aeo_config             output AEOrdering config.json (JSON)
+ --aesim_test             output AESimulator scenario dispatch JSON with --play
  --aesim_config           output AESimulator config JSON when combined with --play
  --print, -p              pretty print human readable output
 

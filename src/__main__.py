@@ -23,6 +23,7 @@ Options
 --audit_event_data, -d   output PLUS audit event data (JSON)
 --play                   interpret the job and produce events
 --aeo_config             output AEOrdering config.json (JSON)
+--aesim_test             output AESimulator scenario dispatch JSON with --play
 --aesim_config           output AESimulator config JSON when combined with --play
 --print, -p              pretty print human readable output
 
@@ -46,7 +47,7 @@ python ../src/__main__.py Tutorial_1.puml --job -p        # run from the raw sou
     tree = parser.plusdefn()
     if ( "--print" in argv or "-p" in argv or "--job" in argv or "-j" in argv or
          "--audit_event_data" in argv or "-d" in argv or "--play" in argv or
-        "--aeo_config" in argv or "--aesim_config" in argv ):
+        "--aeo_config" in argv or "--aesim_config" in argv or "--aesim_test" in argv ):
         run = plus2json_run() # custom listener
         walker = ParseTreeWalker()
         walker.walk(run, tree)
@@ -54,18 +55,44 @@ python ../src/__main__.py Tutorial_1.puml --job -p        # run from the raw sou
         if "--print" in sys.argv or "-p" in sys.argv:
             JobDefn.instances[-1].pretty_print()
         else:
-            JobDefn.instances[-1].json()
+            print( JobDefn.instances[-1].json() )
     elif "--audit_event_data" in sys.argv or "-d" in sys.argv:
-        Invariant.json()
+        j = Invariant.json()
+        # TODO - name the file after the event?
+        outfile = None
+        if "--outdir" in sys.argv:
+            outdir = sys.argv[ sys.argv.index( "--outdir" ) + 1 ]
+            outfile = outdir + "/" + "audit_event_data.json"
+        f = open( outfile, 'w') if outfile else sys.stdout
+        print( j, file=f )
     elif "--play" in sys.argv:
+        outfile = None
         if "--print" in sys.argv or "-p" in sys.argv:
-            JobDefn.instances[-1].play("pretty")
+            print( JobDefn.instances[-1].play("pretty") )
         elif "--aesim_config" in sys.argv:
-            JobDefn.instances[-1].play("aesim")
+            j = JobDefn.instances[-1].play("aesim")
+            if "--outdir" in sys.argv:
+                outdir = sys.argv[ sys.argv.index( "--outdir" ) + 1 ]
+                outfile = outdir + "/" + "test-scenario.json"
+            f = open( outfile, 'w') if outfile else sys.stdout
+            print( j, file=f )
+        elif "--aesim_test" in sys.argv:
+            j = JobDefn.instances[-1].play("aestest")
+            if "--outdir" in sys.argv:
+                outdir = sys.argv[ sys.argv.index( "--outdir" ) + 1 ]
+                outfile = outdir + "/" + "test-specification.json"
+            f = open( outfile, 'w') if outfile else sys.stdout
+            print( j, file=f )
         else:
-            JobDefn.instances[-1].play("")
+            print( JobDefn.instances[-1].play("") )
     elif "--aeo_config" in sys.argv:
-        JobDefn.instances[-1].aeo_config()
+        j = JobDefn.aeo_config_all()
+        outfile = None
+        if "--outdir" in sys.argv:
+            outdir = sys.argv[ sys.argv.index( "--outdir" ) + 1 ]
+            outfile = outdir + "/" + "config.json"
+        f = open( outfile, 'w') if outfile else sys.stdout
+        print( j, file=f )
     elif 2 == len( argv ):
         print( "syntax check complete" )
     else:
