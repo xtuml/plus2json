@@ -43,7 +43,7 @@ class AuditEvent_JSON:
         j += '"SequenceName": ' + self.sequence.SequenceName + ','
         if self.SequenceStart: j += '"SequenceStart": true,'
         if self.SequenceEnd: j += '"SequenceEnd": true,'
-        if self.isBreak: j += '"isBreak": true,'
+        if self.isBreak: j += '"IsBreak": true,'
         # look for linked DynamicControl
         dcs = [dc for dc in plus_job_defn.DynamicControl.instances if dc.source_event is self]
         for dc in dcs: # preparing for when multiple DynamicControls are allowed
@@ -63,6 +63,10 @@ class PreviousAuditEvent_JSON:
     def json( self, pdelim ):
         constraintid = "" if "" == self.ConstraintDefinitionId else ', "ConstraintDefinitionId": "' + self.ConstraintDefinitionId + '"'
         constraint = "" if "" == self.ConstraintValue else ', "ConstraintValue": "' + self.ConstraintValue + '"'
+        # Omit the constraint when it is IOR.
+        if 'IOR' == constraint:
+            constraint = ""
+            constraintid = ""
         return ( pdelim +
               '{ "PreviousEventName": "' + self.previous_event.EventName + '",'
               '"PreviousOccurrenceId": ' + self.previous_event.OccurrenceId +
