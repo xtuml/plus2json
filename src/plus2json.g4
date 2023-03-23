@@ -12,6 +12,7 @@ umlblock       : STARTUML ( '(' 'id' '=' identifier ')' )? NEWLINE
                ;
 
 job_defn       : PARTITION job_name '{' NEWLINE sequence_defn+ '}' NEWLINE
+                 ( PACKAGE package_name '{' NEWLINE unhappy_event* '}' NEWLINE )*
                ;
 
 job_name       : identifier
@@ -39,6 +40,7 @@ event_defn     : ( HIDE NEWLINE )?
                    | merge_count
                    | loop_count
                    | invariant
+                   | critical
                    )*
                  ( ';' | '<' | '>' | ']' )
                  ( NEWLINE ( break | detach ) )?
@@ -69,6 +71,9 @@ invariant      : ',' ( IINV | EINV )
                  ( ',' SRC ( '=' sname=identifier ( '(' socc=number ')' )? )? )?
                  ( ',' USER ( '=' uname=identifier ( '(' uocc=number ')' )? )? )?
                  ',' NAME '=' invname=identifier
+               ;
+
+critical       : ',' CRITICAL
                ;
 
 break          : BREAK
@@ -128,6 +133,18 @@ split          : SPLIT NEWLINE
 split_again    : SPLITAGAIN NEWLINE statement+
                ;
 
+package_name   : identifier
+               ;
+
+unhappy_event  : PACKAGE package_name '{' NEWLINE unhappy_event* '}' NEWLINE
+               | ':' unhappy_name
+                 ( ';' | '<' | '>' | ']' )
+                 NEWLINE KILL NEWLINE
+               ;
+
+unhappy_name   : identifier
+               ;
+
 identifier     : IDENT
                | StringLiteral // allowing blanks delimited with double-quotes
                ;
@@ -143,6 +160,7 @@ StringLiteral  : '"' ( ~('\\'|'"') )* '"'
 BCNT           : 'bcnt' | 'BCNT'; // branch count
 BREAK          : 'break';
 CASE           : 'case';
+CRITICAL       : 'critical' | 'CRITICAL';
 DETACH         : 'detach';
 EINV           : 'einv' | 'EINV'; // extra-job invariant
 ELSE           : 'else';
@@ -159,9 +177,11 @@ GROUP          : 'group';         // sequence
 HIDE           : '-[hidden]->';
 IF             : 'if';
 IINV           : 'iinv' | 'IINV'; // intra-job invariant
+KILL           : 'kill';
 LCNT           : 'lcnt' | 'LCNT'; // loop count
 MCNT           : 'mcnt' | 'MCNT'; // merge count
 NAME           : 'name' | 'NAME'; // marking target event
+PACKAGE        : 'package';       // grouping of unsequenced events
 PARTITION      : 'partition';     // job
 REPEAT         : 'repeat';
 SPLITAGAIN     : 'split again';
@@ -186,7 +206,7 @@ WS             : [ \t]+ -> skip ; // toss out whitespace
 //=========================================================
 // Fragments
 //=========================================================
-fragment NONDIGIT : [_a-zA-Z*];
+fragment NONDIGIT : [-_a-zA-Z*];
 fragment DIGIT :  [0-9];
 fragment UNSIGNED_INTEGER : DIGIT+;
 
