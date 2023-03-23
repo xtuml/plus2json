@@ -19,4 +19,5 @@ antlr4-parse ../src/plus2json.g4 plusdefn < Tutorial_15.puml
 antlr4-parse ../src/plus2json.g4 plusdefn < Tutorial_16.puml
 antlr4-parse ../src/plus2json.g4 plusdefn < Tutorial_17.puml
 antlr4-parse ../src/plus2json.g4 plusdefn < Tutorial_18.puml
+antlr4-parse ../src/plus2json.g4 plusdefn < unhappy_critical.puml
 echo "finished"
