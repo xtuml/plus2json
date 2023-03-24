@@ -1,0 +1,11 @@
+@startuml 
+partition "job" {
+  group "sequence"
+    :A;
+    :B;
+    :C;
+    :D;
+    :E;
+  end group
+}
+@enduml
