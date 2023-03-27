@@ -1,0 +1,8 @@
+job defn: job
+sequence: "sequence"
+A(0) start                    
+B(0)                     A(0)andfork2AND     
+C(0)                     A(0)andfork2AND     
+D(0)                     B(0),C(0)     
+E(0)                     A(0)xorfork1XOR     
+F(0)       end           D(0),E(0)     

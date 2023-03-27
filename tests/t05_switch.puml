@@ -1,0 +1,19 @@
+@startuml 
+partition "job" {
+  group "sequence"
+    :A;
+    switch ( test )
+    case ( one )
+      :B;
+      :C;
+    case ( two )
+      :D;
+      :E;
+    case ( three )
+      :F;
+      :G;
+    endswitch
+    :H;
+  end group
+}
+@enduml

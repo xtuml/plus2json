@@ -1,0 +1,18 @@
+@startuml 
+partition "job" {
+  group "sequence"
+    :A;
+    fork
+      switch ( XOR )
+      case ( one )
+        :B;
+      case ( other )
+        :C;
+      endswitch
+    fork again
+      :D;
+    end fork
+    :E;
+  end group
+}
+@enduml

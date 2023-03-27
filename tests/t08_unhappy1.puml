@@ -1,0 +1,16 @@
+@startuml 
+partition "job" {
+  group "sequence"
+    :A;
+    :B;
+    :C;
+    detach
+  end group
+}
+package "unhappy events" {
+  :U;
+  kill
+  :V;
+  kill
+}
+@enduml

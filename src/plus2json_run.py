@@ -181,8 +181,8 @@ class plus2json_run(plus2jsonListener):
             Loop.instances[-1].start_event.previous_events.append( PreviousAuditEvent( AuditEvent.c_current_event ) )
         else:
             # ended the loop with a merge
-            if Fork.instances[-1].merge_usage:
-                for mu_pe in Fork.instances[-1].merge_usage:
+            if SequenceDefn.instances[-1].merge_usage_cache:
+                for mu_pe in SequenceDefn.instances[-1].merge_usage_cache:
                     # omit break events
                     if not mu_pe.previous_event.isBreak:
                         Loop.instances[-1].start_event.previous_events.append( mu_pe )

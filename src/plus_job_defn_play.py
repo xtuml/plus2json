@@ -136,9 +136,12 @@ class AuditEvent_play:
         # Give some indication that we are forking.
         fork_count = len( next_aes )
         fork_text = "" if fork_count < 2 else 'f' + str( fork_count )
+        # Give some indication that we are merging.
+        merge_count = len( self.previous_events )
+        merge_text = "" if merge_count < 2 else 'm' + str( merge_count )
         if 'pretty' == flavor:
             visit_count_string = '[' + str( self.visit_count ) + ']' if self.visit_count > 1 else ""
-            j += self.EventName + " " +  visit_count_string + fork_text + '\n'
+            j += self.EventName + " " +  visit_count_string + fork_text + merge_text + '\n'
         elif 'aesim' == flavor:
             j += self.aesim_config( delim )
         elif 'aestest' == flavor:

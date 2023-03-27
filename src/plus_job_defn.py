@@ -32,6 +32,9 @@ class JobDefn( JobDefn_AEO, JobDefn_JSON, JobDefn_play, JobDefn_print, JobDefn_A
 class SequenceDefn( SequenceDefn_AEO, SequenceDefn_JSON, SequenceDefn_play, SequenceDefn_print, SequenceDefn_AESim, SequenceDefn_AEStest ):
     """PLUS Sequence Definition"""
     instances = []
+    merge_usage_cache = []                                 # previous event collection carried across scopes
+                                                           # used for previous events after 'end split',
+                                                           # 'end fork', 'endswitch' and 'end if'
     c_current_sequence = None                              # set at creation, emptied at exit
     def __init__(self, name):
         self.SequenceName = name                           # created when the name is encountered
@@ -81,9 +84,9 @@ class AuditEvent( AuditEvent_AEO, AuditEvent_JSON, AuditEvent_play, AuditEvent_p
             if Fork.instances[-1].fork_point_usage:
                 self.previous_events.append( Fork.instances[-1].fork_point_usage )
                 Fork.instances[-1].fork_point_usage = None
-            if Fork.instances[-1].merge_usage:             # get merge previous events
-                self.previous_events.extend( Fork.instances[-1].merge_usage )
-                Fork.instances.pop()                       # done with this Fork
+        if self.sequence.merge_usage_cache:                # get merge previous events
+            self.previous_events.extend( self.sequence.merge_usage_cache )
+            self.sequence.merge_usage_cache.clear()
         if AuditEvent.c_current_event:
             self.previous_events.append( PreviousAuditEvent( AuditEvent.c_current_event ) )
             AuditEvent.c_current_event = None
@@ -124,8 +127,6 @@ class Fork:
         self.merge_inputs = []                             # c_current_event pushed when 'split again', 'fork again',
                                                            # 'case', 'end split', 'end fork', 'endswitch',
                                                            # 'elsif', 'else' or 'endif' entered
-        self.merge_usage = []                              # used for previous events after 'end split',
-                                                           # 'end fork', 'endswitch' and 'end if'
         Fork.c_scope += 1
         Fork.instances.append(self)
     def __del__(self):
@@ -148,6 +149,11 @@ class Fork:
                 Fork.instances[-1].fork_point.ConstraintDefinitionId = Fork.instances[-1].id
                 Fork.instances[-1].fork_point_usage = Fork.instances[-1].fork_point
     def again(self):
+        if SequenceDefn.instances[-1].merge_usage_cache:
+            # The merge usage did not get consumed by an event following the
+            # fork/merge.  Therefore, propagate it into the next outer scope.
+            Fork.instances[Fork.c_scope-1].merge_inputs.extend( SequenceDefn.instances[-1].merge_usage_cache )
+            SequenceDefn.instances[-1].merge_usage_cache.clear()
         if AuditEvent.c_current_event: # We may have 'detach'd and have no c_current_event.
             Fork.instances[-1].merge_inputs.append( PreviousAuditEvent( AuditEvent.c_current_event ) )
             AuditEvent.c_current_event = None
@@ -157,9 +163,13 @@ class Fork:
         if AuditEvent.c_current_event: # We may have 'detach'd and have no c_current_event.
             self.merge_inputs.append( PreviousAuditEvent( AuditEvent.c_current_event ) )
             AuditEvent.c_current_event = None
-        self.merge_usage.extend( Fork.instances[-1].merge_inputs )
+        SequenceDefn.instances[-1].merge_usage_cache.extend( Fork.instances[-1].merge_inputs )
         self.merge_inputs.clear()
         self.fork_point_usage = None
+        Fork.instances.pop()                       # done with this Fork
+        if Fork.instances:
+            # Clear out usage, because no event was encountered to use it.
+            Fork.instances[-1].fork_point_usage = None
     def print_fork(self):
         merge_inputs = ""
         merge_usages = ""

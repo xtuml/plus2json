@@ -1,0 +1,15 @@
+@startuml 
+partition "job" {
+  group "sequence"
+    :A;
+    if ( condition ) then ( normal )
+      :B;
+      :C;
+    else
+      :D;
+      :E;
+    endif
+    :F;
+  end group
+}
+@enduml
