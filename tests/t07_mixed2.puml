@@ -3,16 +3,16 @@ partition "job" {
   group "sequence"
     :A;
     fork
-      :B;
-      if ( XOR ) then ( normal )
+      switch ( XOR )
+      case ( one )
+        :B;
+      case ( other )
         :C;
-      else
-        :D;
-      endif
+      endswitch
     fork again
-      :E;
+      :D;
     end fork
-    :F;
+    :E;
   end group
 }
 @enduml
