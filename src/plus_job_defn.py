@@ -16,6 +16,7 @@ from plus_job_defn_aesim_test import *
 # Deal with merge-in-merge with no event in between.  This may require joining 2 merge usages.
 # !include
 # Use a notational mark and some data to indicate where instance forks occur.
+# Enforce CRITICAL when unhappy events are defined.
 
 # Key classes (JobDefn, SequenceDefn, AuditEvent, Invariant) are inheriting from
 # classes that provide methods for various forms of output.  This is a "mixin" pattern,

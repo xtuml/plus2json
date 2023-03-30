@@ -3,7 +3,7 @@ partition "job" {
   group "sequence"
     :A;
     :B;
-    :C;
+    :C,CRITICAL;
     detach
   end group
 }

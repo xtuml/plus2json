@@ -1,0 +1,4 @@
+= gen
+
+This folder contains marks and generated code.
+The generated code should be ignored by revision control (git).
