@@ -1,0 +1,14 @@
+render : "plus::types"
+
+shapes :
+  shape : AuditEvents
+    render : user_data_type "plus::types::AuditEvents"
+    bounds : x : 36.0 y : 36.0 width : 192.0 height : 72.0
+  shape : SequenceDefns
+    render : user_data_type "plus::types::SequenceDefns"
+    bounds : x : 248.0 y : 36.0 width : 200.0 height : 150.0
+  shape : PreviousAuditEvents
+    render : user_data_type "plus::types::PreviousAuditEvents"
+    bounds : x : 468.0 y : 36.0 width : 200.0 height : 150.0
+
+connectors :

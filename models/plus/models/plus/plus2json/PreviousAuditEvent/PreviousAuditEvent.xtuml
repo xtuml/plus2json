@@ -1,115 +1,21 @@
--- BP 7.1.6 content: ModelClass syschar: 3 persistence-version: 7.1.6
+// BP 7.1.6 content: ModelClass syschar: 3 persistence-version: 7.1.6
 
-INSERT INTO O_OBJ
-	VALUES ("b175dec5-b6aa-46bb-9aee-98e873c79a57",
-	'PreviousAuditEvent',
-	4,
-	'PreviousAuditEvent',
-	'',
-	"00000000-0000-0000-0000-000000000000");
-INSERT INTO O_TFR
-	VALUES ("e20e8e7a-80b4-403e-a37c-1d66554a5fb5",
-	"b175dec5-b6aa-46bb-9aee-98e873c79a57",
-	'json',
-	'',
-	"ba5eda7a-def5-0000-0000-000000000004",
-	1,
-	'',
-	3,
-	'',
-	"00000000-0000-0000-0000-000000000000",
-	0,
-	1);
-INSERT INTO O_TPARM
-	VALUES ("f577e427-3cc3-462f-a352-4f0cd251bd55",
-	"e20e8e7a-80b4-403e-a37c-1d66554a5fb5",
-	'pdelim',
-	"ba5eda7a-def5-0000-0000-000000000004",
-	0,
-	'',
-	"00000000-0000-0000-0000-000000000000",
-	'');
-INSERT INTO O_NBATTR
-	VALUES ("4ae200f0-16b4-4a52-9e2f-eb757ca838b9",
-	"b175dec5-b6aa-46bb-9aee-98e873c79a57");
-INSERT INTO O_BATTR
-	VALUES ("4ae200f0-16b4-4a52-9e2f-eb757ca838b9",
-	"b175dec5-b6aa-46bb-9aee-98e873c79a57");
-INSERT INTO O_ATTR
-	VALUES ("4ae200f0-16b4-4a52-9e2f-eb757ca838b9",
-	"b175dec5-b6aa-46bb-9aee-98e873c79a57",
-	"00000000-0000-0000-0000-000000000000",
-	'previous_event',
-	'',
-	'',
-	'previous_event',
-	0,
-	"afc0274b-8daa-46d2-9c3f-be3b46473e34",
-	'',
-	'');
-INSERT INTO S_DT_PROXY
-	VALUES ("afc0274b-8daa-46d2-9c3f-be3b46473e34",
-	"00000000-0000-0000-0000-000000000000",
-	'inst_ref<AuditEvent>',
-	'',
-	'',
-	'../plus2json.xtuml');
-INSERT INTO O_NBATTR
-	VALUES ("9b325972-0984-4613-81b5-2931ae4d2788",
-	"b175dec5-b6aa-46bb-9aee-98e873c79a57");
-INSERT INTO O_BATTR
-	VALUES ("9b325972-0984-4613-81b5-2931ae4d2788",
-	"b175dec5-b6aa-46bb-9aee-98e873c79a57");
-INSERT INTO O_ATTR
-	VALUES ("9b325972-0984-4613-81b5-2931ae4d2788",
-	"b175dec5-b6aa-46bb-9aee-98e873c79a57",
-	"4ae200f0-16b4-4a52-9e2f-eb757ca838b9",
-	'ConstraintDefinitionId',
-	'',
-	'',
-	'ConstraintDefinitionId',
-	0,
-	"ba5eda7a-def5-0000-0000-000000000004",
-	'',
-	'');
-INSERT INTO O_NBATTR
-	VALUES ("35615263-2fe4-4189-8759-e3976f18b25b",
-	"b175dec5-b6aa-46bb-9aee-98e873c79a57");
-INSERT INTO O_BATTR
-	VALUES ("35615263-2fe4-4189-8759-e3976f18b25b",
-	"b175dec5-b6aa-46bb-9aee-98e873c79a57");
-INSERT INTO O_ATTR
-	VALUES ("35615263-2fe4-4189-8759-e3976f18b25b",
-	"b175dec5-b6aa-46bb-9aee-98e873c79a57",
-	"9b325972-0984-4613-81b5-2931ae4d2788",
-	'ConstraintValue',
-	'',
-	'',
-	'ConstraintValue',
-	0,
-	"ba5eda7a-def5-0000-0000-000000000004",
-	'',
-	'');
-INSERT INTO O_ID
-	VALUES (0,
-	"b175dec5-b6aa-46bb-9aee-98e873c79a57");
-INSERT INTO O_ID
-	VALUES (1,
-	"b175dec5-b6aa-46bb-9aee-98e873c79a57");
-INSERT INTO O_ID
-	VALUES (2,
-	"b175dec5-b6aa-46bb-9aee-98e873c79a57");
-INSERT INTO PE_PE
-	VALUES ("b175dec5-b6aa-46bb-9aee-98e873c79a57",
-	1,
-	"45e5dfab-c7b2-4945-b3c5-e71e24bacc40",
-	"00000000-0000-0000-0000-000000000000",
-	4);
-INSERT INTO EP_PKG_PROXY
-	VALUES ("45e5dfab-c7b2-4945-b3c5-e71e24bacc40",
-	"dd6c3f49-af25-4fd3-879d-9b7510f901f1",
-	"dd6c3f49-af25-4fd3-879d-9b7510f901f1",
-	'plus2json',
-	'',
-	0,
-	'../plus2json.xtuml');
+within plus::plus2json is
+
+	@key_letters("PreviousAuditEvent");
+	@class_num(4);
+	class PreviousAuditEvent is
+
+		previous_event: instance of AuditEvent;
+
+		ConstraintDefinitionId: string;
+
+		ConstraintValue: string;
+
+		@dialect("oal");
+		@operation_num(1);
+		operation json(pdelim: in string) return string;
+
+	end class;
+
+end;
