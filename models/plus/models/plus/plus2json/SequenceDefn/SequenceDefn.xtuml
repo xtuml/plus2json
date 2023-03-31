@@ -1,200 +1,37 @@
--- BP 7.1.6 content: ModelClass syschar: 3 persistence-version: 7.1.6
+// BP 7.1.6 content: ModelClass syschar: 3 persistence-version: 7.1.6
 
-INSERT INTO O_OBJ
-	VALUES ("8e114b0c-afcb-4c9b-b687-5028bdbe4dd1",
-	'SequenceDefn',
-	2,
-	'SequenceDefn',
-	'',
-	"00000000-0000-0000-0000-000000000000");
-INSERT INTO O_TFR
-	VALUES ("c6abf132-9b2d-4185-9a88-974ca853885b",
-	"8e114b0c-afcb-4c9b-b687-5028bdbe4dd1",
-	'play',
-	'',
-	"ba5eda7a-def5-0000-0000-000000000000",
-	1,
-	'',
-	3,
-	'',
-	"e23e264c-24a0-4c42-a1d1-0e8acb34d48b",
-	0,
-	1);
-INSERT INTO O_TPARM
-	VALUES ("36c7b845-0172-47f2-b666-36e551f0804e",
-	"c6abf132-9b2d-4185-9a88-974ca853885b",
-	'flavor',
-	"ba5eda7a-def5-0000-0000-000000000004",
-	0,
-	'',
-	"00000000-0000-0000-0000-000000000000",
-	'');
-INSERT INTO O_TPARM
-	VALUES ("1a637881-04db-4756-8161-34b6352db4cb",
-	"c6abf132-9b2d-4185-9a88-974ca853885b",
-	'job_defn',
-	"70e45e8e-db29-4c78-8eb2-bff98ff097dc",
-	0,
-	'',
-	"36c7b845-0172-47f2-b666-36e551f0804e",
-	'');
-INSERT INTO S_DT_PROXY
-	VALUES ("70e45e8e-db29-4c78-8eb2-bff98ff097dc",
-	"00000000-0000-0000-0000-000000000000",
-	'inst_ref<JobDefn>',
-	'',
-	'',
-	'../plus2json.xtuml');
-INSERT INTO O_TFR
-	VALUES ("e23e264c-24a0-4c42-a1d1-0e8acb34d48b",
-	"8e114b0c-afcb-4c9b-b687-5028bdbe4dd1",
-	'json',
-	'',
-	"ba5eda7a-def5-0000-0000-000000000000",
-	1,
-	'',
-	3,
-	'',
-	"00000000-0000-0000-0000-000000000000",
-	0,
-	2);
-INSERT INTO O_TFR
-	VALUES ("46b07d7b-451a-4654-a6c3-f672dd37a042",
-	"8e114b0c-afcb-4c9b-b687-5028bdbe4dd1",
-	'pretty_print',
-	'',
-	"ba5eda7a-def5-0000-0000-000000000000",
-	1,
-	'',
-	3,
-	'',
-	"c6abf132-9b2d-4185-9a88-974ca853885b",
-	0,
-	3);
-INSERT INTO O_TFR
-	VALUES ("3f61db2e-7e9a-47df-8b1b-4f564aa6c8a6",
-	"8e114b0c-afcb-4c9b-b687-5028bdbe4dd1",
-	'aeo_config',
-	'',
-	"ba5eda7a-def5-0000-0000-000000000004",
-	1,
-	'',
-	3,
-	'',
-	"46b07d7b-451a-4654-a6c3-f672dd37a042",
-	0,
-	4);
-INSERT INTO O_NBATTR
-	VALUES ("8768bf22-159b-4ebe-a64d-9561d6bf29e8",
-	"8e114b0c-afcb-4c9b-b687-5028bdbe4dd1");
-INSERT INTO O_BATTR
-	VALUES ("8768bf22-159b-4ebe-a64d-9561d6bf29e8",
-	"8e114b0c-afcb-4c9b-b687-5028bdbe4dd1");
-INSERT INTO O_ATTR
-	VALUES ("8768bf22-159b-4ebe-a64d-9561d6bf29e8",
-	"8e114b0c-afcb-4c9b-b687-5028bdbe4dd1",
-	"00000000-0000-0000-0000-000000000000",
-	'SequenceName',
-	'',
-	'',
-	'SequenceName',
-	0,
-	"ba5eda7a-def5-0000-0000-000000000004",
-	'',
-	'');
-INSERT INTO O_NBATTR
-	VALUES ("78b352dd-af33-4037-a076-c46a95acbf5b",
-	"8e114b0c-afcb-4c9b-b687-5028bdbe4dd1");
-INSERT INTO O_BATTR
-	VALUES ("78b352dd-af33-4037-a076-c46a95acbf5b",
-	"8e114b0c-afcb-4c9b-b687-5028bdbe4dd1");
-INSERT INTO O_ATTR
-	VALUES ("78b352dd-af33-4037-a076-c46a95acbf5b",
-	"8e114b0c-afcb-4c9b-b687-5028bdbe4dd1",
-	"8768bf22-159b-4ebe-a64d-9561d6bf29e8",
-	'c_current_sequence',
-	'',
-	'',
-	'c_current_sequence',
-	0,
-	"b5389cec-1b97-4593-a70c-f24925978074",
-	'',
-	'');
-INSERT INTO S_DT_PROXY
-	VALUES ("b5389cec-1b97-4593-a70c-f24925978074",
-	"00000000-0000-0000-0000-000000000000",
-	'SequenceDefns',
-	'',
-	'',
-	'../../types/types.xtuml');
-INSERT INTO O_NBATTR
-	VALUES ("54585ad0-d24d-4d8d-87f3-b1c20d2d71f6",
-	"8e114b0c-afcb-4c9b-b687-5028bdbe4dd1");
-INSERT INTO O_BATTR
-	VALUES ("54585ad0-d24d-4d8d-87f3-b1c20d2d71f6",
-	"8e114b0c-afcb-4c9b-b687-5028bdbe4dd1");
-INSERT INTO O_ATTR
-	VALUES ("54585ad0-d24d-4d8d-87f3-b1c20d2d71f6",
-	"8e114b0c-afcb-4c9b-b687-5028bdbe4dd1",
-	"78b352dd-af33-4037-a076-c46a95acbf5b",
-	'audit_events',
-	'',
-	'',
-	'audit_events',
-	0,
-	"ebfd0a3c-94a7-4ea3-ace5-26bc647938a2",
-	'',
-	'');
-INSERT INTO S_DT_PROXY
-	VALUES ("ebfd0a3c-94a7-4ea3-ace5-26bc647938a2",
-	"00000000-0000-0000-0000-000000000000",
-	'AuditEvents',
-	'',
-	'',
-	'../../types/types.xtuml');
-INSERT INTO O_NBATTR
-	VALUES ("4ac28a07-8f34-441b-a226-5c946f57dc39",
-	"8e114b0c-afcb-4c9b-b687-5028bdbe4dd1");
-INSERT INTO O_BATTR
-	VALUES ("4ac28a07-8f34-441b-a226-5c946f57dc39",
-	"8e114b0c-afcb-4c9b-b687-5028bdbe4dd1");
-INSERT INTO O_ATTR
-	VALUES ("4ac28a07-8f34-441b-a226-5c946f57dc39",
-	"8e114b0c-afcb-4c9b-b687-5028bdbe4dd1",
-	"54585ad0-d24d-4d8d-87f3-b1c20d2d71f6",
-	'start_events',
-	'',
-	'',
-	'start_events',
-	0,
-	"ebfd0a3c-94a7-4ea3-ace5-26bc647938a2",
-	'',
-	'');
-INSERT INTO O_ID
-	VALUES (0,
-	"8e114b0c-afcb-4c9b-b687-5028bdbe4dd1");
-INSERT INTO O_OIDA
-	VALUES ("8768bf22-159b-4ebe-a64d-9561d6bf29e8",
-	"8e114b0c-afcb-4c9b-b687-5028bdbe4dd1",
-	0,
-	'SequenceName');
-INSERT INTO O_ID
-	VALUES (1,
-	"8e114b0c-afcb-4c9b-b687-5028bdbe4dd1");
-INSERT INTO O_ID
-	VALUES (2,
-	"8e114b0c-afcb-4c9b-b687-5028bdbe4dd1");
-INSERT INTO PE_PE
-	VALUES ("8e114b0c-afcb-4c9b-b687-5028bdbe4dd1",
-	1,
-	"45e5dfab-c7b2-4945-b3c5-e71e24bacc40",
-	"00000000-0000-0000-0000-000000000000",
-	4);
-INSERT INTO EP_PKG_PROXY
-	VALUES ("45e5dfab-c7b2-4945-b3c5-e71e24bacc40",
-	"dd6c3f49-af25-4fd3-879d-9b7510f901f1",
-	"dd6c3f49-af25-4fd3-879d-9b7510f901f1",
-	'plus2json',
-	'',
-	0,
-	'../plus2json.xtuml');
+within plus::plus2json is
+
+	@key_letters("SequenceDefn");
+	@class_num(2);
+	class SequenceDefn is
+
+		SequenceName: string;
+
+		c_current_sequence: SequenceDefns;
+
+		audit_events: AuditEvents;
+
+		start_events: AuditEvents;
+
+		preferred identifier is (SequenceName);
+
+		@dialect("oal");
+		@operation_num(2);
+		operation json();
+
+		@dialect("oal");
+		@operation_num(1);
+		operation play(flavor: in string, job_defn: in instance of JobDefn);
+
+		@dialect("oal");
+		@operation_num(3);
+		operation pretty_print();
+
+		@dialect("oal");
+		@operation_num(4);
+		operation aeo_config() return string;
+
+	end class;
+
+end;

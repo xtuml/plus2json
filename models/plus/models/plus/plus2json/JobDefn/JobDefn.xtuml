@@ -1,167 +1,41 @@
--- BP 7.1.6 content: ModelClass syschar: 3 persistence-version: 7.1.6
+// BP 7.1.6 content: ModelClass syschar: 3 persistence-version: 7.1.6
 
-INSERT INTO O_OBJ
-	VALUES ("23692300-e150-40a1-8ffa-84d7fd5e5e9b",
-	'JobDefn',
-	1,
-	'JobDefn',
-	'',
-	"00000000-0000-0000-0000-000000000000");
-INSERT INTO O_TFR
-	VALUES ("87e121fe-d916-44ed-873c-a213c909db96",
-	"23692300-e150-40a1-8ffa-84d7fd5e5e9b",
-	'play',
-	'',
-	"ba5eda7a-def5-0000-0000-000000000000",
-	1,
-	'',
-	3,
-	'',
-	"452bb2d9-5604-4f83-8e20-f44fb0af7641",
-	0,
-	1);
-INSERT INTO O_TPARM
-	VALUES ("785ff0e2-ccf2-4420-8b67-79347ea29b73",
-	"87e121fe-d916-44ed-873c-a213c909db96",
-	'flavor',
-	"ba5eda7a-def5-0000-0000-000000000004",
-	0,
-	'',
-	"00000000-0000-0000-0000-000000000000",
-	'');
-INSERT INTO O_TFR
-	VALUES ("3b293ef8-3cfb-40a6-a7c6-10d5d69a8a9a",
-	"23692300-e150-40a1-8ffa-84d7fd5e5e9b",
-	'json',
-	'',
-	"ba5eda7a-def5-0000-0000-000000000000",
-	1,
-	'',
-	3,
-	'',
-	"00000000-0000-0000-0000-000000000000",
-	0,
-	2);
-INSERT INTO O_TFR
-	VALUES ("452bb2d9-5604-4f83-8e20-f44fb0af7641",
-	"23692300-e150-40a1-8ffa-84d7fd5e5e9b",
-	'pretty_print',
-	'',
-	"ba5eda7a-def5-0000-0000-000000000000",
-	1,
-	'',
-	3,
-	'',
-	"3b293ef8-3cfb-40a6-a7c6-10d5d69a8a9a",
-	0,
-	3);
-INSERT INTO O_TFR
-	VALUES ("de479707-5013-4f47-aa3c-233ca5acadd4",
-	"23692300-e150-40a1-8ffa-84d7fd5e5e9b",
-	'aeo_config_all',
-	'',
-	"ba5eda7a-def5-0000-0000-000000000004",
-	0,
-	'',
-	3,
-	'',
-	"87e121fe-d916-44ed-873c-a213c909db96",
-	0,
-	4);
-INSERT INTO O_TFR
-	VALUES ("11250af5-d08c-4733-951e-6793049f88c6",
-	"23692300-e150-40a1-8ffa-84d7fd5e5e9b",
-	'aeo_config',
-	'',
-	"ba5eda7a-def5-0000-0000-000000000004",
-	1,
-	'',
-	3,
-	'',
-	"de479707-5013-4f47-aa3c-233ca5acadd4",
-	0,
-	5);
-INSERT INTO O_TFR
-	VALUES ("41c2acc7-756a-4c82-946d-6c61081aa69b",
-	"23692300-e150-40a1-8ffa-84d7fd5e5e9b",
-	'aesim_config',
-	'',
-	"ba5eda7a-def5-0000-0000-000000000000",
-	1,
-	'',
-	3,
-	'',
-	"11250af5-d08c-4733-951e-6793049f88c6",
-	0,
-	6);
-INSERT INTO O_NBATTR
-	VALUES ("50a1e984-d8f9-49cd-8600-0ee65f28fd90",
-	"23692300-e150-40a1-8ffa-84d7fd5e5e9b");
-INSERT INTO O_BATTR
-	VALUES ("50a1e984-d8f9-49cd-8600-0ee65f28fd90",
-	"23692300-e150-40a1-8ffa-84d7fd5e5e9b");
-INSERT INTO O_ATTR
-	VALUES ("50a1e984-d8f9-49cd-8600-0ee65f28fd90",
-	"23692300-e150-40a1-8ffa-84d7fd5e5e9b",
-	"00000000-0000-0000-0000-000000000000",
-	'JobDefinitionName',
-	'',
-	'',
-	'JobDefinitionName',
-	0,
-	"ba5eda7a-def5-0000-0000-000000000004",
-	'',
-	'');
-INSERT INTO O_NBATTR
-	VALUES ("4600e952-0761-43f5-ab1d-5cd760b40557",
-	"23692300-e150-40a1-8ffa-84d7fd5e5e9b");
-INSERT INTO O_BATTR
-	VALUES ("4600e952-0761-43f5-ab1d-5cd760b40557",
-	"23692300-e150-40a1-8ffa-84d7fd5e5e9b");
-INSERT INTO O_ATTR
-	VALUES ("4600e952-0761-43f5-ab1d-5cd760b40557",
-	"23692300-e150-40a1-8ffa-84d7fd5e5e9b",
-	"50a1e984-d8f9-49cd-8600-0ee65f28fd90",
-	'sequences',
-	'',
-	'',
-	'sequences',
-	0,
-	"b5389cec-1b97-4593-a70c-f24925978074",
-	'',
-	'');
-INSERT INTO S_DT_PROXY
-	VALUES ("b5389cec-1b97-4593-a70c-f24925978074",
-	"00000000-0000-0000-0000-000000000000",
-	'SequenceDefns',
-	'',
-	'',
-	'../../types/types.xtuml');
-INSERT INTO O_ID
-	VALUES (0,
-	"23692300-e150-40a1-8ffa-84d7fd5e5e9b");
-INSERT INTO O_OIDA
-	VALUES ("50a1e984-d8f9-49cd-8600-0ee65f28fd90",
-	"23692300-e150-40a1-8ffa-84d7fd5e5e9b",
-	0,
-	'JobDefinitionName');
-INSERT INTO O_ID
-	VALUES (1,
-	"23692300-e150-40a1-8ffa-84d7fd5e5e9b");
-INSERT INTO O_ID
-	VALUES (2,
-	"23692300-e150-40a1-8ffa-84d7fd5e5e9b");
-INSERT INTO PE_PE
-	VALUES ("23692300-e150-40a1-8ffa-84d7fd5e5e9b",
-	1,
-	"45e5dfab-c7b2-4945-b3c5-e71e24bacc40",
-	"00000000-0000-0000-0000-000000000000",
-	4);
-INSERT INTO EP_PKG_PROXY
-	VALUES ("45e5dfab-c7b2-4945-b3c5-e71e24bacc40",
-	"dd6c3f49-af25-4fd3-879d-9b7510f901f1",
-	"dd6c3f49-af25-4fd3-879d-9b7510f901f1",
-	'plus2json',
-	'',
-	0,
-	'../plus2json.xtuml');
+within plus::plus2json is
+
+	@key_letters("JobDefn");
+	@class_num(1);
+	class JobDefn is
+
+		JobDefinitionName: string;
+
+		sequences: SequenceDefns;
+
+		preferred identifier is (JobDefinitionName);
+
+		@dialect("oal");
+		@operation_num(2);
+		operation json();
+
+		@dialect("oal");
+		@operation_num(3);
+		operation pretty_print();
+
+		@dialect("oal");
+		@operation_num(1);
+		operation play(flavor: in string);
+
+		@dialect("oal");
+		@operation_num(4);
+		class operation aeo_config_all() return string;
+
+		@dialect("oal");
+		@operation_num(5);
+		operation aeo_config() return string;
+
+		@dialect("oal");
+		@operation_num(6);
+		operation aesim_config();
+
+	end class;
+
+end;
