@@ -191,8 +191,8 @@ class Fork:
         if self.merge_inputs:
             for mi in self.merge_inputs:
                 merge_inputs += mi.previous_event.EventName + mi.ConstraintValue
-        if self.merge_usage:
-            for mu in self.merge_usage:
+        if SequenceDefn[-1].merge_usage_cache:
+            for mu in SequenceDefn[-1].merge_usage_cache:
                 merge_usages += mu.previous_event.EventName + mu.ConstraintValue
         print( "Fork:", Fork.c_scope, self.flavor, "fp:" + fp, "fu:" + fu, "mis:" + merge_inputs, "mus:" + merge_usages )
     @classmethod
