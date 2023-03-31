@@ -42,7 +42,7 @@ within plus::plus2json is
 
 		@dialect("oal");
 		@operation_num(5);
-		operation end();
+		operation endfork();
 
 	end class;
 

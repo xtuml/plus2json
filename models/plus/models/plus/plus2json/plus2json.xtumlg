@@ -77,7 +77,7 @@ connectors :
         point : x : 4728.0 y : 3384.0
         shape : PreviousAuditEvent
       end :
-        point : x : 4632.0 y : 3384.0
+        point : x : 4680.0 y : 3384.0
         shape : AuditEvent
     texts :
       text :
@@ -101,7 +101,7 @@ connectors :
         point : x : 4728.0 y : 3432.0
         shape : PreviousAuditEvent
       end :
-        point : x : 4728.0 y : 3600.0
+        point : x : 4679.0 y : 3432.0
         shape : Fork
     texts :
       text :

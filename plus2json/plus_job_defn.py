@@ -164,7 +164,7 @@ class Fork:
             AuditEvent.c_current_event = None
         if Fork.instances[-1].fork_point:
             Fork.instances[-1].fork_point_usage = Fork.instances[-1].fork_point
-    def end(self):
+    def endfork(self):
         if AuditEvent.c_current_event: # We may have 'detach'd and have no c_current_event.
             self.merge_inputs.append( PreviousAuditEvent( AuditEvent.c_current_event ) )
             AuditEvent.c_current_event = None
