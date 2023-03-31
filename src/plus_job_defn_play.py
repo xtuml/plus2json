@@ -5,6 +5,11 @@ Play out (interpret) the job definition.
 """
 
 import datetime
+import sys
+from os.path import abspath
+from pathlib import Path
+package_path = abspath(Path(__file__).parent)
+sys.path.insert(0, package_path)
 import plus_job_defn
 
 # This file provides mixin methods to the 3 primary classes to

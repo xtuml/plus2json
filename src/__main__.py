@@ -1,5 +1,9 @@
 import sys
 from antlr4 import *
+from os.path import abspath
+from pathlib import Path
+package_path = abspath(Path(__file__).parent)
+sys.path.insert(0, package_path)
 from plus2jsonLexer import plus2jsonLexer
 from plus2jsonParser import plus2jsonParser
 from plus2jsonListener import plus2jsonListener
