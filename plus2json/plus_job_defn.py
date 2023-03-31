@@ -5,6 +5,10 @@ This is the data model to capture the PLUS Job Definition.
 """
 
 import sys
+from os.path import abspath
+from pathlib import Path
+package_path = abspath(Path(__file__).parent)
+sys.path.insert(0, package_path)
 from plus_job_defn_aeo import *
 from plus_job_defn_json import *
 from plus_job_defn_play import *

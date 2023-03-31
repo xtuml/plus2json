@@ -7,7 +7,7 @@ except ImportError:
 
 from os import path
 this_directory = path.abspath(path.dirname(__file__))
-with open(path.join(this_directory, 'README.md')) as f:
+with open(path.join(this_directory, 'README.adoc')) as f:
     long_description = f.read()
 
 setup(name='plusact',
@@ -21,7 +21,7 @@ setup(name='plusact',
       license='Apache 2.0',
       download_url='https://github.com/xtuml/mc/releases/download/1.0.4/pymc3020-1.0.4.tar.gz',
       keywords='xtuml bridgepoint protocol verifier',
-      packages=['src'],
+      packages=['plus2json'],
       install_requires=['antlr4-python3-runtime'],
       include_package_data=True,
       zip_safe=True)

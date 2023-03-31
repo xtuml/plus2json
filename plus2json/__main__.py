@@ -1,5 +1,9 @@
 import sys
 from antlr4 import *
+from os.path import abspath
+from pathlib import Path
+package_path = abspath(Path(__file__).parent)
+sys.path.insert(0, package_path)
 from plus2jsonLexer import plus2jsonLexer
 from plus2jsonParser import plus2jsonParser
 from plus2jsonListener import plus2jsonListener
@@ -51,45 +55,45 @@ python ../src/__main__.py Tutorial_1.puml --job -p        # run from the raw sou
         run = plus2json_run() # custom listener
         walker = ParseTreeWalker()
         walker.walk(run, tree)
-    if "--job" in sys.argv or "-j" in sys.argv:
-        if "--print" in sys.argv or "-p" in sys.argv:
+    if "--job" in argv or "-j" in argv:
+        if "--print" in argv or "-p" in argv:
             JobDefn.instances[-1].pretty_print()
         else:
             print( JobDefn.instances[-1].json() )
-    elif "--audit_event_data" in sys.argv or "-d" in sys.argv:
+    elif "--audit_event_data" in argv or "-d" in argv:
         j = Invariant.json()
         # TODO - name the file after the event?
         outfile = None
-        if "--outdir" in sys.argv:
-            outdir = sys.argv[ sys.argv.index( "--outdir" ) + 1 ]
+        if "--outdir" in argv:
+            outdir = argv[ argv.index( "--outdir" ) + 1 ]
             outfile = outdir + "/" + "audit_event_data.json"
         f = open( outfile, 'w') if outfile else sys.stdout
         print( j, file=f )
-    elif "--play" in sys.argv:
+    elif "--play" in argv:
         outfile = None
-        if "--print" in sys.argv or "-p" in sys.argv:
+        if "--print" in argv or "-p" in argv:
             print( JobDefn.instances[-1].play("pretty") )
-        elif "--aesim_config" in sys.argv:
+        elif "--aesim_config" in argv:
             j = JobDefn.instances[-1].play("aesim")
-            if "--outdir" in sys.argv:
-                outdir = sys.argv[ sys.argv.index( "--outdir" ) + 1 ]
+            if "--outdir" in argv:
+                outdir = argv[ argv.index( "--outdir" ) + 1 ]
                 outfile = outdir + "/" + "test-scenario.json"
             f = open( outfile, 'w') if outfile else sys.stdout
             print( j, file=f )
-        elif "--aesim_test" in sys.argv:
+        elif "--aesim_test" in argv:
             j = JobDefn.instances[-1].play("aestest")
-            if "--outdir" in sys.argv:
-                outdir = sys.argv[ sys.argv.index( "--outdir" ) + 1 ]
+            if "--outdir" in argv:
+                outdir = argv[ argv.index( "--outdir" ) + 1 ]
                 outfile = outdir + "/" + "test-specification.json"
             f = open( outfile, 'w') if outfile else sys.stdout
             print( j, file=f )
         else:
             print( JobDefn.instances[-1].play("") )
-    elif "--aeo_config" in sys.argv:
+    elif "--aeo_config" in argv:
         j = JobDefn.aeo_config_all()
         outfile = None
-        if "--outdir" in sys.argv:
-            outdir = sys.argv[ sys.argv.index( "--outdir" ) + 1 ]
+        if "--outdir" in argv:
+            outdir = argv[ argv.index( "--outdir" ) + 1 ]
             outfile = outdir + "/" + "config.json"
         f = open( outfile, 'w') if outfile else sys.stdout
         print( j, file=f )
