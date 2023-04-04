@@ -14,6 +14,14 @@ within plus::plus2json is
 
     user_event: AuditEvents;
 
+    src_evt_txt: string;
+
+    src_occ_txt: string;
+
+    user_evt_txt: string;
+
+    user_occ_txt: string;
+
     preferred identifier is (DynamicControlName);
 
     @dialect("oal");

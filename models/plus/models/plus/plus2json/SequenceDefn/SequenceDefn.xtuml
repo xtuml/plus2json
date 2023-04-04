@@ -14,6 +14,8 @@ within plus::plus2json is
 
     start_events: AuditEvents;
 
+    merge_usage_cache: PreviousAuditEvents;
+
     preferred identifier is (SequenceName);
 
     @dialect("oal");

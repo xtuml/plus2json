@@ -20,8 +20,6 @@ within plus::plus2json is
 
     merge_inputs: PreviousAuditEvents;
 
-    merge_usage: PreviousAuditEvents;
-
     preferred identifier is (id);
 
     @dialect("oal");
