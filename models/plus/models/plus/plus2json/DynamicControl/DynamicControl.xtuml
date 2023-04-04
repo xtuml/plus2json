@@ -2,28 +2,28 @@
 
 within plus::plus2json is
 
-	@key_letters("DynamicControl");
-	@class_num(8);
-	class DynamicControl is
+  @key_letters("DynamicControl");
+  @class_num(8);
+  class DynamicControl is
 
-		DynamicControlName: string;
+    DynamicControlName: string;
 
-		DynamicControlType: string;
+    DynamicControlType: string;
 
-		source_event: AuditEvents;
+    source_event: AuditEvents;
 
-		user_event: AuditEvents;
+    user_event: AuditEvents;
 
-		preferred identifier is (DynamicControlName);
+    preferred identifier is (DynamicControlName);
 
-		@dialect("oal");
-		@operation_num(1);
-		class operation resolve_event_linkage();
+    @dialect("oal");
+    @operation_num(1);
+    class operation resolve_event_linkage();
 
-		@dialect("oal");
-		@operation_num(2);
-		operation json() return string;
+    @dialect("oal");
+    @operation_num(2);
+    operation json() return string;
 
-	end class;
+  end class;
 
 end;

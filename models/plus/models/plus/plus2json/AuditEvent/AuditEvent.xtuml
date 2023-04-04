@@ -2,52 +2,52 @@
 
 within plus::plus2json is
 
-	@key_letters("AuditEvent");
-	@class_num(3);
-	class AuditEvent is
+  @key_letters("AuditEvent");
+  @class_num(3);
+  class AuditEvent is
 
-		EventName: string;
+    EventName: string;
 
-		OccurrenceId: string;
+    OccurrenceId: string;
 
-		c_current_event: AuditEvents;
+    c_current_event: AuditEvents;
 
-		c_longest_event_name: integer;
+    c_longest_event_name: integer;
 
-		SequenceStart: boolean;
+    SequenceStart: boolean;
 
-		SequenceEnd: boolean;
+    SequenceEnd: boolean;
 
-		isBreak: boolean;
+    isBreak: boolean;
 
-		visit_count: integer;
+    visit_count: integer;
 
-		eventId: integer;
+    eventId: integer;
 
-		previousEventIds: sequence of integer;
+    previousEventIds: sequence of integer;
 
-		preferred identifier is (EventName, OccurrenceId);
+    preferred identifier is (EventName, OccurrenceId);
 
-		@dialect("oal");
-		@operation_num(2);
-		operation json(aedelim: in string);
+    @dialect("oal");
+    @operation_num(2);
+    operation json(aedelim: in string);
 
-		@dialect("oal");
-		@operation_num(1);
-		operation play(flavor: in string, delim: in string, job_defn: in instance of JobDefn, previous_event_id: in integer);
+    @dialect("oal");
+    @operation_num(1);
+    operation play(flavor: in string, delim: in string, job_defn: in instance of JobDefn, previous_event_id: in integer);
 
-		@dialect("oal");
-		@operation_num(3);
-		operation pretty_print();
+    @dialect("oal");
+    @operation_num(3);
+    operation pretty_print();
 
-		@dialect("oal");
-		@operation_num(4);
-		operation aeo_config() return string;
+    @dialect("oal");
+    @operation_num(4);
+    operation aeo_config() return string;
 
-		@dialect("oal");
-		@operation_num(5);
-		operation aesim_config() return string;
+    @dialect("oal");
+    @operation_num(5);
+    operation aesim_config() return string;
 
-	end class;
+  end class;
 
 end;

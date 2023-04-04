@@ -2,48 +2,48 @@
 
 within plus::plus2json is
 
-	@key_letters("Fork");
-	@class_num(6);
-	class Fork is
+  @key_letters("Fork");
+  @class_num(6);
+  class Fork is
 
-		id: string;
+    id: string;
 
-		flavor: string;
+    flavor: string;
 
-		c_scope: integer;
+    c_scope: integer;
 
-		c_number: integer;
+    c_number: integer;
 
-		fork_point: PreviousAuditEvents;
+    fork_point: PreviousAuditEvents;
 
-		fork_point_usage: PreviousAuditEvents;
+    fork_point_usage: PreviousAuditEvents;
 
-		merge_inputs: PreviousAuditEvents;
+    merge_inputs: PreviousAuditEvents;
 
-		merge_usage: PreviousAuditEvents;
+    merge_usage: PreviousAuditEvents;
 
-		preferred identifier is (id);
+    preferred identifier is (id);
 
-		@dialect("oal");
-		@operation_num(1);
-		class operation print_forks();
+    @dialect("oal");
+    @operation_num(1);
+    class operation print_forks();
 
-		@dialect("oal");
-		@operation_num(2);
-		operation print_fork(f: in instance of Fork);
+    @dialect("oal");
+    @operation_num(2);
+    operation print_fork(f: in instance of Fork);
 
-		@dialect("oal");
-		@operation_num(3);
-		operation begin();
+    @dialect("oal");
+    @operation_num(3);
+    operation begin();
 
-		@dialect("oal");
-		@operation_num(4);
-		operation again();
+    @dialect("oal");
+    @operation_num(4);
+    operation again();
 
-		@dialect("oal");
-		@operation_num(5);
-		operation endfork();
+    @dialect("oal");
+    @operation_num(5);
+    operation endfork();
 
-	end class;
+  end class;
 
 end;

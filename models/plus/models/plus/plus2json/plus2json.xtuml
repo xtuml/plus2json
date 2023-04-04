@@ -2,51 +2,54 @@
 
 within plus is
 
-	package plus2json is
-		class AuditEvent;
-		class DynamicControl;
-		class Fork;
-		class Invariant;
-		class JobDefn;
-		class Loop;
-		class PreviousAuditEvent;
-		class SequenceDefn;
-		relationship R1 is JobDefn unconditionally defines many SequenceDefn,
-		                   SequenceDefn unconditionally relates to one JobDefn;
+  package plus2json is
+    type 'inst_ref_set<AuditEvent>';
+    type 'inst_ref_set<PreviousAuditEvent>';
+    type 'inst_ref_set<SequenceDefn>';
+    class AuditEvent;
+    class DynamicControl;
+    class Fork;
+    class Invariant;
+    class JobDefn;
+    class Loop;
+    class PreviousAuditEvent;
+    class SequenceDefn;
+    relationship R1 is JobDefn unconditionally defines many SequenceDefn,
+                       SequenceDefn unconditionally relates to one JobDefn;
 
-		relationship R2 is AuditEvent unconditionally relates to one SequenceDefn,
-		                   SequenceDefn unconditionally defines many AuditEvent;
+    relationship R2 is AuditEvent unconditionally relates to one SequenceDefn,
+                       SequenceDefn unconditionally defines many AuditEvent;
 
-		relationship R3 is AuditEvent conditionally relates to many PreviousAuditEvent,
-		                   PreviousAuditEvent unconditionally precedes one AuditEvent;
+    relationship R3 is AuditEvent conditionally relates to many PreviousAuditEvent,
+                       PreviousAuditEvent unconditionally precedes one AuditEvent;
 
-		relationship R4 is Fork conditionally relates to one PreviousAuditEvent,
-		                   PreviousAuditEvent conditionally starts one Fork;
+    relationship R4 is Fork conditionally relates to one PreviousAuditEvent,
+                       PreviousAuditEvent conditionally starts one Fork;
 
-		relationship R5 is Fork conditionally uses one PreviousAuditEvent,
-		                   PreviousAuditEvent conditionally relates to one Fork;
+    relationship R5 is Fork conditionally uses one PreviousAuditEvent,
+                       PreviousAuditEvent conditionally relates to one Fork;
 
-		relationship R6 is Fork conditionally relates to many PreviousAuditEvent,
-		                   PreviousAuditEvent conditionally merges one Fork;
+    relationship R6 is Fork conditionally relates to many PreviousAuditEvent,
+                       PreviousAuditEvent conditionally merges one Fork;
 
-		relationship R7 is Fork conditionally uses many PreviousAuditEvent,
-		                   PreviousAuditEvent conditionally relates to one Fork;
+    relationship R7 is Fork conditionally uses many PreviousAuditEvent,
+                       PreviousAuditEvent conditionally relates to one Fork;
 
-		relationship R8 is Loop unconditionally starts_with many PreviousAuditEvent,
-		                   PreviousAuditEvent unconditionally relates to one Loop;
+    relationship R8 is Loop unconditionally starts_with many PreviousAuditEvent,
+                       PreviousAuditEvent unconditionally relates to one Loop;
 
-		relationship R9 is AuditEvent conditionally relates to many DynamicControl,
-		                   DynamicControl unconditionally has_source one AuditEvent;
+    relationship R9 is AuditEvent conditionally relates to many DynamicControl,
+                       DynamicControl unconditionally has_source one AuditEvent;
 
-		relationship R10 is AuditEvent conditionally relates to many DynamicControl,
-		                    DynamicControl unconditionally has_user one AuditEvent;
+    relationship R10 is AuditEvent conditionally relates to many DynamicControl,
+                        DynamicControl unconditionally has_user one AuditEvent;
 
-		relationship R11 is AuditEvent conditionally relates to many Invariant,
-		                    Invariant conditionally has_source one AuditEvent;
+    relationship R11 is AuditEvent conditionally relates to many Invariant,
+                        Invariant conditionally has_source one AuditEvent;
 
-		relationship R12 is AuditEvent conditionally relates to many Invariant,
-		                    Invariant conditionally has_user many AuditEvent;
+    relationship R12 is AuditEvent conditionally relates to many Invariant,
+                        Invariant conditionally has_user many AuditEvent;
 
-	end package;
+  end package;
 
 end;

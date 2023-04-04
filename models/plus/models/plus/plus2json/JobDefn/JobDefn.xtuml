@@ -2,40 +2,40 @@
 
 within plus::plus2json is
 
-	@key_letters("JobDefn");
-	@class_num(1);
-	class JobDefn is
+  @key_letters("JobDefn");
+  @class_num(1);
+  class JobDefn is
 
-		JobDefinitionName: string;
+    JobDefinitionName: string;
 
-		sequences: SequenceDefns;
+    sequences: SequenceDefns;
 
-		preferred identifier is (JobDefinitionName);
+    preferred identifier is (JobDefinitionName);
 
-		@dialect("oal");
-		@operation_num(2);
-		operation json();
+    @dialect("oal");
+    @operation_num(2);
+    operation json();
 
-		@dialect("oal");
-		@operation_num(3);
-		operation pretty_print();
+    @dialect("oal");
+    @operation_num(3);
+    operation pretty_print();
 
-		@dialect("oal");
-		@operation_num(1);
-		operation play(flavor: in string);
+    @dialect("oal");
+    @operation_num(1);
+    operation play(flavor: in string);
 
-		@dialect("oal");
-		@operation_num(4);
-		class operation aeo_config_all() return string;
+    @dialect("oal");
+    @operation_num(4);
+    class operation aeo_config_all() return string;
 
-		@dialect("oal");
-		@operation_num(5);
-		operation aeo_config() return string;
+    @dialect("oal");
+    @operation_num(5);
+    operation aeo_config() return string;
 
-		@dialect("oal");
-		@operation_num(6);
-		operation aesim_config();
+    @dialect("oal");
+    @operation_num(6);
+    operation aesim_config();
 
-	end class;
+  end class;
 
 end;

@@ -2,36 +2,36 @@
 
 within plus::plus2json is
 
-	@key_letters("SequenceDefn");
-	@class_num(2);
-	class SequenceDefn is
+  @key_letters("SequenceDefn");
+  @class_num(2);
+  class SequenceDefn is
 
-		SequenceName: string;
+    SequenceName: string;
 
-		c_current_sequence: SequenceDefns;
+    c_current_sequence: SequenceDefns;
 
-		audit_events: AuditEvents;
+    audit_events: AuditEvents;
 
-		start_events: AuditEvents;
+    start_events: AuditEvents;
 
-		preferred identifier is (SequenceName);
+    preferred identifier is (SequenceName);
 
-		@dialect("oal");
-		@operation_num(2);
-		operation json();
+    @dialect("oal");
+    @operation_num(2);
+    operation json();
 
-		@dialect("oal");
-		@operation_num(1);
-		operation play(flavor: in string, job_defn: in instance of JobDefn);
+    @dialect("oal");
+    @operation_num(1);
+    operation play(flavor: in string, job_defn: in instance of JobDefn);
 
-		@dialect("oal");
-		@operation_num(3);
-		operation pretty_print();
+    @dialect("oal");
+    @operation_num(3);
+    operation pretty_print();
 
-		@dialect("oal");
-		@operation_num(4);
-		operation aeo_config() return string;
+    @dialect("oal");
+    @operation_num(4);
+    operation aeo_config() return string;
 
-	end class;
+  end class;
 
 end;

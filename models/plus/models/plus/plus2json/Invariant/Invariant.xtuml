@@ -2,32 +2,32 @@
 
 within plus::plus2json is
 
-	@key_letters("Invariant");
-	@class_num(5);
-	class Invariant is
+  @key_letters("Invariant");
+  @class_num(5);
+  class Invariant is
 
-		Name: string;
+    Name: string;
 
-		Type: string;
+    Type: string;
 
-		src_evt_txt: string;
+    src_evt_txt: string;
 
-		src_occ_txt: string;
+    src_occ_txt: string;
 
-		user_evt_txt: string;
+    user_evt_txt: string;
 
-		user_occ_txt: string;
+    user_occ_txt: string;
 
-		preferred identifier is (Name);
+    preferred identifier is (Name);
 
-		@dialect("oal");
-		@operation_num(1);
-		class operation resolve_event_linkage();
+    @dialect("oal");
+    @operation_num(1);
+    class operation resolve_event_linkage();
 
-		@dialect("oal");
-		@operation_num(2);
-		class operation json();
+    @dialect("oal");
+    @operation_num(2);
+    class operation json();
 
-	end class;
+  end class;
 
 end;

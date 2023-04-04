@@ -2,20 +2,20 @@
 
 within plus::plus2json is
 
-	@key_letters("PreviousAuditEvent");
-	@class_num(4);
-	class PreviousAuditEvent is
+  @key_letters("PreviousAuditEvent");
+  @class_num(4);
+  class PreviousAuditEvent is
 
-		previous_event: instance of AuditEvent;
+    previous_event: instance of AuditEvent;
 
-		ConstraintDefinitionId: string;
+    ConstraintDefinitionId: string;
 
-		ConstraintValue: string;
+    ConstraintValue: string;
 
-		@dialect("oal");
-		@operation_num(1);
-		operation json(pdelim: in string) return string;
+    @dialect("oal");
+    @operation_num(1);
+    operation json(pdelim: in string) return string;
 
-	end class;
+  end class;
 
 end;
