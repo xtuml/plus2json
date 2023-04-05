@@ -1,269 +1,47 @@
--- BP 7.1.6 content: ModelClass syschar: 3 persistence-version: 7.1.6
+// BP 7.1.6 content: ModelClass syschar: 3 persistence-version: 7.1.6
 
-INSERT INTO O_OBJ
-	VALUES ("d4eaa72f-a6a5-4b85-942e-b796061d0292",
-	'Fork',
-	6,
-	'Fork',
-	'',
-	"00000000-0000-0000-0000-000000000000");
-INSERT INTO O_TFR
-	VALUES ("b921080d-ed75-4426-8774-77f45e29f712",
-	"d4eaa72f-a6a5-4b85-942e-b796061d0292",
-	'print_forks',
-	'',
-	"ba5eda7a-def5-0000-0000-000000000000",
-	0,
-	'',
-	3,
-	'',
-	"00000000-0000-0000-0000-000000000000",
-	0,
-	1);
-INSERT INTO O_TFR
-	VALUES ("ff925b75-41a4-4be0-b501-1cbfb8d802f8",
-	"d4eaa72f-a6a5-4b85-942e-b796061d0292",
-	'print_fork',
-	'',
-	"ba5eda7a-def5-0000-0000-000000000000",
-	1,
-	'',
-	3,
-	'',
-	"b921080d-ed75-4426-8774-77f45e29f712",
-	0,
-	2);
-INSERT INTO O_TPARM
-	VALUES ("30ee71cb-0f27-42e9-9d14-2ce6fe589cc4",
-	"ff925b75-41a4-4be0-b501-1cbfb8d802f8",
-	'f',
-	"6b79756a-83db-4ef5-8359-cfe7c80aa235",
-	0,
-	'',
-	"00000000-0000-0000-0000-000000000000",
-	'');
-INSERT INTO S_DT_PROXY
-	VALUES ("6b79756a-83db-4ef5-8359-cfe7c80aa235",
-	"00000000-0000-0000-0000-000000000000",
-	'inst_ref<Fork>',
-	'',
-	'',
-	'../plus2json.xtuml');
-INSERT INTO O_TFR
-	VALUES ("80b552f3-78a5-4d2b-b865-6430c1b43bc8",
-	"d4eaa72f-a6a5-4b85-942e-b796061d0292",
-	'begin',
-	'',
-	"ba5eda7a-def5-0000-0000-000000000000",
-	1,
-	'',
-	3,
-	'',
-	"ff925b75-41a4-4be0-b501-1cbfb8d802f8",
-	0,
-	3);
-INSERT INTO O_TFR
-	VALUES ("c1c6b8ea-c398-4187-a89a-878c83a7e241",
-	"d4eaa72f-a6a5-4b85-942e-b796061d0292",
-	'again',
-	'',
-	"ba5eda7a-def5-0000-0000-000000000000",
-	1,
-	'',
-	3,
-	'',
-	"80b552f3-78a5-4d2b-b865-6430c1b43bc8",
-	0,
-	4);
-INSERT INTO O_TFR
-	VALUES ("b4a1957e-2783-407c-840c-3856cb2bedf8",
-	"d4eaa72f-a6a5-4b85-942e-b796061d0292",
-	'end',
-	'',
-	"ba5eda7a-def5-0000-0000-000000000000",
-	1,
-	'',
-	3,
-	'',
-	"c1c6b8ea-c398-4187-a89a-878c83a7e241",
-	0,
-	5);
-INSERT INTO O_NBATTR
-	VALUES ("3e680f2c-71f4-4e12-bbcc-508c64a386a8",
-	"d4eaa72f-a6a5-4b85-942e-b796061d0292");
-INSERT INTO O_BATTR
-	VALUES ("3e680f2c-71f4-4e12-bbcc-508c64a386a8",
-	"d4eaa72f-a6a5-4b85-942e-b796061d0292");
-INSERT INTO O_ATTR
-	VALUES ("3e680f2c-71f4-4e12-bbcc-508c64a386a8",
-	"d4eaa72f-a6a5-4b85-942e-b796061d0292",
-	"00000000-0000-0000-0000-000000000000",
-	'id',
-	'',
-	'',
-	'id',
-	0,
-	"ba5eda7a-def5-0000-0000-000000000004",
-	'',
-	'');
-INSERT INTO O_NBATTR
-	VALUES ("2e6a7b43-61bd-4c3b-93dd-8099c8226df5",
-	"d4eaa72f-a6a5-4b85-942e-b796061d0292");
-INSERT INTO O_BATTR
-	VALUES ("2e6a7b43-61bd-4c3b-93dd-8099c8226df5",
-	"d4eaa72f-a6a5-4b85-942e-b796061d0292");
-INSERT INTO O_ATTR
-	VALUES ("2e6a7b43-61bd-4c3b-93dd-8099c8226df5",
-	"d4eaa72f-a6a5-4b85-942e-b796061d0292",
-	"3e680f2c-71f4-4e12-bbcc-508c64a386a8",
-	'flavor',
-	'',
-	'',
-	'flavor',
-	0,
-	"ba5eda7a-def5-0000-0000-000000000004",
-	'',
-	'');
-INSERT INTO O_NBATTR
-	VALUES ("c5380d5a-6349-49b0-8bf6-fa2850095fa2",
-	"d4eaa72f-a6a5-4b85-942e-b796061d0292");
-INSERT INTO O_BATTR
-	VALUES ("c5380d5a-6349-49b0-8bf6-fa2850095fa2",
-	"d4eaa72f-a6a5-4b85-942e-b796061d0292");
-INSERT INTO O_ATTR
-	VALUES ("c5380d5a-6349-49b0-8bf6-fa2850095fa2",
-	"d4eaa72f-a6a5-4b85-942e-b796061d0292",
-	"2e6a7b43-61bd-4c3b-93dd-8099c8226df5",
-	'c_scope',
-	'',
-	'',
-	'c_scope',
-	0,
-	"ba5eda7a-def5-0000-0000-000000000002",
-	'',
-	'');
-INSERT INTO O_NBATTR
-	VALUES ("0afebe6f-099a-4ec6-969d-6d103faa8661",
-	"d4eaa72f-a6a5-4b85-942e-b796061d0292");
-INSERT INTO O_BATTR
-	VALUES ("0afebe6f-099a-4ec6-969d-6d103faa8661",
-	"d4eaa72f-a6a5-4b85-942e-b796061d0292");
-INSERT INTO O_ATTR
-	VALUES ("0afebe6f-099a-4ec6-969d-6d103faa8661",
-	"d4eaa72f-a6a5-4b85-942e-b796061d0292",
-	"c5380d5a-6349-49b0-8bf6-fa2850095fa2",
-	'c_number',
-	'',
-	'',
-	'c_number',
-	0,
-	"ba5eda7a-def5-0000-0000-000000000002",
-	'',
-	'');
-INSERT INTO O_NBATTR
-	VALUES ("0e4946db-1acf-4de3-97e5-448ca15e34fe",
-	"d4eaa72f-a6a5-4b85-942e-b796061d0292");
-INSERT INTO O_BATTR
-	VALUES ("0e4946db-1acf-4de3-97e5-448ca15e34fe",
-	"d4eaa72f-a6a5-4b85-942e-b796061d0292");
-INSERT INTO O_ATTR
-	VALUES ("0e4946db-1acf-4de3-97e5-448ca15e34fe",
-	"d4eaa72f-a6a5-4b85-942e-b796061d0292",
-	"0afebe6f-099a-4ec6-969d-6d103faa8661",
-	'fork_point',
-	'',
-	'',
-	'fork_point',
-	0,
-	"135fa7f9-60da-489c-9fab-650970dabf9c",
-	'',
-	'');
-INSERT INTO S_DT_PROXY
-	VALUES ("135fa7f9-60da-489c-9fab-650970dabf9c",
-	"00000000-0000-0000-0000-000000000000",
-	'PreviousAuditEvents',
-	'',
-	'',
-	'../../types/types.xtuml');
-INSERT INTO O_NBATTR
-	VALUES ("9382e1bc-78b3-4815-8173-c7ce7651ab7c",
-	"d4eaa72f-a6a5-4b85-942e-b796061d0292");
-INSERT INTO O_BATTR
-	VALUES ("9382e1bc-78b3-4815-8173-c7ce7651ab7c",
-	"d4eaa72f-a6a5-4b85-942e-b796061d0292");
-INSERT INTO O_ATTR
-	VALUES ("9382e1bc-78b3-4815-8173-c7ce7651ab7c",
-	"d4eaa72f-a6a5-4b85-942e-b796061d0292",
-	"0e4946db-1acf-4de3-97e5-448ca15e34fe",
-	'fork_point_usage',
-	'',
-	'',
-	'fork_point_usage',
-	0,
-	"135fa7f9-60da-489c-9fab-650970dabf9c",
-	'',
-	'');
-INSERT INTO O_NBATTR
-	VALUES ("5b84f2fd-c732-4c9f-b74a-1945d2fba92c",
-	"d4eaa72f-a6a5-4b85-942e-b796061d0292");
-INSERT INTO O_BATTR
-	VALUES ("5b84f2fd-c732-4c9f-b74a-1945d2fba92c",
-	"d4eaa72f-a6a5-4b85-942e-b796061d0292");
-INSERT INTO O_ATTR
-	VALUES ("5b84f2fd-c732-4c9f-b74a-1945d2fba92c",
-	"d4eaa72f-a6a5-4b85-942e-b796061d0292",
-	"9382e1bc-78b3-4815-8173-c7ce7651ab7c",
-	'merge_inputs',
-	'',
-	'',
-	'merge_inputs',
-	0,
-	"135fa7f9-60da-489c-9fab-650970dabf9c",
-	'',
-	'');
-INSERT INTO O_NBATTR
-	VALUES ("2d9c1fce-4c7d-4e32-9358-c52d1850b1cd",
-	"d4eaa72f-a6a5-4b85-942e-b796061d0292");
-INSERT INTO O_BATTR
-	VALUES ("2d9c1fce-4c7d-4e32-9358-c52d1850b1cd",
-	"d4eaa72f-a6a5-4b85-942e-b796061d0292");
-INSERT INTO O_ATTR
-	VALUES ("2d9c1fce-4c7d-4e32-9358-c52d1850b1cd",
-	"d4eaa72f-a6a5-4b85-942e-b796061d0292",
-	"5b84f2fd-c732-4c9f-b74a-1945d2fba92c",
-	'merge_usage',
-	'',
-	'',
-	'merge_usage',
-	0,
-	"135fa7f9-60da-489c-9fab-650970dabf9c",
-	'',
-	'');
-INSERT INTO O_ID
-	VALUES (0,
-	"d4eaa72f-a6a5-4b85-942e-b796061d0292");
-INSERT INTO O_OIDA
-	VALUES ("3e680f2c-71f4-4e12-bbcc-508c64a386a8",
-	"d4eaa72f-a6a5-4b85-942e-b796061d0292",
-	0,
-	'id');
-INSERT INTO O_ID
-	VALUES (1,
-	"d4eaa72f-a6a5-4b85-942e-b796061d0292");
-INSERT INTO O_ID
-	VALUES (2,
-	"d4eaa72f-a6a5-4b85-942e-b796061d0292");
-INSERT INTO PE_PE
-	VALUES ("d4eaa72f-a6a5-4b85-942e-b796061d0292",
-	1,
-	"45e5dfab-c7b2-4945-b3c5-e71e24bacc40",
-	"00000000-0000-0000-0000-000000000000",
-	4);
-INSERT INTO EP_PKG_PROXY
-	VALUES ("45e5dfab-c7b2-4945-b3c5-e71e24bacc40",
-	"dd6c3f49-af25-4fd3-879d-9b7510f901f1",
-	"dd6c3f49-af25-4fd3-879d-9b7510f901f1",
-	'plus2json',
-	'',
-	0,
-	'../plus2json.xtuml');
+within plus::plus2json is
+
+  @key_letters("Fork");
+  @class_num(6);
+  class Fork is
+
+    id: string;
+
+    flavor: string;
+
+    c_scope: integer;
+
+    c_number: integer;
+
+    fork_point: PreviousAuditEvents;
+
+    fork_point_usage: PreviousAuditEvents;
+
+    merge_inputs: PreviousAuditEvents;
+
+    preferred identifier is (id);
+
+    @dialect("oal");
+    @operation_num(1);
+    class operation print_forks();
+
+    @dialect("oal");
+    @operation_num(2);
+    operation print_fork(f: in instance of Fork);
+
+    @dialect("oal");
+    @operation_num(3);
+    operation begin();
+
+    @dialect("oal");
+    @operation_num(4);
+    operation again();
+
+    @dialect("oal");
+    @operation_num(5);
+    operation endfork();
+
+  end class;
+
+end;

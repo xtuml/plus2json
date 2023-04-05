@@ -144,7 +144,7 @@ class plus2json_run(plus2jsonListener):
         Fork.instances[-1].again()
 
     def exitIf(self, ctx:plus2jsonParser.IfContext):
-        Fork.instances[-1].end()
+        Fork.instances[-1].endfork()
 
     def enterSwitch(self, ctx:plus2jsonParser.SwitchContext):
         f = Fork("XOR")
@@ -154,7 +154,7 @@ class plus2json_run(plus2jsonListener):
         Fork.instances[-1].again()
 
     def exitSwitch(self, ctx:plus2jsonParser.SwitchContext):
-        Fork.instances[-1].end()
+        Fork.instances[-1].endfork()
 
     def enterFork(self, ctx:plus2jsonParser.ForkContext):
         f = Fork("AND")
@@ -164,7 +164,7 @@ class plus2json_run(plus2jsonListener):
         Fork.instances[-1].again()
 
     def exitFork(self, ctx:plus2jsonParser.ForkContext):
-        Fork.instances[-1].end()
+        Fork.instances[-1].endfork()
 
     def enterSplit(self, ctx:plus2jsonParser.SplitContext):
         f = Fork("IOR")
@@ -174,7 +174,7 @@ class plus2json_run(plus2jsonListener):
         Fork.instances[-1].again()
 
     def exitSplit(self, ctx:plus2jsonParser.SplitContext):
-        Fork.instances[-1].end()
+        Fork.instances[-1].endfork()
 
     def enterLoop(self, ctx:plus2jsonParser.LoopContext):
         Loop()

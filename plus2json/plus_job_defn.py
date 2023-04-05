@@ -164,7 +164,7 @@ class Fork:
             AuditEvent.c_current_event = None
         if Fork.instances[-1].fork_point:
             Fork.instances[-1].fork_point_usage = Fork.instances[-1].fork_point
-    def end(self):
+    def endfork(self):
         if AuditEvent.c_current_event: # We may have 'detach'd and have no c_current_event.
             self.merge_inputs.append( PreviousAuditEvent( AuditEvent.c_current_event ) )
             AuditEvent.c_current_event = None
@@ -191,8 +191,8 @@ class Fork:
         if self.merge_inputs:
             for mi in self.merge_inputs:
                 merge_inputs += mi.previous_event.EventName + mi.ConstraintValue
-        if self.merge_usage:
-            for mu in self.merge_usage:
+        if SequenceDefn[-1].merge_usage_cache:
+            for mu in SequenceDefn[-1].merge_usage_cache:
                 merge_usages += mu.previous_event.EventName + mu.ConstraintValue
         print( "Fork:", Fork.c_scope, self.flavor, "fp:" + fp, "fu:" + fu, "mis:" + merge_inputs, "mus:" + merge_usages )
     @classmethod

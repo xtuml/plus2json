@@ -1,171 +1,33 @@
--- BP 7.1.6 content: ModelClass syschar: 3 persistence-version: 7.1.6
+// BP 7.1.6 content: ModelClass syschar: 3 persistence-version: 7.1.6
 
-INSERT INTO O_OBJ
-	VALUES ("e04063f2-ff64-4806-941c-e2ef71e31b62",
-	'Invariant',
-	5,
-	'Invariant',
-	'',
-	"00000000-0000-0000-0000-000000000000");
-INSERT INTO O_TFR
-	VALUES ("79e8212b-4c16-4035-8e21-c82cfc0c3e82",
-	"e04063f2-ff64-4806-941c-e2ef71e31b62",
-	'resolve_event_linkage',
-	'',
-	"ba5eda7a-def5-0000-0000-000000000000",
-	0,
-	'',
-	3,
-	'',
-	"00000000-0000-0000-0000-000000000000",
-	0,
-	1);
-INSERT INTO O_TFR
-	VALUES ("c76253f8-c96e-4832-b0a2-3cefb856a90a",
-	"e04063f2-ff64-4806-941c-e2ef71e31b62",
-	'json',
-	'',
-	"ba5eda7a-def5-0000-0000-000000000000",
-	0,
-	'',
-	3,
-	'',
-	"79e8212b-4c16-4035-8e21-c82cfc0c3e82",
-	0,
-	2);
-INSERT INTO O_NBATTR
-	VALUES ("38c660ed-f6a6-4727-bc6b-61c0a5ffca7a",
-	"e04063f2-ff64-4806-941c-e2ef71e31b62");
-INSERT INTO O_BATTR
-	VALUES ("38c660ed-f6a6-4727-bc6b-61c0a5ffca7a",
-	"e04063f2-ff64-4806-941c-e2ef71e31b62");
-INSERT INTO O_ATTR
-	VALUES ("38c660ed-f6a6-4727-bc6b-61c0a5ffca7a",
-	"e04063f2-ff64-4806-941c-e2ef71e31b62",
-	"00000000-0000-0000-0000-000000000000",
-	'Name',
-	'',
-	'',
-	'Name',
-	0,
-	"ba5eda7a-def5-0000-0000-000000000004",
-	'',
-	'');
-INSERT INTO O_NBATTR
-	VALUES ("e9deb39a-b9ba-4710-a86d-5157023ba4f4",
-	"e04063f2-ff64-4806-941c-e2ef71e31b62");
-INSERT INTO O_BATTR
-	VALUES ("e9deb39a-b9ba-4710-a86d-5157023ba4f4",
-	"e04063f2-ff64-4806-941c-e2ef71e31b62");
-INSERT INTO O_ATTR
-	VALUES ("e9deb39a-b9ba-4710-a86d-5157023ba4f4",
-	"e04063f2-ff64-4806-941c-e2ef71e31b62",
-	"38c660ed-f6a6-4727-bc6b-61c0a5ffca7a",
-	'Type',
-	'',
-	'',
-	'Type',
-	0,
-	"ba5eda7a-def5-0000-0000-000000000004",
-	'',
-	'');
-INSERT INTO O_NBATTR
-	VALUES ("e2f1c997-a6d6-473f-9966-a801c35a0b35",
-	"e04063f2-ff64-4806-941c-e2ef71e31b62");
-INSERT INTO O_BATTR
-	VALUES ("e2f1c997-a6d6-473f-9966-a801c35a0b35",
-	"e04063f2-ff64-4806-941c-e2ef71e31b62");
-INSERT INTO O_ATTR
-	VALUES ("e2f1c997-a6d6-473f-9966-a801c35a0b35",
-	"e04063f2-ff64-4806-941c-e2ef71e31b62",
-	"e9deb39a-b9ba-4710-a86d-5157023ba4f4",
-	'src_evt_txt',
-	'',
-	'',
-	'src_evt_txt',
-	0,
-	"ba5eda7a-def5-0000-0000-000000000004",
-	'',
-	'');
-INSERT INTO O_NBATTR
-	VALUES ("8e09004e-8b57-457a-b116-700bb18dfa63",
-	"e04063f2-ff64-4806-941c-e2ef71e31b62");
-INSERT INTO O_BATTR
-	VALUES ("8e09004e-8b57-457a-b116-700bb18dfa63",
-	"e04063f2-ff64-4806-941c-e2ef71e31b62");
-INSERT INTO O_ATTR
-	VALUES ("8e09004e-8b57-457a-b116-700bb18dfa63",
-	"e04063f2-ff64-4806-941c-e2ef71e31b62",
-	"e2f1c997-a6d6-473f-9966-a801c35a0b35",
-	'src_occ_txt',
-	'',
-	'',
-	'src_occ_txt',
-	0,
-	"ba5eda7a-def5-0000-0000-000000000004",
-	'',
-	'');
-INSERT INTO O_NBATTR
-	VALUES ("97880c61-bcbc-47fd-a285-469281a2c38c",
-	"e04063f2-ff64-4806-941c-e2ef71e31b62");
-INSERT INTO O_BATTR
-	VALUES ("97880c61-bcbc-47fd-a285-469281a2c38c",
-	"e04063f2-ff64-4806-941c-e2ef71e31b62");
-INSERT INTO O_ATTR
-	VALUES ("97880c61-bcbc-47fd-a285-469281a2c38c",
-	"e04063f2-ff64-4806-941c-e2ef71e31b62",
-	"8e09004e-8b57-457a-b116-700bb18dfa63",
-	'user_evt_txt',
-	'',
-	'',
-	'user_evt_txt',
-	0,
-	"ba5eda7a-def5-0000-0000-000000000004",
-	'',
-	'');
-INSERT INTO O_NBATTR
-	VALUES ("3cf37d19-fcd2-43b8-9f6d-da54e68aafce",
-	"e04063f2-ff64-4806-941c-e2ef71e31b62");
-INSERT INTO O_BATTR
-	VALUES ("3cf37d19-fcd2-43b8-9f6d-da54e68aafce",
-	"e04063f2-ff64-4806-941c-e2ef71e31b62");
-INSERT INTO O_ATTR
-	VALUES ("3cf37d19-fcd2-43b8-9f6d-da54e68aafce",
-	"e04063f2-ff64-4806-941c-e2ef71e31b62",
-	"97880c61-bcbc-47fd-a285-469281a2c38c",
-	'user_occ_txt',
-	'',
-	'',
-	'user_occ_txt',
-	0,
-	"ba5eda7a-def5-0000-0000-000000000004",
-	'',
-	'');
-INSERT INTO O_ID
-	VALUES (0,
-	"e04063f2-ff64-4806-941c-e2ef71e31b62");
-INSERT INTO O_OIDA
-	VALUES ("38c660ed-f6a6-4727-bc6b-61c0a5ffca7a",
-	"e04063f2-ff64-4806-941c-e2ef71e31b62",
-	0,
-	'Name');
-INSERT INTO O_ID
-	VALUES (1,
-	"e04063f2-ff64-4806-941c-e2ef71e31b62");
-INSERT INTO O_ID
-	VALUES (2,
-	"e04063f2-ff64-4806-941c-e2ef71e31b62");
-INSERT INTO PE_PE
-	VALUES ("e04063f2-ff64-4806-941c-e2ef71e31b62",
-	1,
-	"45e5dfab-c7b2-4945-b3c5-e71e24bacc40",
-	"00000000-0000-0000-0000-000000000000",
-	4);
-INSERT INTO EP_PKG_PROXY
-	VALUES ("45e5dfab-c7b2-4945-b3c5-e71e24bacc40",
-	"dd6c3f49-af25-4fd3-879d-9b7510f901f1",
-	"dd6c3f49-af25-4fd3-879d-9b7510f901f1",
-	'plus2json',
-	'',
-	0,
-	'../plus2json.xtuml');
+within plus::plus2json is
+
+  @key_letters("Invariant");
+  @class_num(5);
+  class Invariant is
+
+    Name: string;
+
+    Type: string;
+
+    src_evt_txt: string;
+
+    src_occ_txt: string;
+
+    user_evt_txt: string;
+
+    user_occ_txt: string;
+
+    preferred identifier is (Name);
+
+    @dialect("oal");
+    @operation_num(1);
+    class operation resolve_event_linkage();
+
+    @dialect("oal");
+    @operation_num(2);
+    class operation json();
+
+  end class;
+
+end;
