@@ -168,7 +168,7 @@ class AuditEvent_play:
                     j += '['
                     peid_delim = ""
                     for peid in self.previousEventIds:
-                        j += peid_delim + str( self.previousEventIds[-1] )
+                        j += peid_delim + str( peid )
                         peid_delim = ","
                     j += ']'
             j += '\n'
@@ -191,7 +191,7 @@ class AuditEvent_play:
                     j += '['
                     peid_delim = ""
                     for peid in self.previousEventIds:
-                        j += peid_delim + '"' + str( self.previousEventIds[-1] ) + '"'
+                        j += peid_delim + '"' + str( peid ) + '"'
                         peid_delim = ","
                     j += '],'
             j += '"timestamp": "' + '{:%Y-%m-%dT%H:%M:%SZ}'.format(datetime.datetime.now()) + '",'
