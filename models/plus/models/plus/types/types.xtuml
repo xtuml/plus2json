@@ -9,6 +9,8 @@ within plus is
 
     type SequenceDefns is set of instance of SequenceDefn;
 
+    type UUID is string;
+
   end package;
 
 end;

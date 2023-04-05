@@ -22,7 +22,7 @@ within plus::plus2json is
 
     visit_count: integer;
 
-    eventId: integer;
+    eventId: UUID;
 
     previousEventIds: sequence of integer;
 

@@ -6,6 +6,7 @@ Play out (interpret) the job definition.
 
 import datetime
 import sys
+import uuid
 from os.path import abspath
 from pathlib import Path
 package_path = abspath(Path(__file__).parent)
@@ -23,8 +24,16 @@ import plus_job_defn
 
 class JobDefn_play:
     """Play Job Definition"""
+    c_idFactory = 0
+    def __init__(self):
+        self.eventId = None              # Identifier of an instance of this job.
     def play(self, flavor):
         """interpret the job"""
+        JobDefn_play.c_idFactory += 1
+        if 'pretty' == flavor:
+            self.jobId = JobDefn_play.c_idFactory
+        else:
+            self.jobId = uuid.uuid4()
         j = ""
         if 'pretty' == flavor:
             j += 'job:' + self.JobDefinitionName + '\n'
@@ -61,7 +70,7 @@ class SequenceDefn_play:
         return j
 
 class AuditEvent_play:
-    idFactory = 0
+    c_idFactory = 0
     def __init__(self):
         self.visit_count = 0             # Count visits to this audit event.
         self.eventId = None              # Identifier of an instance of this event.
@@ -77,14 +86,18 @@ class AuditEvent_play:
             return ""
     def play( self, flavor, delim, job_defn, previous_event_id ):
         """interpret the event"""
-        self.previousEventIds.append( previous_event_id )
+        if previous_event_id:
+            self.previousEventIds.append( previous_event_id )
         # TODO:  Detect a merge point and pass until the branches have completed.
         # Recursively traverse prevs to see if there is an AND constraint.
         if len( self.previous_events ) > len( self.previousEventIds ) and self.drill_back_for_constraint_type() == 'AND':
             return ""
         self.visit_count += 1
-        AuditEvent_play.idFactory += 1
-        self.eventId = AuditEvent_play.idFactory
+        AuditEvent_play.c_idFactory += 1
+        if 'pretty' == flavor:
+            self.eventId = AuditEvent_play.c_idFactory
+        else:
+            self.eventId = uuid.uuid4()
         next_aes = []
         eligible_next_aes = []
         xor_included = False
@@ -146,20 +159,41 @@ class AuditEvent_play:
         merge_text = "" if merge_count < 2 else 'm' + str( merge_count )
         if 'pretty' == flavor:
             visit_count_string = '[' + str( self.visit_count ) + ']' if self.visit_count > 1 else ""
-            j += self.EventName + " " +  visit_count_string + fork_text + merge_text + '\n'
+            j += self.EventName + ":" + str( self.eventId ) + " " +  visit_count_string + fork_text + merge_text + " "
+            if self.previousEventIds:
+                j += 'peids:'
+                if 1 == len( self.previousEventIds ):
+                    j += str( self.previousEventIds[-1] )
+                else:
+                    j += '['
+                    peid_delim = ""
+                    for peid in self.previousEventIds:
+                        j += peid_delim + str( self.previousEventIds[-1] )
+                        peid_delim = ","
+                    j += ']'
+            j += '\n'
         elif 'aesim' == flavor:
             j += self.aesim_config( delim )
         elif 'aestest' == flavor:
             j += self.aesim_test( delim )
         else:
-            # TODO - This is a start at actually simulating audit events.
+            # TODO - This is a start at actually producing audit event instances.
             j += delim + '{'
             j += '"jobName": "' + job_defn.JobDefinitionName + '",'
-            j += '"jobId": "' + 'job UUID here' + '",'
+            j += '"jobId": "' + str( job_defn.jobId ) + '",'
             j += '"eventType": "' + self.EventName + '",'
-            j += '"eventId": "' + str( self.eventId ) + ' event UUID here' + '",'
+            j += '"eventId": "' + str( self.eventId ) + '",'
             if self.previousEventIds:
-                j += '"previousEventIds": "' + str( self.previousEventIds[-1] ) + ' prev UUID here' + '",'
+                j += '"previousEventIds": '
+                if 1 == len( self.previousEventIds ):
+                    j += '"' + str( self.previousEventIds[-1] ) + '",'
+                else:
+                    j += '['
+                    peid_delim = ""
+                    for peid in self.previousEventIds:
+                        j += peid_delim + '"' + str( self.previousEventIds[-1] ) + '"'
+                        peid_delim = ","
+                    j += '],'
             j += '"timestamp": "' + '{:%Y-%m-%dT%H:%M:%SZ}'.format(datetime.datetime.now()) + '",'
             j += '"applicationName": "' + plus_job_defn.AuditEvent.ApplicationName + '"'
             j += '}'
