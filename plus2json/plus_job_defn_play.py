@@ -87,6 +87,7 @@ class AuditEvent_play:
     def play( self, flavor, delim, job_defn, previous_event_id ):
         """interpret the event"""
         if previous_event_id:
+            print( self.EventName, previous_event_id )
             self.previousEventIds.append( previous_event_id )
         # TODO:  Detect a merge point and pass until the branches have completed.
         # Recursively traverse prevs to see if there is an AND constraint.
@@ -168,7 +169,7 @@ class AuditEvent_play:
                     j += '['
                     peid_delim = ""
                     for peid in self.previousEventIds:
-                        j += peid_delim + str( self.previousEventIds[-1] )
+                        j += peid_delim + str( peid )
                         peid_delim = ","
                     j += ']'
             j += '\n'
@@ -191,7 +192,7 @@ class AuditEvent_play:
                     j += '['
                     peid_delim = ""
                     for peid in self.previousEventIds:
-                        j += peid_delim + '"' + str( self.previousEventIds[-1] ) + '"'
+                        j += peid_delim + '"' + str( peid ) + '"'
                         peid_delim = ","
                     j += '],'
             j += '"timestamp": "' + '{:%Y-%m-%dT%H:%M:%SZ}'.format(datetime.datetime.now()) + '",'
