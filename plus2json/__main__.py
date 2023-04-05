@@ -1,4 +1,5 @@
 import sys
+import json
 from antlr4 import *
 from os.path import abspath
 from pathlib import Path
@@ -59,7 +60,8 @@ python ../src/__main__.py Tutorial_1.puml --job -p        # run from the raw sou
         if "--print" in argv or "-p" in argv:
             JobDefn.instances[-1].pretty_print()
         else:
-            print( JobDefn.instances[-1].json() )
+            j = JobDefn.instances[-1].json()
+            json.dump(json.loads(j), sys.stdout, sort_keys=True, indent=4, separators=(',', ': '))
     elif "--audit_event_data" in argv or "-d" in argv:
         j = Invariant.json()
         # TODO - name the file after the event?
@@ -68,7 +70,7 @@ python ../src/__main__.py Tutorial_1.puml --job -p        # run from the raw sou
             outdir = argv[ argv.index( "--outdir" ) + 1 ]
             outfile = outdir + "/" + "audit_event_data.json"
         f = open( outfile, 'w') if outfile else sys.stdout
-        print( j, file=f )
+        json.dump(json.loads(j), f, sort_keys=True, indent=4, separators=(',', ': '))
     elif "--play" in argv:
         outfile = None
         if "--print" in argv or "-p" in argv:
@@ -79,16 +81,17 @@ python ../src/__main__.py Tutorial_1.puml --job -p        # run from the raw sou
                 outdir = argv[ argv.index( "--outdir" ) + 1 ]
                 outfile = outdir + "/" + "test-scenario.json"
             f = open( outfile, 'w') if outfile else sys.stdout
-            print( j, file=f )
+            json.dump(json.loads(j), f, sort_keys=True, indent=4, separators=(',', ': '))
         elif "--aesim_test" in argv:
             j = JobDefn.instances[-1].play("aestest")
             if "--outdir" in argv:
                 outdir = argv[ argv.index( "--outdir" ) + 1 ]
                 outfile = outdir + "/" + "test-specification.json"
             f = open( outfile, 'w') if outfile else sys.stdout
-            print( j, file=f )
+            json.dump(json.loads(j), f, sort_keys=True, indent=4, separators=(',', ': '))
         else:
-            print( JobDefn.instances[-1].play("") )
+            j = JobDefn.instances[-1].play("")
+            print( json.dumps(json.loads(j), sort_keys=True, indent=4, separators=(',', ': ')) )
     elif "--aeo_config" in argv:
         j = JobDefn.aeo_config_all()
         outfile = None
@@ -96,7 +99,7 @@ python ../src/__main__.py Tutorial_1.puml --job -p        # run from the raw sou
             outdir = argv[ argv.index( "--outdir" ) + 1 ]
             outfile = outdir + "/" + "config.json"
         f = open( outfile, 'w') if outfile else sys.stdout
-        print( j, file=f )
+        json.dump(json.loads(j), f, sort_keys=True, indent=4, separators=(',', ': '))
     elif 2 == len( argv ):
         print( "syntax check complete" )
     else:

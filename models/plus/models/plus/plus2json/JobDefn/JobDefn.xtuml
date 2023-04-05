@@ -10,6 +10,10 @@ within plus::plus2json is
 
     sequences: SequenceDefns;
 
+    c_idFactory: integer;
+
+    jobId: UUID;
+
     preferred identifier is (JobDefinitionName);
 
     @dialect("oal");

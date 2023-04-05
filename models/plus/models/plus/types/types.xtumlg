@@ -10,5 +10,8 @@ shapes :
   shape : PreviousAuditEvents
     render : user_data_type "plus::types::PreviousAuditEvents"
     bounds : x : 468.0 y : 36.0 width : 200.0 height : 150.0
+  shape : UUID
+    render : user_data_type "plus::types::UUID"
+    bounds : x : 35.0 y : 131.0 width : 192.0 height : 61.0
 
 connectors :
