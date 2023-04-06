@@ -104,7 +104,7 @@ class Invariant_JSON:
                 j += '"EventDataType": "' + invariant_type + '",'
                 j += '"SourceEventJobDefinitionName": "' + plus_job_defn.JobDefn.instances[-1].JobDefinitionName + '",'
                 j += '"SourceEventType": "' + invariant.src_evt_txt + '",'
-                j += '"SourceOccurrenceId": ' + invariant.src_occ_txt + ','
+                j += '"SourceEventOccurrenceId": ' + invariant.src_occ_txt + ','
                 j += '"UserEvents": ['
                 j += '{ "UserEventName": "' + invariant.user_evt_txt + '",'
                 j += '"UserOccurrenceId": ' + invariant.user_occ_txt + ','
