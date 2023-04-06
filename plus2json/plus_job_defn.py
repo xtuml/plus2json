@@ -62,6 +62,7 @@ class AuditEvent( AuditEvent_AEO, AuditEvent_JSON, AuditEvent_play, AuditEvent_p
     c_longest_name_length = 0                              # Keep longest name length for pretty printing.
     def __init__(self, name, occurrence):
         self.EventName = name
+        self.scope = Fork.c_scope
         if len( name ) > AuditEvent.c_longest_name_length:
             AuditEvent.c_longest_name_length = len( name )
         self.sequence = SequenceDefn.c_current_sequence

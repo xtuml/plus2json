@@ -40,7 +40,6 @@ python plus2json.pyz Tutorial_13.puml -d                  # produce audit event 
 python plus2json.pyz myjobdefn.puml --play                # interpret the job producing event instances
 python plus2json.pyz myjobdefn.puml --play --aesim_config # produce a valid AESimulator sequence
 python -m plus2json Tutorial_1.puml --job -p              # show job in human readable view
-python plus2json.pyz j.puml --job | python -m json.tool   # format output JSON
 python ../src/__main__.py Tutorial_1.puml --job -p        # run from the raw source code
 
         """)

@@ -26,7 +26,7 @@ class JobDefn_play:
     """Play Job Definition"""
     c_idFactory = 0
     def __init__(self):
-        self.eventId = None              # Identifier of an instance of this job.
+        self.jobId = None              # Identifier of an instance of this job.
     def play(self, flavor):
         """interpret the job"""
         JobDefn_play.c_idFactory += 1
@@ -75,11 +75,14 @@ class AuditEvent_play:
         self.visit_count = 0             # Count visits to this audit event.
         self.eventId = None              # Identifier of an instance of this event.
         self.previousEventIds = []       # Id(s) of previous events to this instance.
-    def drill_back_for_constraint_type( self ):
+    def drill_back_for_constraint_type( self, scope ):
+        """drill back along previous events to find AND constraint"""
+        # It is important to consider events only at the previous scope only
+        # and not nested inside previous scopes.
         # TODO:  using simply the zero'th previous event in the list may be naive
         if self.previous_events:
-            if "" == self.previous_events[0].ConstraintValue:
-                return self.previous_events[0].previous_event.drill_back_for_constraint_type()
+            if "" == self.previous_events[0].ConstraintValue and self.previous_events[0].previous_event.scope == scope:
+                return self.previous_events[0].previous_event.drill_back_for_constraint_type( scope )
             else:
                 return self.previous_events[0].ConstraintValue
         else:
@@ -90,7 +93,7 @@ class AuditEvent_play:
             self.previousEventIds.append( previous_event_id )
         # TODO:  Detect a merge point and pass until the branches have completed.
         # Recursively traverse prevs to see if there is an AND constraint.
-        if len( self.previous_events ) > len( self.previousEventIds ) and self.drill_back_for_constraint_type() == 'AND':
+        if len( self.previous_events ) > len( self.previousEventIds ) and self.drill_back_for_constraint_type( self.scope+1 ) == 'AND':
             return ""
         self.visit_count += 1
         AuditEvent_play.c_idFactory += 1
@@ -119,7 +122,7 @@ class AuditEvent_play:
                 eligible_next_aes.append( next_ae )
         # loop detection
         if len( eligible_next_aes ) == 2:
-            if plus_job_defn.AuditEvent.instances.index( eligible_next_aes[0] ) < plus_job_defn.AuditEvent.instances.index( self ):
+            if plus_job_defn.AuditEvent.instances.index( eligible_next_aes[0] ) <= plus_job_defn.AuditEvent.instances.index( self ):
                 # loop detected in 0 event
                 if self.visit_count < 4:
                     # Loop back by selecting the lower index event.  Clear the go forward event.
@@ -127,7 +130,7 @@ class AuditEvent_play:
                 else:
                     # Carry on.
                     eligible_next_aes.remove( eligible_next_aes[0] )
-            elif plus_job_defn.AuditEvent.instances.index( eligible_next_aes[1] ) < plus_job_defn.AuditEvent.instances.index( self ):
+            elif plus_job_defn.AuditEvent.instances.index( eligible_next_aes[1] ) <= plus_job_defn.AuditEvent.instances.index( self ):
                 # loop detected in 1 event
                 if self.visit_count < 4:
                     # Loop back by selecting the lower index event.  Clear the go forward event.
@@ -152,7 +155,7 @@ class AuditEvent_play:
                         next_aes.append( next_ae )
         j = ""
         # Give some indication that we are forking.
-        fork_count = len( next_aes )
+        fork_count = len( eligible_next_aes )
         fork_text = "" if fork_count < 2 else 'f' + str( fork_count )
         # Give some indication that we are merging.
         merge_count = len( self.previous_events )
@@ -171,6 +174,7 @@ class AuditEvent_play:
                         j += peid_delim + str( peid )
                         peid_delim = ","
                     j += ']'
+                self.previousEventIds.clear()
             j += '\n'
         elif 'aesim' == flavor:
             j += self.aesim_config( delim )
