@@ -7,11 +7,11 @@ shapes :
   shape : SequenceDefn
     render : class "plus::plus2json::SequenceDefn"
     bounds : x : 4128.0 y : 3360.0 width : 229.0 height : 168.0
-  shape : AuditEvent
-    render : class "plus::plus2json::AuditEvent"
+  shape : AuditEventDefn
+    render : class "plus::plus2json::AuditEventDefn"
     bounds : x : 4416.0 y : 3360.0 width : 216.0 height : 277.0
-  shape : PreviousAuditEvent
-    render : class "plus::plus2json::PreviousAuditEvent"
+  shape : PreviousAuditEventDefn
+    render : class "plus::plus2json::PreviousAuditEventDefn"
     bounds : x : 4728.0 y : 3360.0 width : 217.0 height : 132.0
   shape : Invariant
     render : class "plus::plus2json::Invariant"
@@ -57,7 +57,7 @@ connectors :
         shape : SequenceDefn
       end :
         point : x : 4416.0 y : 3456.0
-        shape : AuditEvent
+        shape : AuditEventDefn
     texts :
       text :
         bounds : x : 4376.0 y : 3413.0 width : 0.0 height : 0.0 where : middle
@@ -75,10 +75,10 @@ connectors :
     anchors :
       start :
         point : x : 4728.0 y : 3384.0
-        shape : PreviousAuditEvent
+        shape : PreviousAuditEventDefn
       end :
         point : x : 4680.0 y : 3384.0
-        shape : AuditEvent
+        shape : AuditEventDefn
     texts :
       text :
         bounds : x : 4658.0 y : 3360.0 width : 0.0 height : 0.0 where : middle
@@ -99,7 +99,7 @@ connectors :
     anchors :
       start :
         point : x : 4728.0 y : 3432.0
-        shape : PreviousAuditEvent
+        shape : PreviousAuditEventDefn
       end :
         point : x : 4679.0 y : 3432.0
         shape : Fork
@@ -117,7 +117,7 @@ connectors :
     anchors :
       start :
         point : x : 4752.0 y : 3492.0
-        shape : PreviousAuditEvent
+        shape : PreviousAuditEventDefn
       end :
         point : x : 4752.0 y : 3564.0
         shape : Fork
@@ -135,7 +135,7 @@ connectors :
     anchors :
       start :
         point : x : 4836.0 y : 3492.0
-        shape : PreviousAuditEvent
+        shape : PreviousAuditEventDefn
       end :
         point : x : 4836.0 y : 3564.0
         shape : Fork
@@ -155,7 +155,7 @@ connectors :
     anchors :
       start :
         point : x : 4932.0 y : 3492.0
-        shape : PreviousAuditEvent
+        shape : PreviousAuditEventDefn
       end :
         point : x : 4932.0 y : 3564.0
         shape : Fork
@@ -176,7 +176,7 @@ connectors :
         shape : Loop
       end :
         point : x : 4830.0 y : 3360.0
-        shape : PreviousAuditEvent
+        shape : PreviousAuditEventDefn
     texts :
       text :
         bounds : x : 4790.0 y : 3312.0 width : 0.0 height : 0.0 where : middle
@@ -194,7 +194,7 @@ connectors :
         shape : DynamicControl
       end :
         point : x : 4428.0 y : 3360.0
-        shape : AuditEvent
+        shape : AuditEventDefn
     texts :
       text :
         bounds : x : 4398.0 y : 3318.0 width : 0.0 height : 0.0 where : middle
@@ -212,7 +212,7 @@ connectors :
         shape : DynamicControl
       end :
         point : x : 4560.0 y : 3360.0
-        shape : AuditEvent
+        shape : AuditEventDefn
     texts :
       text :
         bounds : x : 4523.0 y : 3314.0 width : 0.0 height : 0.0 where : middle
@@ -227,7 +227,7 @@ connectors :
     anchors :
       start :
         point : x : 4428.0 y : 3637.0
-        shape : AuditEvent
+        shape : AuditEventDefn
       end :
         point : x : 4428.0 y : 3684.0
         shape : Invariant
@@ -245,7 +245,7 @@ connectors :
     anchors :
       start :
         point : x : 4560.0 y : 3637.0
-        shape : AuditEvent
+        shape : AuditEventDefn
       end :
         point : x : 4560.0 y : 3684.0
         shape : Invariant

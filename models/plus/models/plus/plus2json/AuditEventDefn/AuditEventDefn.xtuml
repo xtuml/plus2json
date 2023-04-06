@@ -2,9 +2,9 @@
 
 within plus::plus2json is
 
-  @key_letters("AuditEvent");
+  @key_letters("AuditEventDefn");
   @class_num(3);
-  class AuditEvent is
+  class AuditEventDefn is
 
     EventName: string;
 

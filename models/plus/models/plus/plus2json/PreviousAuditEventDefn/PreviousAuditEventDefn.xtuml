@@ -2,11 +2,11 @@
 
 within plus::plus2json is
 
-  @key_letters("PreviousAuditEvent");
+  @key_letters("PreviousAuditEventDefn");
   @class_num(4);
-  class PreviousAuditEvent is
+  class PreviousAuditEventDefn is
 
-    previous_event: instance of AuditEvent;
+    previous_event: instance of AuditEventDefn;
 
     ConstraintDefinitionId: string;
 
