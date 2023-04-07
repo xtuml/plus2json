@@ -102,14 +102,18 @@ class Invariant_JSON:
                 j += '"EventDataName": "' + invariant.Name + '",'
                 invariant_type = 'INTRAJOBINV' if invariant.Type == 'IINV' else 'EXTRAJOBINV'
                 j += '"EventDataType": "' + invariant_type + '",'
+                # TODO - navigate to JobDefn
                 j += '"SourceEventJobDefinitionName": "' + plus_job_defn.JobDefn.instances[-1].JobDefinitionName + '",'
-                j += '"SourceEventType": "' + invariant.src_evt_txt + '",'
-                j += '"SourceEventOccurrenceId": ' + invariant.src_occ_txt + ','
-                j += '"UserEvents": ['
-                j += '{ "UserEventName": "' + invariant.user_evt_txt + '",'
-                j += '"UserOccurrenceId": ' + invariant.user_occ_txt + ','
-                j += '"UserEventDataItemName": "' + invariant.Name + '" }'
-                j += ']'
+                if invariant.R11_AuditEventDefn:
+                    j += '"SourceEventType": "' + invariant.R11_AuditEventDefn.EventName + '",'
+                    j += '"SourceEventOccurrenceId": ' + invariant.R11_AuditEventDefn.OccurrenceId + ','
+                if invariant.R12_AuditEventDefn:
+                    j += '"UserEvents": ['
+                    for user_event in invariant.R12_AuditEventDefn:
+                        j += '{ "UserEventName": "' + user_event.EventName + '",'
+                        j += '"UserOccurrenceId": ' + user_event.OccurrenceId + ','
+                        j += '"UserEventDataItemName": "' + invariant.Name + '" }'
+                    j += ']'
                 j += '}'
                 idelim = ','
             j += ']'

@@ -265,24 +265,29 @@ class Invariant( Invariant_JSON ):
             sys.exit()
         self.src_evt_txt = ""                              # SRC event textual EventName
         self.src_occ_txt = "0"                             # SRC event textual OccurrenceId (default)
-        self.user_evt_txt = ""                             # USER event textual EventName
-        self.user_occ_txt = "0"                            # USER event textual OccurrenceId (default)
+        self.user_evt_txt = []                             # USER event textual EventName
+        self.user_occ_txt = []                             # USER event textual OccurrenceId (default)
         self.R11_AuditEventDefn = None                     # audit event hosting the invariant
-        self.R13_AuditEventDefn = []                              # audit events to be dynamically tested
+        self.R12_AuditEventDefn = []                       # audit events to be dynamically tested
         Invariant.instances.append(self)
     @classmethod
     def resolve_event_linkage(cls):
         for inv in Invariant.instances:
             #print( "Resolving invariants:", inv.src_evt_txt, inv.src_occ_txt, inv.user_evt_txt, inv.user_occ_txt )
-            sae = [ae for ae in AuditEventDefn.instances if ae.EventName == inv.src_evt_txt and ae.OccurrenceId == inv.src_occ_txt]
-            if sae:
-                inv.R11_AuditEventDefn = sae[-1]           # link inv to sae across R11
-            uaes = [ae for ae in AuditEventDefn.instances if ae.EventName == inv.user_evt_txt and ae.OccurrenceId == inv.user_occ_txt]
-            if uaes:
-                # We can have more than one user for an invariant.
-                for uae in uaes:
-                    #print( "Resolving invariant users:", inv.src_evt_txt, inv.src_occ_txt, inv.user_evt_txt, inv.user_occ_txt )
-                    inv.R13_AuditEventDefn.append( uae )          # link inv to uae across R12
+            saes = [ae for ae in AuditEventDefn.instances if ae.EventName in inv.src_evt_txt and ae.OccurrenceId in inv.src_occ_txt]
+            if not saes:
+                if "IINV" == inv.Type:
+                    print( "resolve_event_linkage:  ERROR, no source events for IINV:", inv.Name )
+            for sae in saes:
+                inv.R11_AuditEventDefn = sae               # link inv to sae across R11
+            uaes = [ae for ae in AuditEventDefn.instances if ae.EventName in inv.user_evt_txt and ae.OccurrenceId in inv.user_occ_txt]
+            if not uaes:
+                if "IINV" == inv.Type:
+                    print( "resolve_event_linkage:  ERROR, no user events for IINV:", inv.Name )
+            # We can have more than one user for an invariant.
+            for uae in uaes:
+                #print( "Resolving invariant users:", inv.src_evt_txt, inv.src_occ_txt, inv.user_evt_txt, inv.user_occ_txt )
+                inv.R12_AuditEventDefn.append( uae )       # link inv to uae across R12
 
 class Loop:
     """data collected from PLUS repeat loop"""

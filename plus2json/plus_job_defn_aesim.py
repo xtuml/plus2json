@@ -45,30 +45,39 @@ class AuditEventDefn_AESim:
         j += '"EventName": "' + self.EventName + '",'
         j += '"SequenceStart": '
         j += '"true",' if self.SequenceStart else '"false",'
-        # look for linked Invariant
+        # look for linked Invariants
         event_data = ""
         delim = ""
-        inv = [inv for inv in plus_job_defn.Invariant.instances if inv.R11_AuditEventDefn is self]
-        if inv:
-            value = (
-                inv[-1].Type + 's-' + inv[-1].src_evt_txt +
-                '(' + inv[-1].src_occ_txt + ')' +
-                'u-' + inv[-1].user_evt_txt +
-                '(' + inv[-1].user_occ_txt + ')'
-            )
-            name = inv[-1].Name
-            event_data += '{ "DataName": "' + name + '", "DataValue": "' + value + '"}'
-            delim = ','
-        inv = [inv for inv in plus_job_defn.Invariant.instances if self in inv.R13_AuditEventDefn]
-        if inv:
-            value = (
-                inv[-1].Type + 's-' + inv[-1].src_evt_txt +
-                '(' + inv[-1].src_occ_txt + ')' +
-                'u-' + inv[-1].user_evt_txt +
-                '(' + inv[-1].user_occ_txt + ')'
-            )
-            name = inv[-1].Name
+        # select many invs related by self->Invariant[R11]
+        invs = [inv for inv in plus_job_defn.Invariant.instances if inv.R11_AuditEventDefn is self]
+        for inv in invs:
+            # For EINV there may be a source and no user.
+            value = ""
+            if inv.R12_AuditEventDefn:
+                value = (
+                    inv.Type + 's-' + self.EventName +
+                    '(' + self.OccurrenceId + ')' +
+                    'u-' + inv.R12_AuditEventDefn[0].EventName + "?" +
+                    '(' + inv.R12_AuditEventDefn[0].OccurrenceId + ')'
+                )
+            name = inv.Name
             event_data += delim + '{ "DataName": "' + name + '", "DataValue": "' + value + '"}'
+            delim = ','
+        # select many invs related by self->Invariant[R12]
+        invs = [inv for inv in plus_job_defn.Invariant.instances if self in inv.R12_AuditEventDefn]
+        for inv in invs:
+            # For EINV there may be a user and no source.
+            value = ""
+            if inv.R12_AuditEventDefn:
+                value = (
+                    inv.Type + 's-' + inv.R11_AuditEventDefn.EventName +
+                    '(' + inv.R11_AuditEventDefn.OccurrenceId + ')' +
+                    'u-' + self.EventName +
+                    '(' + self.OccurrenceId + ')'
+                )
+            name = inv.Name
+            event_data += delim + '{ "DataName": "' + name + '", "DataValue": "' + value + '"}'
+            delim = ','
         if "" != event_data:
             j += '"EventData": [' + event_data + '],'
         j += '"NodeName": "' + AuditEventDefn_AESim.NodeName + '",'

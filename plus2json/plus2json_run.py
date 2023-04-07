@@ -114,13 +114,13 @@ class plus2json_run(plus2jsonListener):
         if ctx.USER():
             # explicit user event
             if ctx.uname:
-                invariant.user_evt_txt = ctx.uname.getText()
+                invariant.user_evt_txt.append( ctx.uname.getText() )
             else:
-                invariant.user_evt_txt = AuditEventDefn.c_current_event.EventName
+                invariant.user_evt_txt.append( AuditEventDefn.c_current_event.EventName )
             if ctx.uocc:
-                invariant.user_occ_occ = ctx.uocc.getText()
+                invariant.user_occ_occ.append( ctx.uocc.getText() )
             else:
-                invariant.user_occ_txt = AuditEventDefn.c_current_event.OccurrenceId
+                invariant.user_occ_txt.append( AuditEventDefn.c_current_event.OccurrenceId )
         # neither SRC nor USER defaults source to host
         if not ctx.SRC() and not ctx.USER():
             invariant.src_evt_txt = AuditEventDefn.c_current_event.EventName
