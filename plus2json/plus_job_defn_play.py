@@ -69,7 +69,7 @@ class SequenceDefn_play:
             j += '"'
         return j
 
-class AuditEvent_play:
+class AuditEventDefn_play:
     c_idFactory = 0
     def __init__(self):
         self.visit_count = 0             # Count visits to this audit event.
@@ -96,9 +96,9 @@ class AuditEvent_play:
         if len( self.previous_events ) > len( self.previousEventIds ) and self.drill_back_for_constraint_type( self.scope+1 ) == 'AND':
             return ""
         self.visit_count += 1
-        AuditEvent_play.c_idFactory += 1
+        AuditEventDefn_play.c_idFactory += 1
         if 'pretty' == flavor:
-            self.eventId = AuditEvent_play.c_idFactory
+            self.eventId = AuditEventDefn_play.c_idFactory
         else:
             self.eventId = uuid.uuid4()
         next_aes = []
@@ -122,7 +122,7 @@ class AuditEvent_play:
                 eligible_next_aes.append( next_ae )
         # loop detection
         if len( eligible_next_aes ) == 2:
-            if plus_job_defn.AuditEvent.instances.index( eligible_next_aes[0] ) <= plus_job_defn.AuditEvent.instances.index( self ):
+            if plus_job_defn.AuditEventDefn.instances.index( eligible_next_aes[0] ) <= plus_job_defn.AuditEventDefn.instances.index( self ):
                 # loop detected in 0 event
                 if self.visit_count < 4:
                     # Loop back by selecting the lower index event.  Clear the go forward event.
@@ -130,7 +130,7 @@ class AuditEvent_play:
                 else:
                     # Carry on.
                     eligible_next_aes.remove( eligible_next_aes[0] )
-            elif plus_job_defn.AuditEvent.instances.index( eligible_next_aes[1] ) <= plus_job_defn.AuditEvent.instances.index( self ):
+            elif plus_job_defn.AuditEventDefn.instances.index( eligible_next_aes[1] ) <= plus_job_defn.AuditEventDefn.instances.index( self ):
                 # loop detected in 1 event
                 if self.visit_count < 4:
                     # Loop back by selecting the lower index event.  Clear the go forward event.
@@ -199,7 +199,7 @@ class AuditEvent_play:
                         peid_delim = ","
                     j += '],'
             j += '"timestamp": "' + '{:%Y-%m-%dT%H:%M:%SZ}'.format(datetime.datetime.now()) + '",'
-            j += '"applicationName": "' + plus_job_defn.AuditEvent.ApplicationName + '"'
+            j += '"applicationName": "' + plus_job_defn.AuditEventDefn.ApplicationName + '"'
             j += '}'
         for ae in next_aes:
             j += ae.play( flavor, ",", job_defn, self.eventId )

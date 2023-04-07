@@ -30,7 +30,7 @@ class SequenceDefn_print:
         for ae in self.audit_events:
             ae.pretty_print()
 
-class AuditEvent_print:
+class AuditEventDefn_print:
     """Print Audit Event Definition"""
     def pretty_print(self):
         ss = "start" if self.SequenceStart else ""
@@ -89,5 +89,5 @@ class AuditEvent_print:
                          prev_ae.ConstraintDefinitionId + prev_ae.ConstraintValue
                        )
             delim = ","
-        print( f'{self.EventName+"("+self.OccurrenceId+")":{plus_job_defn.AuditEvent.c_longest_name_length+3}}',
+        print( f'{self.EventName+"("+self.OccurrenceId+")":{plus_job_defn.AuditEventDefn.c_longest_name_length+3}}',
                f'{ss:{5}}', f'{se:{3}}', b, prev_aes, bcnt, mcnt, lcnt, einv, iinv )

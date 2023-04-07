@@ -38,7 +38,7 @@ class SequenceDefn_JSON:
             aedelim = ','
         return j
 
-class AuditEvent_JSON:
+class AuditEventDefn_JSON:
     """Audit Event Definition JSON"""
     def json(self, aedelim):
         j = aedelim
@@ -59,11 +59,11 @@ class AuditEvent_JSON:
             prev_aes += prev_ae.json( pdelim )
             pdelim = ','
         if "" != prev_aes: j += '"PreviousEvents": [ ' + prev_aes + '],'
-        j += '"Application": "' + plus_job_defn.AuditEvent.ApplicationName + '"'
+        j += '"Application": "' + plus_job_defn.AuditEventDefn.ApplicationName + '"'
         j += '}'
         return j
 
-class PreviousAuditEvent_JSON:
+class PreviousAuditEventDefn_JSON:
     """Previous Audit Event Definition JSON"""
     def json( self, pdelim ):
         constraintid = "" if "" == self.ConstraintDefinitionId else ', "ConstraintDefinitionId": "' + self.ConstraintDefinitionId + '"'

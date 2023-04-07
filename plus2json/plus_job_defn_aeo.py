@@ -62,16 +62,16 @@ class SequenceDefn_AEO:
         # Generate only a single event with default parameters.  The user can duplicate to make more.
         return self.start_events[0].aeo_config( "" )
 
-class AuditEvent_AEO:
+class AuditEventDefn_AEO:
     """AEO methods Audit Event Definition"""
     BlockedAuditEventDuration = "PT1H"                     # default for AEO
     StaleAuditEventDuration = "PT2H"                       # default for AEO
     def aeo_config(self, delim):
-        """output AuditEvent AEOrdering json"""
+        """output AuditEventDefn AEOrdering json"""
         j = delim + '{ "EventName": "' + self.EventName + '",'
         j += '"OccurrenceId": ' + str( self.OccurrenceId ) + ','
-        j += '"ApplicationName": "' + plus_job_defn.AuditEvent.ApplicationName + '",'
-        j += '"BlockedAuditEventDuration": "' + AuditEvent_AEO.BlockedAuditEventDuration + '",'
-        j += '"StaleAuditEventDuration": "' + AuditEvent_AEO.StaleAuditEventDuration + '"'
+        j += '"ApplicationName": "' + plus_job_defn.AuditEventDefn.ApplicationName + '",'
+        j += '"BlockedAuditEventDuration": "' + AuditEventDefn_AEO.BlockedAuditEventDuration + '",'
+        j += '"StaleAuditEventDuration": "' + AuditEventDefn_AEO.StaleAuditEventDuration + '"'
         j += '}'
         return j

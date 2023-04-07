@@ -32,7 +32,7 @@ class SequenceDefn_AESim:
     """AESim methods for Sequence Definition"""
     pass
 
-class AuditEvent_AESim:
+class AuditEventDefn_AESim:
     """AESim methods Audit Event Definition"""
     DispatchDelay = "PT0S"                                 # default for AE Simulator
     NodeName = "default_node_name"                         # default for AE Simulator
@@ -71,7 +71,7 @@ class AuditEvent_AESim:
             event_data += delim + '{ "DataName": "' + name + '", "DataValue": "' + value + '"}'
         if "" != event_data:
             j += '"EventData": [' + event_data + '],'
-        j += '"NodeName": "' + AuditEvent_AESim.NodeName + '",'
-        j += '"ApplicationName": "' + plus_job_defn.AuditEvent.ApplicationName + '"'
+        j += '"NodeName": "' + AuditEventDefn_AESim.NodeName + '",'
+        j += '"ApplicationName": "' + plus_job_defn.AuditEventDefn.ApplicationName + '"'
         j += '}'
         return j
