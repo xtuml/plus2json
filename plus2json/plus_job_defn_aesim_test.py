@@ -52,7 +52,7 @@ class SequenceDefn_AEStest:
         """output Sequence AEStest JSON"""
         j = ""
         aedelim = seqdelim
-        for ae in self.audit_events:
+        for ae in self.R2_AuditEventDefn_defines:
             j += ae.aesim_test( aedelim )
             aedelim = ','
         return j

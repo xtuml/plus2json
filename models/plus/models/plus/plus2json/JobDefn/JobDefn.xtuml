@@ -8,7 +8,7 @@ within plus::plus2json is
 
     JobDefinitionName: string;
 
-    sequences: SequenceDefns;
+    R1_SequenceDefn_defines: set of instance of SequenceDefn;
 
     c_idFactory: integer;
 

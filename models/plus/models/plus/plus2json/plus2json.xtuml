@@ -3,6 +3,9 @@
 within plus is
 
   package plus2json is
+    type 'inst_ref_set<AuditEventDefn>';
+    type 'inst_ref_set<PreviousAuditEventDefn>';
+    type 'inst_ref_set<SequenceDefn>';
     class AuditEventDefn;
     class DynamicControl;
     class Fork;
@@ -41,11 +44,11 @@ within plus is
     relationship R10 is AuditEventDefn conditionally relates to many DynamicControl,
                         DynamicControl unconditionally has_user one AuditEventDefn;
 
-    relationship R11 is AuditEventDefn conditionally relates to many Invariant,
-                        Invariant conditionally has_source one AuditEventDefn;
+    relationship R11 is AuditEventDefn conditionally sources many Invariant,
+                        Invariant conditionally relates to one AuditEventDefn;
 
-    relationship R12 is AuditEventDefn conditionally relates to many Invariant,
-                        Invariant conditionally has_user many AuditEventDefn;
+    relationship R12 is AuditEventDefn conditionally uses many Invariant,
+                        Invariant conditionally relates to many AuditEventDefn;
 
   end package;
 

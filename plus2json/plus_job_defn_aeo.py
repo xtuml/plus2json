@@ -50,7 +50,7 @@ class JobDefn_AEO:
                 "BlockedAuditEventDuration": "PT5M",
                 "EventRules": [
                """
-        for seq in self.sequences:
+        for seq in self.R1_SequenceDefn_defines:
             j += seq.aeo_config()
         j += ']}'
         return j

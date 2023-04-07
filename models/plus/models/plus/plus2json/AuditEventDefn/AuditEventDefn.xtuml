@@ -10,7 +10,7 @@ within plus::plus2json is
 
     OccurrenceId: string;
 
-    c_current_event: AuditEvents;
+    c_current_event: instance of AuditEventDefn;
 
     c_longest_event_name: integer;
 
@@ -26,7 +26,7 @@ within plus::plus2json is
 
     previousEventIds: sequence of integer;
 
-    previous_events: AuditEvents;
+    R3_PreviousAuditEventDefn: set of instance of PreviousAuditEventDefn;
 
     preferred identifier is (EventName, OccurrenceId);
 

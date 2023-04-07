@@ -31,7 +31,7 @@ class JobDefn( JobDefn_AEO, JobDefn_JSON, JobDefn_play, JobDefn_print, JobDefn_A
     instances = []                                         # instance population (pattern for all)
     def __init__(self, name):
         self.JobDefinitionName = name                      # created when the name is encountered
-        self.sequences = []                                # job may contain multiple peer sequences
+        self.R1_SequenceDefn_defines = []                  # job may contain multiple peer sequences
         JobDefn.instances.append(self)
 
 class SequenceDefn( SequenceDefn_AEO, SequenceDefn_JSON, SequenceDefn_play, SequenceDefn_print, SequenceDefn_AESim, SequenceDefn_AEStest ):
@@ -46,8 +46,9 @@ class SequenceDefn( SequenceDefn_AEO, SequenceDefn_JSON, SequenceDefn_play, Sequ
         if any( s.SequenceName == name for s in SequenceDefn.instances ):
             print( "ERROR:  duplicate sequence detected:", name )
             sys.exit()
-        JobDefn.instances[-1].sequences.append(self)
-        self.audit_events = []                             # appended with each new event encountered
+        JobDefn.instances[-1].R1_SequenceDefn_defines.append(self) # link self to JobDefn across R1
+        self.R1_JobDefn = JobDefn.instances[-1]
+        self.R2_AuditEventDefn_defines = []                             # appended with each new event encountered
         self.start_events = []                             # start_events get added by the first event
                                                            # ... that sees an empty list
                                                            # ... and by any event preceded by HIDE
@@ -67,34 +68,34 @@ class AuditEventDefn( AuditEventDefn_AEO, AuditEventDefn_JSON, AuditEventDefn_pl
             AuditEventDefn.c_longest_name_length = len( name )
         self.sequence = SequenceDefn.c_current_sequence
         if occurrence:
-            if any( ae for ae in self.sequence.audit_events if ae.EventName == name and ae.OccurrenceId == occurrence ):
+            if any( ae for ae in self.sequence.R2_AuditEventDefn_defines if ae.EventName == name and ae.OccurrenceId == occurrence ):
                 print( "ERROR:  duplicate audit event detected:", name + "(" + occurrence + ")" )
                 sys.exit()
             self.OccurrenceId = occurrence
         else:
             # here, we count previous occurrences and assign an incremented value
-            items = [ae for ae in self.sequence.audit_events if ae.EventName == name]
+            items = [ae for ae in self.sequence.R2_AuditEventDefn_defines if ae.EventName == name]
             self.OccurrenceId = str( len(items) )
         self.SequenceStart = False                         # set when 'HIDE' precedes
         self.SequenceEnd = False                           # set when 'detach' follows
         self.isBreak = False                               # set when 'break' follows
-        self.sequence.audit_events.append(self)
+        self.sequence.R2_AuditEventDefn_defines.append(self) # link self to SequenceDefn across R2
         if not self.sequence.start_events:                 # ... or when no starting event, yet
             self.sequence.start_events.append( self )
             self.SequenceStart = True
         # Initialize instance of JSON supertype.
         super( AuditEventDefn_JSON, self ).__init__()
-        self.previous_events = []                          # extended at creation when c_current_event exists
+        self.R3_PreviousAuditEventDefn = []                          # extended at creation when c_current_event exists
                                                            # emptied at sequence exit
         if Fork.instances:                                 # get fork, split or if previous event
             if Fork.instances[-1].fork_point_usage:
-                self.previous_events.append( Fork.instances[-1].fork_point_usage )
+                self.R3_PreviousAuditEventDefn.append( Fork.instances[-1].fork_point_usage )
                 Fork.instances[-1].fork_point_usage = None
         if self.sequence.merge_usage_cache:                # get merge previous events
-            self.previous_events.extend( self.sequence.merge_usage_cache )
+            self.R3_PreviousAuditEventDefn.extend( self.sequence.merge_usage_cache )
             self.sequence.merge_usage_cache.clear()
         if AuditEventDefn.c_current_event:
-            self.previous_events.append( PreviousAuditEventDefn( AuditEventDefn.c_current_event ) )
+            self.R3_PreviousAuditEventDefn.append( PreviousAuditEventDefn( AuditEventDefn.c_current_event ) )
             AuditEventDefn.c_current_event = None
         # detect loop
         # if it exists but has no starting event, add this one
@@ -110,7 +111,7 @@ class PreviousAuditEventDefn( PreviousAuditEventDefn_JSON ):
     """PreviousAuditEvents are instances pointing to an AuditEventDefn"""
     instances = []
     def __init__(self, ae):
-        self.previous_event = ae
+        self.R3_AuditEventDefn_precedes = ae
         self.ConstraintValue = ""
         self.ConstraintDefinitionId = ""
         PreviousAuditEventDefn.instances.append(self)
@@ -150,7 +151,7 @@ class Fork:
             # detecting a nested fork (combined split, fork and/or if)
             # Look to the previous (outer scope) fork in the stack.
             if Fork.instances[Fork.c_scope-1].fork_point_usage:
-                Fork.instances[-1].fork_point = PreviousAuditEventDefn( Fork.instances[Fork.c_scope-1].fork_point_usage.previous_event )
+                Fork.instances[-1].fork_point = PreviousAuditEventDefn( Fork.instances[Fork.c_scope-1].fork_point_usage.R3_AuditEventDefn_precedes )
                 Fork.instances[-1].fork_point.ConstraintValue = self.flavor
                 Fork.instances[-1].fork_point.ConstraintDefinitionId = Fork.instances[-1].id
                 Fork.instances[-1].fork_point_usage = Fork.instances[-1].fork_point
@@ -182,19 +183,19 @@ class Fork:
         fp = ""
         fu = ""
         if self.fork_point:
-            fp = ( self.fork_point.previous_event.EventName +
+            fp = ( self.fork_point.R3_AuditEventDefn_precedes.EventName +
                    "-" + self.fork_point.ConstraintDefinitionId +
                    "-" + self.fork_point.ConstraintValue )
         if self.fork_point_usage:
-            fu = ( self.fork_point_usage.previous_event.EventName +
+            fu = ( self.fork_point_usage.R3_AuditEventDefn_precedes.EventName +
                    "-" + self.fork_point_usage.ConstraintDefinitionId +
                    "-" + self.fork_point.ConstraintValue )
         if self.merge_inputs:
             for mi in self.merge_inputs:
-                merge_inputs += mi.previous_event.EventName + mi.ConstraintValue
+                merge_inputs += mi.R3_AuditEventDefn_precedes.EventName + mi.ConstraintValue
         if SequenceDefn[-1].merge_usage_cache:
             for mu in SequenceDefn[-1].merge_usage_cache:
-                merge_usages += mu.previous_event.EventName + mu.ConstraintValue
+                merge_usages += mu.R3_AuditEventDefn_precedes.EventName + mu.ConstraintValue
         print( "Fork:", Fork.c_scope, self.flavor, "fp:" + fp, "fu:" + fu, "mis:" + merge_inputs, "mus:" + merge_usages )
     @classmethod
     def print_forks(cls):

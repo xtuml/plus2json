@@ -45,7 +45,7 @@ class JobDefn_play:
         else:
             j += '[' # event instances
         # Play out the sequences.
-        for seq in self.sequences:
+        for seq in self.R1_SequenceDefn_defines:
             j += seq.play( flavor, self )
         if 'pretty' == flavor:
             j = j # NOP
@@ -80,11 +80,11 @@ class AuditEventDefn_play:
         # It is important to consider events only at the previous scope only
         # and not nested inside previous scopes.
         # TODO:  using simply the zero'th previous event in the list may be naive
-        if self.previous_events:
-            if "" == self.previous_events[0].ConstraintValue and self.previous_events[0].previous_event.scope == scope:
-                return self.previous_events[0].previous_event.drill_back_for_constraint_type( scope )
+        if self.R3_PreviousAuditEventDefn:
+            if "" == self.R3_PreviousAuditEventDefn[0].ConstraintValue and self.R3_PreviousAuditEventDefn[0].R3_AuditEventDefn_precedes.scope == scope:
+                return self.R3_PreviousAuditEventDefn[0].R3_AuditEventDefn_precedes.drill_back_for_constraint_type( scope )
             else:
-                return self.previous_events[0].ConstraintValue
+                return self.R3_PreviousAuditEventDefn[0].ConstraintValue
         else:
             return ""
     def play( self, flavor, delim, job_defn, previous_event_id ):
@@ -93,7 +93,7 @@ class AuditEventDefn_play:
             self.previousEventIds.append( previous_event_id )
         # TODO:  Detect a merge point and pass until the branches have completed.
         # Recursively traverse prevs to see if there is an AND constraint.
-        if len( self.previous_events ) > len( self.previousEventIds ) and self.drill_back_for_constraint_type( self.scope+1 ) == 'AND':
+        if len( self.R3_PreviousAuditEventDefn ) > len( self.previousEventIds ) and self.drill_back_for_constraint_type( self.scope+1 ) == 'AND':
             return ""
         self.visit_count += 1
         AuditEventDefn_play.c_idFactory += 1
@@ -116,8 +116,8 @@ class AuditEventDefn_play:
         #   loop:  for exactly 2 next events with one of them having a lower index, prefer
         #          the lower index event (loop back) until a count has reached a threshold,
         #          then select the event following the loop.
-        for next_ae in self.sequence.audit_events:
-            paes = [pae for pae in next_ae.previous_events if pae.previous_event is self]
+        for next_ae in self.sequence.R2_AuditEventDefn_defines:
+            paes = [pae for pae in next_ae.R3_PreviousAuditEventDefn if pae.R3_AuditEventDefn_precedes is self]
             if paes:
                 eligible_next_aes.append( next_ae )
         # loop detection
@@ -139,7 +139,7 @@ class AuditEventDefn_play:
                     # Carry on.
                     eligible_next_aes.remove( eligible_next_aes[1] )
         for next_ae in eligible_next_aes:
-            paes = [pae for pae in next_ae.previous_events if pae.previous_event is self]
+            paes = [pae for pae in next_ae.R3_PreviousAuditEventDefn if pae.R3_AuditEventDefn_precedes is self]
             if paes:
                 for pae in paes:
                     # Check AND, IOR, XOR edges on the paes.
@@ -158,7 +158,7 @@ class AuditEventDefn_play:
         fork_count = len( eligible_next_aes )
         fork_text = "" if fork_count < 2 else 'f' + str( fork_count )
         # Give some indication that we are merging.
-        merge_count = len( self.previous_events )
+        merge_count = len( self.R3_PreviousAuditEventDefn )
         merge_text = "" if merge_count < 2 else 'm' + str( merge_count )
         if 'pretty' == flavor:
             visit_count_string = '[' + str( self.visit_count ) + ']' if self.visit_count > 1 else ""

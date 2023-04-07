@@ -20,7 +20,7 @@ class JobDefn_JSON:
         j = '{ "JobDefinitionName": "' + self.JobDefinitionName + '",'
         j += '"Events": ['
         seqdelim = ""
-        for seq in self.sequences:
+        for seq in self.R1_SequenceDefn_defines:
             j += seq.json( seqdelim )
             seqdelim = ','
         # All events for all sequences are defined together.
@@ -32,7 +32,7 @@ class SequenceDefn_JSON:
     def json(self, seqdelim):
         j = ""
         aedelim = seqdelim
-        for ae in self.audit_events:
+        for ae in self.R2_AuditEventDefn_defines:
             j += ae.json( aedelim )
             j += '\n'
             aedelim = ','
@@ -55,7 +55,7 @@ class AuditEventDefn_JSON:
             j += dc.json()
         prev_aes = ""
         pdelim = ""
-        for prev_ae in self.previous_events:
+        for prev_ae in self.R3_PreviousAuditEventDefn:
             prev_aes += prev_ae.json( pdelim )
             pdelim = ','
         if "" != prev_aes: j += '"PreviousEvents": [ ' + prev_aes + '],'
@@ -73,8 +73,8 @@ class PreviousAuditEventDefn_JSON:
             constraint = ""
             constraintid = ""
         return ( pdelim +
-              '{ "PreviousEventName": "' + self.previous_event.EventName + '",'
-              '"PreviousOccurrenceId": ' + self.previous_event.OccurrenceId +
+              '{ "PreviousEventName": "' + self.R3_AuditEventDefn_precedes.EventName + '",'
+              '"PreviousOccurrenceId": ' + self.R3_AuditEventDefn_precedes.OccurrenceId +
               constraintid + constraint +
               ' }' )
 

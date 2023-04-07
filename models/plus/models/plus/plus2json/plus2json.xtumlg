@@ -6,7 +6,7 @@ shapes :
     bounds : x : 4128.0 y : 3108.0 width : 229.0 height : 193.0
   shape : SequenceDefn
     render : class "plus::plus2json::SequenceDefn"
-    bounds : x : 4128.0 y : 3360.0 width : 229.0 height : 168.0
+    bounds : x : 4128.0 y : 3360.0 width : 229.0 height : 205.0
   shape : AuditEventDefn
     render : class "plus::plus2json::AuditEventDefn"
     bounds : x : 4416.0 y : 3360.0 width : 216.0 height : 277.0
@@ -236,6 +236,8 @@ connectors :
         bounds : x : 4432.0 y : 3641.0 width : 0.0 height : 0.0 where : start
       text :
         bounds : x : 4392.0 y : 3649.0 width : 0.0 height : 0.0 where : middle
+      text :
+        bounds : x : 4436.0 y : 3659.0 width : 0.0 height : 0.0 where : end
   connector : R12
     render : association "plus::plus2json::R12"
     polyline :
@@ -254,3 +256,5 @@ connectors :
         bounds : x : 4565.0 y : 3640.0 width : 0.0 height : 0.0 where : start
       text :
         bounds : x : 4523.0 y : 3649.0 width : 0.0 height : 0.0 where : middle
+      text :
+        bounds : x : 4570.0 y : 3661.0 width : 0.0 height : 0.0 where : end

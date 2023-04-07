@@ -16,7 +16,7 @@ within plus::plus2json is
 
     fork_point: PreviousAuditEvents;
 
-    fork_point_usage: PreviousAuditEvents;
+    fork_point_usage: instance of PreviousAuditEventDefn;
 
     merge_inputs: PreviousAuditEvents;
 

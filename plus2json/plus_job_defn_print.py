@@ -20,14 +20,14 @@ class JobDefn_print:
     """Print Job Definition"""
     def pretty_print(self):
         print("job defn:", self.JobDefinitionName)
-        for seq in self.sequences:
+        for seq in self.R1_SequenceDefn_defines:
             seq.pretty_print()
 
 class SequenceDefn_print:
     """Print Sequence Definition"""
     def pretty_print(self):
         print("sequence:", self.SequenceName)
-        for ae in self.audit_events:
+        for ae in self.R2_AuditEventDefn_defines:
             ae.pretty_print()
 
 class AuditEventDefn_print:
@@ -83,9 +83,9 @@ class AuditEventDefn_print:
                 sys.exit()
         prev_aes = "    "
         delim = ""
-        for prev_ae in self.previous_events:
-            prev_aes = ( prev_aes + delim + prev_ae.previous_event.EventName +
-                         "(" + prev_ae.previous_event.OccurrenceId + ")" +
+        for prev_ae in self.R3_PreviousAuditEventDefn:
+            prev_aes = ( prev_aes + delim + prev_ae.R3_AuditEventDefn_precedes.EventName +
+                         "(" + prev_ae.R3_AuditEventDefn_precedes.OccurrenceId + ")" +
                          prev_ae.ConstraintDefinitionId + prev_ae.ConstraintValue
                        )
             delim = ","
