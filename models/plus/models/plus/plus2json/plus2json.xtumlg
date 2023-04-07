@@ -197,6 +197,8 @@ connectors :
         shape : AuditEventDefn
     texts :
       text :
+        bounds : x : 4438.0 y : 3310.0 width : 0.0 height : 0.0 where : start
+      text :
         bounds : x : 4398.0 y : 3318.0 width : 0.0 height : 0.0 where : middle
       text :
         bounds : x : 4428.0 y : 3330.0 width : 0.0 height : 0.0 where : end
@@ -214,6 +216,8 @@ connectors :
         point : x : 4560.0 y : 3360.0
         shape : AuditEventDefn
     texts :
+      text :
+        bounds : x : 4570.0 y : 3310.0 width : 0.0 height : 0.0 where : start
       text :
         bounds : x : 4523.0 y : 3314.0 width : 0.0 height : 0.0 where : middle
       text :

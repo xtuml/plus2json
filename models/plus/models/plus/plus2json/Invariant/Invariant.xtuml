@@ -18,6 +18,10 @@ within plus::plus2json is
 
     user_occ_txt: string;
 
+    R11_AuditEventDefn: instance of AuditEventDefn;
+
+    R12_AuditEventDefn: set of instance of AuditEventDefn;
+
     preferred identifier is (Name);
 
     @dialect("oal");

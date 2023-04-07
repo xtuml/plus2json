@@ -38,11 +38,11 @@ within plus is
     relationship R8 is Loop unconditionally starts_with many PreviousAuditEventDefn,
                        PreviousAuditEventDefn unconditionally relates to one Loop;
 
-    relationship R9 is AuditEventDefn conditionally relates to many DynamicControl,
-                       DynamicControl unconditionally has_source one AuditEventDefn;
+    relationship R9 is AuditEventDefn conditionally sources many DynamicControl,
+                       DynamicControl unconditionally relates to one AuditEventDefn;
 
-    relationship R10 is AuditEventDefn conditionally relates to many DynamicControl,
-                        DynamicControl unconditionally has_user one AuditEventDefn;
+    relationship R10 is AuditEventDefn conditionally uses many DynamicControl,
+                        DynamicControl unconditionally relates to one AuditEventDefn;
 
     relationship R11 is AuditEventDefn conditionally sources many Invariant,
                         Invariant conditionally relates to one AuditEventDefn;

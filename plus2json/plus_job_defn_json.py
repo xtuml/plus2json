@@ -50,7 +50,7 @@ class AuditEventDefn_JSON:
         if self.SequenceEnd: j += '"SequenceEnd": true,'
         if self.isBreak: j += '"IsBreak": true,'
         # look for linked DynamicControl
-        dcs = [dc for dc in plus_job_defn.DynamicControl.instances if dc.source_event is self]
+        dcs = [dc for dc in plus_job_defn.DynamicControl.instances if dc.R9_AuditEventDefn is self]
         for dc in dcs: # preparing for when multiple DynamicControls are allowed
             j += dc.json()
         prev_aes = ""

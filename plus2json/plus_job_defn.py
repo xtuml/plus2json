@@ -223,7 +223,7 @@ class DynamicControl( DynamicControl_JSON ):
         self.src_occ_txt = AuditEventDefn.c_current_event.OccurrenceId
         self.user_evt_txt = AuditEventDefn.c_current_event.EventName
         self.user_occ_txt = AuditEventDefn.c_current_event.OccurrenceId
-        self.source_event = None                           # audit event hosting the control
+        self.R9_AuditEventDefn = None                           # audit event hosting the control
         self.user_event = None                             # audit event to be dynamically tested
         DynamicControl.instances.append(self)
     @classmethod
@@ -231,7 +231,7 @@ class DynamicControl( DynamicControl_JSON ):
         for dc in DynamicControl.instances:
             sae = [ae for ae in AuditEventDefn.instances if ae.EventName == dc.src_evt_txt and ae.OccurrenceId == dc.src_occ_txt]
             if sae:
-                dc.source_event = sae[-1]
+                dc.R9_AuditEventDefn = sae[-1]
             else:
                 print( "ERROR:  unresolved SRC event in dynamic control:", dc.DynamicControlName, "with name:", dc.src_evt_txt  )
                 sys.exit()
@@ -267,8 +267,8 @@ class Invariant( Invariant_JSON ):
         self.src_occ_txt = "0"                             # SRC event textual OccurrenceId (default)
         self.user_evt_txt = ""                             # USER event textual EventName
         self.user_occ_txt = "0"                            # USER event textual OccurrenceId (default)
-        self.source_event = None                           # audit event hosting the invariant
-        self.user_events = []                              # audit events to be dynamically tested
+        self.R11_AuditEventDefn = None                     # audit event hosting the invariant
+        self.R13_AuditEventDefn = []                              # audit events to be dynamically tested
         Invariant.instances.append(self)
     @classmethod
     def resolve_event_linkage(cls):
@@ -276,13 +276,13 @@ class Invariant( Invariant_JSON ):
             #print( "Resolving invariants:", inv.src_evt_txt, inv.src_occ_txt, inv.user_evt_txt, inv.user_occ_txt )
             sae = [ae for ae in AuditEventDefn.instances if ae.EventName == inv.src_evt_txt and ae.OccurrenceId == inv.src_occ_txt]
             if sae:
-                inv.source_event = sae[-1]
+                inv.R11_AuditEventDefn = sae[-1]           # link inv to sae across R11
             uaes = [ae for ae in AuditEventDefn.instances if ae.EventName == inv.user_evt_txt and ae.OccurrenceId == inv.user_occ_txt]
             if uaes:
                 # We can have more than one user for an invariant.
                 for uae in uaes:
                     #print( "Resolving invariant users:", inv.src_evt_txt, inv.src_occ_txt, inv.user_evt_txt, inv.user_occ_txt )
-                    inv.user_events.append( uae )
+                    inv.R13_AuditEventDefn.append( uae )          # link inv to uae across R12
 
 class Loop:
     """data collected from PLUS repeat loop"""

@@ -40,7 +40,7 @@ class AuditEventDefn_print:
         bcnt = ""
         lcnt = ""
         mcnt = ""
-        dcs = [dc for dc in plus_job_defn.DynamicControl.instances if dc.source_event is self]
+        dcs = [dc for dc in plus_job_defn.DynamicControl.instances if dc.R9_AuditEventDefn is self]
         for dc in dcs:
             su = "s=" + dc.src_evt_txt + "(" + dc.src_occ_txt + ")"
             su += "u=" + dc.user_evt_txt + "(" + dc.user_occ_txt + ")"
@@ -56,7 +56,7 @@ class AuditEventDefn_print:
         # look for linked Invariant
         einv = ""
         iinv = ""
-        inv = [inv for inv in plus_job_defn.Invariant.instances if inv.source_event is self]
+        inv = [inv for inv in plus_job_defn.Invariant.instances if inv.R11_AuditEventDefn is self]
         if inv:
             su = ""
             if "" != inv[-1].src_evt_txt:
@@ -67,7 +67,7 @@ class AuditEventDefn_print:
                 einv = "einv:" + inv[-1].Name + "-" + su
             elif inv[-1].Type == "IINV":
                 iinv = "iinv:" + inv[-1].Name + "-" + su
-        inv = [inv for inv in plus_job_defn.Invariant.instances if self in inv.user_events]
+        inv = [inv for inv in plus_job_defn.Invariant.instances if self in inv.R13_AuditEventDefn]
         if inv:
             su = ""
             if "" != inv[-1].src_evt_txt:

@@ -48,7 +48,7 @@ class AuditEventDefn_AESim:
         # look for linked Invariant
         event_data = ""
         delim = ""
-        inv = [inv for inv in plus_job_defn.Invariant.instances if inv.source_event is self]
+        inv = [inv for inv in plus_job_defn.Invariant.instances if inv.R11_AuditEventDefn is self]
         if inv:
             value = (
                 inv[-1].Type + 's-' + inv[-1].src_evt_txt +
@@ -59,7 +59,7 @@ class AuditEventDefn_AESim:
             name = inv[-1].Name
             event_data += '{ "DataName": "' + name + '", "DataValue": "' + value + '"}'
             delim = ','
-        inv = [inv for inv in plus_job_defn.Invariant.instances if self in inv.user_events]
+        inv = [inv for inv in plus_job_defn.Invariant.instances if self in inv.R13_AuditEventDefn]
         if inv:
             value = (
                 inv[-1].Type + 's-' + inv[-1].src_evt_txt +
