@@ -1,3 +1,4 @@
+import os
 import sys
 import json
 from antlr4 import *
@@ -39,7 +40,6 @@ python plus2json.pyz Tutorial_13.puml -d                  # produce audit event 
 python plus2json.pyz myjobdefn.puml --play                # interpret the job producing event instances
 python plus2json.pyz myjobdefn.puml --play --aesim_config # produce a valid AESimulator sequence
 python -m plus2json Tutorial_1.puml --job -p              # show job in human readable view
-python plus2json.pyz j.puml --job | python -m json.tool   # format output JSON
 python ../src/__main__.py Tutorial_1.puml --job -p        # run from the raw source code
 
         """)
@@ -61,16 +61,23 @@ python ../src/__main__.py Tutorial_1.puml --job -p        # run from the raw sou
             JobDefn.instances[-1].pretty_print()
         else:
             j = JobDefn.instances[-1].json()
-            json.dump(json.loads(j), sys.stdout, sort_keys=True, indent=4, separators=(',', ': '))
+            outfile = None
+            if "--outdir" in argv:
+                outdir = argv[ argv.index( "--outdir" ) + 1 ]
+                os.makedirs(outdir, exist_ok=True)
+                outfile = outdir + "/" + JobDefn.instances[-1].JobDefinitionName + ".json"
+            f = open( outfile, 'w') if outfile else sys.stdout
+            json.dump(json.loads(j), f, indent=4, separators=(',', ': '))
     elif "--audit_event_data" in argv or "-d" in argv:
         j = Invariant.json()
         # TODO - name the file after the event?
         outfile = None
         if "--outdir" in argv:
             outdir = argv[ argv.index( "--outdir" ) + 1 ]
-            outfile = outdir + "/" + "audit_event_data.json"
+            os.makedirs(outdir, exist_ok=True)
+            outfile = outdir + "/" + JobDefn.instances[-1].JobDefinitionName + "_event_data.json"
         f = open( outfile, 'w') if outfile else sys.stdout
-        json.dump(json.loads(j), f, sort_keys=True, indent=4, separators=(',', ': '))
+        json.dump(json.loads(j), f, indent=4, separators=(',', ': '))
     elif "--play" in argv:
         outfile = None
         if "--print" in argv or "-p" in argv:
@@ -79,27 +86,30 @@ python ../src/__main__.py Tutorial_1.puml --job -p        # run from the raw sou
             j = JobDefn.instances[-1].play("aesim")
             if "--outdir" in argv:
                 outdir = argv[ argv.index( "--outdir" ) + 1 ]
+                os.makedirs(outdir, exist_ok=True)
                 outfile = outdir + "/" + "test-scenario.json"
             f = open( outfile, 'w') if outfile else sys.stdout
-            json.dump(json.loads(j), f, sort_keys=True, indent=4, separators=(',', ': '))
+            json.dump(json.loads(j), f, indent=4, separators=(',', ': '))
         elif "--aesim_test" in argv:
             j = JobDefn.instances[-1].play("aestest")
             if "--outdir" in argv:
                 outdir = argv[ argv.index( "--outdir" ) + 1 ]
+                os.makedirs(outdir, exist_ok=True)
                 outfile = outdir + "/" + "test-specification.json"
             f = open( outfile, 'w') if outfile else sys.stdout
-            json.dump(json.loads(j), f, sort_keys=True, indent=4, separators=(',', ': '))
+            json.dump(json.loads(j), f, indent=4, separators=(',', ': '))
         else:
             j = JobDefn.instances[-1].play("")
-            print( json.dumps(json.loads(j), sort_keys=True, indent=4, separators=(',', ': ')) )
+            print( json.dumps(json.loads(j), indent=4, separators=(',', ': ')) )
     elif "--aeo_config" in argv:
         j = JobDefn.aeo_config_all()
         outfile = None
         if "--outdir" in argv:
             outdir = argv[ argv.index( "--outdir" ) + 1 ]
+            os.makedirs(outdir, exist_ok=True)
             outfile = outdir + "/" + "config.json"
         f = open( outfile, 'w') if outfile else sys.stdout
-        json.dump(json.loads(j), f, sort_keys=True, indent=4, separators=(',', ': '))
+        json.dump(json.loads(j), f, indent=4, separators=(',', ': '))
     elif 2 == len( argv ):
         print( "syntax check complete" )
     else:

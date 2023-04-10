@@ -20,7 +20,7 @@ class JobDefn_JSON:
         j = '{ "JobDefinitionName": "' + self.JobDefinitionName + '",'
         j += '"Events": ['
         seqdelim = ""
-        for seq in self.sequences:
+        for seq in self.R1_SequenceDefn_defines:
             j += seq.json( seqdelim )
             seqdelim = ','
         # All events for all sequences are defined together.
@@ -32,13 +32,13 @@ class SequenceDefn_JSON:
     def json(self, seqdelim):
         j = ""
         aedelim = seqdelim
-        for ae in self.audit_events:
+        for ae in self.R2_AuditEventDefn_defines:
             j += ae.json( aedelim )
             j += '\n'
             aedelim = ','
         return j
 
-class AuditEvent_JSON:
+class AuditEventDefn_JSON:
     """Audit Event Definition JSON"""
     def json(self, aedelim):
         j = aedelim
@@ -50,20 +50,20 @@ class AuditEvent_JSON:
         if self.SequenceEnd: j += '"SequenceEnd": true,'
         if self.isBreak: j += '"IsBreak": true,'
         # look for linked DynamicControl
-        dcs = [dc for dc in plus_job_defn.DynamicControl.instances if dc.source_event is self]
+        dcs = [dc for dc in plus_job_defn.DynamicControl.instances if dc.R9_AuditEventDefn is self]
         for dc in dcs: # preparing for when multiple DynamicControls are allowed
             j += dc.json()
         prev_aes = ""
         pdelim = ""
-        for prev_ae in self.previous_events:
+        for prev_ae in self.R3_PreviousAuditEventDefn:
             prev_aes += prev_ae.json( pdelim )
             pdelim = ','
         if "" != prev_aes: j += '"PreviousEvents": [ ' + prev_aes + '],'
-        j += '"Application": "' + plus_job_defn.AuditEvent.ApplicationName + '"'
+        j += '"Application": "' + plus_job_defn.AuditEventDefn.ApplicationName + '"'
         j += '}'
         return j
 
-class PreviousAuditEvent_JSON:
+class PreviousAuditEventDefn_JSON:
     """Previous Audit Event Definition JSON"""
     def json( self, pdelim ):
         constraintid = "" if "" == self.ConstraintDefinitionId else ', "ConstraintDefinitionId": "' + self.ConstraintDefinitionId + '"'
@@ -73,8 +73,8 @@ class PreviousAuditEvent_JSON:
             constraint = ""
             constraintid = ""
         return ( pdelim +
-              '{ "PreviousEventName": "' + self.previous_event.EventName + '",'
-              '"PreviousOccurrenceId": ' + self.previous_event.OccurrenceId +
+              '{ "PreviousEventName": "' + self.R3_AuditEventDefn_precedes.EventName + '",'
+              '"PreviousOccurrenceId": ' + self.R3_AuditEventDefn_precedes.OccurrenceId +
               constraintid + constraint +
               ' }' )
 
@@ -102,14 +102,18 @@ class Invariant_JSON:
                 j += '"EventDataName": "' + invariant.Name + '",'
                 invariant_type = 'INTRAJOBINV' if invariant.Type == 'IINV' else 'EXTRAJOBINV'
                 j += '"EventDataType": "' + invariant_type + '",'
+                # TODO - navigate to JobDefn
                 j += '"SourceEventJobDefinitionName": "' + plus_job_defn.JobDefn.instances[-1].JobDefinitionName + '",'
-                j += '"SourceEventType": "' + invariant.src_evt_txt + '",'
-                j += '"SourceOccurrenceId": ' + invariant.src_occ_txt + ','
-                j += '"UserEvents": ['
-                j += '{ "UserEventName": "' + invariant.user_evt_txt + '",'
-                j += '"UserOccurrenceId": ' + invariant.user_occ_txt + ','
-                j += '"UserEventDataItemName": "' + invariant.Name + '" }'
-                j += ']'
+                if invariant.R11_AuditEventDefn:
+                    j += '"SourceEventType": "' + invariant.R11_AuditEventDefn.EventName + '",'
+                    j += '"SourceEventOccurrenceId": ' + invariant.R11_AuditEventDefn.OccurrenceId + ','
+                if invariant.R12_AuditEventDefn:
+                    j += '"UserEvents": ['
+                    for user_event in invariant.R12_AuditEventDefn:
+                        j += '{ "UserEventName": "' + user_event.EventName + '",'
+                        j += '"UserOccurrenceId": ' + user_event.OccurrenceId + ','
+                        j += '"UserEventDataItemName": "' + invariant.Name + '" }'
+                    j += ']'
                 j += '}'
                 idelim = ','
             j += ']'

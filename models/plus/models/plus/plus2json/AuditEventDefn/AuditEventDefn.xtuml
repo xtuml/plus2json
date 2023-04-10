@@ -2,15 +2,15 @@
 
 within plus::plus2json is
 
-  @key_letters("AuditEvent");
+  @key_letters("AuditEventDefn");
   @class_num(3);
-  class AuditEvent is
+  class AuditEventDefn is
 
     EventName: string;
 
     OccurrenceId: string;
 
-    c_current_event: AuditEvents;
+    c_current_event: instance of AuditEventDefn;
 
     c_longest_event_name: integer;
 
@@ -26,7 +26,9 @@ within plus::plus2json is
 
     previousEventIds: sequence of integer;
 
-    previous_events: AuditEvents;
+    R3_PreviousAuditEventDefn: set of instance of PreviousAuditEventDefn;
+
+    c_idFactory: integer;
 
     preferred identifier is (EventName, OccurrenceId);
 

@@ -52,14 +52,14 @@ class SequenceDefn_AEStest:
         """output Sequence AEStest JSON"""
         j = ""
         aedelim = seqdelim
-        for ae in self.audit_events:
+        for ae in self.R2_AuditEventDefn_defines:
             j += ae.aesim_test( aedelim )
             aedelim = ','
         return j
 
-class AuditEvent_AEStest:
+class AuditEventDefn_AEStest:
     """AEStest methods Audit Event Definition"""
     def aesim_test(self, delim):
-        """output AuditEvent AEStest JSON"""
-        j = delim + str( plus_job_defn.AuditEvent.instances.index( self ) + 1 ) # 1-based
+        """output AuditEventDefn AEStest JSON"""
+        j = delim + str( plus_job_defn.AuditEventDefn.instances.index( self ) + 1 ) # 1-based
         return j

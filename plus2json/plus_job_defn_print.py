@@ -20,17 +20,17 @@ class JobDefn_print:
     """Print Job Definition"""
     def pretty_print(self):
         print("job defn:", self.JobDefinitionName)
-        for seq in self.sequences:
+        for seq in self.R1_SequenceDefn_defines:
             seq.pretty_print()
 
 class SequenceDefn_print:
     """Print Sequence Definition"""
     def pretty_print(self):
         print("sequence:", self.SequenceName)
-        for ae in self.audit_events:
+        for ae in self.R2_AuditEventDefn_defines:
             ae.pretty_print()
 
-class AuditEvent_print:
+class AuditEventDefn_print:
     """Print Audit Event Definition"""
     def pretty_print(self):
         ss = "start" if self.SequenceStart else ""
@@ -40,7 +40,7 @@ class AuditEvent_print:
         bcnt = ""
         lcnt = ""
         mcnt = ""
-        dcs = [dc for dc in plus_job_defn.DynamicControl.instances if dc.source_event is self]
+        dcs = [dc for dc in plus_job_defn.DynamicControl.instances if dc.R9_AuditEventDefn is self]
         for dc in dcs:
             su = "s=" + dc.src_evt_txt + "(" + dc.src_occ_txt + ")"
             su += "u=" + dc.user_evt_txt + "(" + dc.user_occ_txt + ")"
@@ -56,38 +56,33 @@ class AuditEvent_print:
         # look for linked Invariant
         einv = ""
         iinv = ""
-        inv = [inv for inv in plus_job_defn.Invariant.instances if inv.source_event is self]
-        if inv:
-            su = ""
-            if "" != inv[-1].src_evt_txt:
-                su += "s=" + inv[-1].src_evt_txt + "(" + inv[-1].src_occ_txt + ")"
-            if "" != inv[-1].user_evt_txt:
-                su += "u=" + inv[-1].user_evt_txt + "(" + inv[-1].user_occ_txt + ")"
-            if inv[-1].Type == "EINV":
-                einv = "einv:" + inv[-1].Name + "-" + su
-            elif inv[-1].Type == "IINV":
-                iinv = "iinv:" + inv[-1].Name + "-" + su
-        inv = [inv for inv in plus_job_defn.Invariant.instances if self in inv.user_events]
-        if inv:
-            su = ""
-            if "" != inv[-1].src_evt_txt:
-                su += "s=" + inv[-1].src_evt_txt + "(" + inv[-1].src_occ_txt + ")"
-            if "" != inv[-1].user_evt_txt:
-                su += "u=" + inv[-1].user_evt_txt + "(" + inv[-1].user_occ_txt + ")"
-            if inv[-1].Type == "EINV":
-                einv = "einv:" + inv[-1].Name + "-" + su
-            elif inv[-1].Type == "IINV":
-                iinv = "iinv:" + inv[-1].Name + "-" + su
+        # select many invs related by self->Invariant[R11]
+        invs = [inv for inv in plus_job_defn.Invariant.instances if inv.R11_AuditEventDefn is self]
+        for inv in invs:
+            if inv.Type == "EINV":
+                einv += " s-einv:" + inv.Name
+            elif inv.Type == "IINV":
+                iinv += " s-iinv:" + inv.Name
+            else:
+                print( "ERROR:  malformed invariant type" )
+                sys.exit()
+        # select many invs related by self->Invariant[R12]
+        invs = [inv for inv in plus_job_defn.Invariant.instances if self in inv.R12_AuditEventDefn]
+        for inv in invs:
+            if inv.Type == "EINV":
+                einv += " u-einv:" + inv.Name
+            elif inv.Type == "IINV":
+                iinv += " u-iinv:" + inv.Name
             else:
                 print( "ERROR:  malformed invariant type" )
                 sys.exit()
         prev_aes = "    "
         delim = ""
-        for prev_ae in self.previous_events:
-            prev_aes = ( prev_aes + delim + prev_ae.previous_event.EventName +
-                         "(" + prev_ae.previous_event.OccurrenceId + ")" +
+        for prev_ae in self.R3_PreviousAuditEventDefn:
+            prev_aes = ( prev_aes + delim + prev_ae.R3_AuditEventDefn_precedes.EventName +
+                         "(" + prev_ae.R3_AuditEventDefn_precedes.OccurrenceId + ")" +
                          prev_ae.ConstraintDefinitionId + prev_ae.ConstraintValue
                        )
             delim = ","
-        print( f'{self.EventName+"("+self.OccurrenceId+")":{plus_job_defn.AuditEvent.c_longest_name_length+3}}',
+        print( f'{self.EventName+"("+self.OccurrenceId+")":{plus_job_defn.AuditEventDefn.c_longest_name_length+3}}',
                f'{ss:{5}}', f'{se:{3}}', b, prev_aes, bcnt, mcnt, lcnt, einv, iinv )
