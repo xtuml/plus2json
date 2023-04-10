@@ -30,6 +30,8 @@ class JobDefn( JobDefn_AEO, JobDefn_JSON, JobDefn_play, JobDefn_print, JobDefn_A
     """PLUS Job Definition"""
     instances = []                                         # instance population (pattern for all)
     def __init__(self, name):
+        # Initialize instance of play supertype.
+        JobDefn_play.__init__(self)
         self.JobDefinitionName = name                      # created when the name is encountered
         self.R1_SequenceDefn_defines = []                  # job may contain multiple peer sequences
         JobDefn.instances.append(self)
@@ -83,8 +85,10 @@ class AuditEventDefn( AuditEventDefn_AEO, AuditEventDefn_JSON, AuditEventDefn_pl
         if not self.sequence.start_events:                 # ... or when no starting event, yet
             self.sequence.start_events.append( self )
             self.SequenceStart = True
+        # Initialize instance of play supertype.
+        AuditEventDefn_play.__init__(self)
         # Initialize instance of JSON supertype.
-        super( AuditEventDefn_JSON, self ).__init__()
+        AuditEventDefn_JSON.__init__(self)
         self.R3_PreviousAuditEventDefn = []                          # extended at creation when c_current_event exists
                                                            # emptied at sequence exit
         if Fork.instances:                                 # get fork, split or if previous event
@@ -250,13 +254,15 @@ class DynamicControl( DynamicControl_JSON ):
 # Invariants must deal with forward references.
 # During the walk, capture the audit EventNames and OccurrenceIds as text.
 # At the end of the walk and before output, resolve all Invariants.
-class Invariant( Invariant_JSON ):
+class Invariant( Invariant_JSON, Invariant_play ):
     """intra- and extra- job invariant information"""
     instances = []
     def __init__(self, name, invariant_type):
         if any( inv.Name == name for inv in Invariant.instances ):
             print( "ERROR:  duplicate invariant detected:", name )
             sys.exit()
+        # Initialize instance of play supertype.
+        Invariant_play.__init__(self)
         self.Name = name                                   # unique name
         if invariant_type in ('EINV', 'IINV'):
             self.Type = invariant_type                     # extra-job or intra-job invariant

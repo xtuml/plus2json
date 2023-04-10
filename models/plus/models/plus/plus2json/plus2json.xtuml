@@ -3,9 +3,6 @@
 within plus is
 
   package plus2json is
-    type 'inst_ref_set<AuditEventDefn>';
-    type 'inst_ref_set<PreviousAuditEventDefn>';
-    type 'inst_ref_set<SequenceDefn>';
     class AuditEventDefn;
     class DynamicControl;
     class Fork;

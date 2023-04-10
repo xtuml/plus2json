@@ -175,6 +175,16 @@ class AuditEventDefn_play:
                         peid_delim = ","
                     j += ']'
                 self.previousEventIds.clear()
+            # select many invs related by self->Invariant[R11]
+            source_invs = [inv for inv in plus_job_defn.Invariant.instances if inv.R11_AuditEventDefn is self]
+            for inv in source_invs:
+                j += 's-'
+                j += inv.play( flavor )
+            # select many invs related by self->Invariant[R12]
+            user_invs = [inv for inv in plus_job_defn.Invariant.instances if self in inv.R12_AuditEventDefn]
+            for inv in user_invs:
+                j += 'u-'
+                j = inv.play( flavor )
             j += '\n'
         elif 'aesim' == flavor:
             j += self.aesim_config( delim )
@@ -198,9 +208,48 @@ class AuditEventDefn_play:
                         j += peid_delim + '"' + str( peid ) + '"'
                         peid_delim = ","
                     j += '],'
+            # select many invs related by self->Invariant[R11]
+            source_invs = [inv for inv in plus_job_defn.Invariant.instances if inv.R11_AuditEventDefn is self]
+            # select many invs related by self->Invariant[R12]
+            user_invs = [inv for inv in plus_job_defn.Invariant.instances if self in inv.R12_AuditEventDefn]
+            if source_invs or user_invs:
+                j += '"event_data": {'
+                for inv in source_invs:
+                    j += inv.play( flavor )
+                for inv in user_invs:
+                    j += inv.play( flavor )
+                j += '},'
             j += '"timestamp": "' + '{:%Y-%m-%dT%H:%M:%SZ}'.format(datetime.datetime.now()) + '",'
             j += '"applicationName": "' + plus_job_defn.AuditEventDefn.ApplicationName + '"'
             j += '}'
         for ae in next_aes:
             j += ae.play( flavor, ",", job_defn, self.eventId )
+        return j
+
+class Invariant_play:
+    c_idFactory = 0
+    def __init__(self):
+        Invariant_play.c_idFactory += 1
+        self.iId = Invariant_play.c_idFactory     # pretty printable id
+        self.value = uuid.uuid4()                 # value of an instance of this invariant
+    def play( self, flavor ):
+        j = ""
+        if 'pretty' == flavor:
+            if self.Type == "EINV":
+                j += " einv:" + self.Name + ":" + str( self.iId )
+            elif self.Type == "IINV":
+                j += " iinv:" + self.Name + ":" + str( self.iId )
+            else:
+                print( "ERROR:  malformed invariant type" )
+                sys.exit()
+        else:
+            j += '"invariant": { "datatItemType":'
+            if self.Type == "EINV":
+                j += '"EXTRAJOBINV",'
+            elif self.Type == "IINV":
+                j += '"INTRAJOBINV",'
+            else:
+                print( "ERROR:  malformed invariant type" )
+                sys.exit()
+            j += '"value": "' + str( self.value ) + '" }'
         return j

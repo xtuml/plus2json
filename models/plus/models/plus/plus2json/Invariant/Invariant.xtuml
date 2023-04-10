@@ -10,6 +10,8 @@ within plus::plus2json is
 
     Type: string;
 
+    value: UUID;
+
     src_evt_txt: string;
 
     src_occ_txt: string;
@@ -22,7 +24,13 @@ within plus::plus2json is
 
     R12_AuditEventDefn: set of instance of AuditEventDefn;
 
+    c_idFactory: integer;
+
+    iId: integer;
+
     preferred identifier is (Name);
+
+    identifier is (value);
 
     @dialect("oal");
     @operation_num(1);
@@ -31,6 +39,10 @@ within plus::plus2json is
     @dialect("oal");
     @operation_num(2);
     class operation json();
+
+    @dialect("oal");
+    @operation_num(3);
+    operation play(flavor: in string) return string;
 
   end class;
 
