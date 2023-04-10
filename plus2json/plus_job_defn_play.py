@@ -175,16 +175,28 @@ class AuditEventDefn_play:
                         peid_delim = ","
                     j += ']'
                 self.previousEventIds.clear()
+            else:
+                j += '       '
+            # select many dcs related by self->DynamicControl[R9]
+            source_dcs = [dc for dc in plus_job_defn.DynamicControl.instances if dc.R9_AuditEventDefn is self]
+            for dc in source_dcs:
+                j += ' s-'
+                j += dc.play( flavor )
+            # select many dcs related by self->DynamicControl[R10]
+            user_dcs = [dc for dc in plus_job_defn.DynamicControl.instances if dc.R10_AuditEventDefn is self]
+            for dc in user_dcs:
+                j += ' u-'
+                j += dc.play( flavor )
             # select many invs related by self->Invariant[R11]
             source_invs = [inv for inv in plus_job_defn.Invariant.instances if inv.R11_AuditEventDefn is self]
             for inv in source_invs:
-                j += 's-'
+                j += ' s-'
                 j += inv.play( flavor )
             # select many invs related by self->Invariant[R12]
             user_invs = [inv for inv in plus_job_defn.Invariant.instances if self in inv.R12_AuditEventDefn]
             for inv in user_invs:
-                j += 'u-'
-                j = inv.play( flavor )
+                j += ' u-'
+                j += inv.play( flavor )
             j += '\n'
         elif 'aesim' == flavor:
             j += self.aesim_config( delim )
@@ -208,22 +220,61 @@ class AuditEventDefn_play:
                         j += peid_delim + '"' + str( peid ) + '"'
                         peid_delim = ","
                     j += '],'
+            # select many dcs related by self->DynamicControl[R9]
+            source_dcs = [dc for dc in plus_job_defn.DynamicControl.instances if dc.R9_AuditEventDefn is self]
+            # select many dcs related by self->DynamicControl[R10]
+            user_dcs = [dc for dc in plus_job_defn.DynamicControl.instances if dc.R10_AuditEventDefn is self]
+            if source_dcs or user_dcs:
+                delim = ""
+                for dc in source_dcs:
+                    j += dc.play( flavor )
+                    delim = ','
+                for dc in user_dcs:
+                    j += dc.play( flavor )
+                    delim = ','
+                j += ','
             # select many invs related by self->Invariant[R11]
             source_invs = [inv for inv in plus_job_defn.Invariant.instances if inv.R11_AuditEventDefn is self]
             # select many invs related by self->Invariant[R12]
             user_invs = [inv for inv in plus_job_defn.Invariant.instances if self in inv.R12_AuditEventDefn]
             if source_invs or user_invs:
-                j += '"event_data": {'
+                delim = ""
                 for inv in source_invs:
-                    j += inv.play( flavor )
+                    j += delim + inv.play( flavor )
+                    delim = ','
                 for inv in user_invs:
-                    j += inv.play( flavor )
-                j += '},'
+                    j += delim + inv.play( flavor )
+                    delim = ','
+                j += ','
             j += '"timestamp": "' + '{:%Y-%m-%dT%H:%M:%SZ}'.format(datetime.datetime.now()) + '",'
             j += '"applicationName": "' + plus_job_defn.AuditEventDefn.ApplicationName + '"'
             j += '}'
         for ae in next_aes:
             j += ae.play( flavor, ",", job_defn, self.eventId )
+        return j
+
+class DynamicControl_play:
+    c_idFactory = 0
+    def __init__(self):
+        DynamicControl_play.c_idFactory += 1
+        self.iId = DynamicControl_play.c_idFactory     # pretty printable id
+        self.value = 4                                 # value of an instance of this dynamic control
+    def play( self, flavor ):
+        j = ""
+        if 'pretty' == flavor:
+            if self.DynamicControlType == "BRANCHCOUNT":
+                j += "bc:"
+            elif self.DynamicControlType == "MERGECOUNT":
+                j += "mc:"
+            elif self.DynamicControlType == "LOOPCOUNT":
+                j += "lc:"
+            else:
+                print( "ERROR:  malformed dynamic control" )
+                sys.exit()
+            j += self.DynamicControlName + ':' + str( self.value )
+        else:
+            j += '"' + self.DynamicControlName + '": { "dataItemType":' + '"' + self.DynamicControlType + '",'
+            j += '"value": ' + str( self.value ) + ' }'
         return j
 
 class Invariant_play:
@@ -236,14 +287,14 @@ class Invariant_play:
         j = ""
         if 'pretty' == flavor:
             if self.Type == "EINV":
-                j += " einv:" + self.Name + ":" + str( self.iId )
+                j += "einv:" + self.Name + ":" + str( self.iId )
             elif self.Type == "IINV":
-                j += " iinv:" + self.Name + ":" + str( self.iId )
+                j += "iinv:" + self.Name + ":" + str( self.iId )
             else:
                 print( "ERROR:  malformed invariant type" )
                 sys.exit()
         else:
-            j += '"invariant": { "datatItemType":'
+            j += '"' + self.Name + '": { "dataItemType":'
             if self.Type == "EINV":
                 j += '"EXTRAJOBINV",'
             elif self.Type == "IINV":

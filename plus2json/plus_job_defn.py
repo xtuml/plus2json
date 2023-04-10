@@ -209,10 +209,12 @@ class Fork:
 # Dynamic control must deal with forward references.
 # During the walk, capture the audit EventNames and OccurrenceIds as text.
 # At the end of the walk and before output, resolve all DynamicControls.
-class DynamicControl( DynamicControl_JSON ):
+class DynamicControl( DynamicControl_JSON, DynamicControl_play ):
     """branch and loop information"""
     instances = []
     def __init__(self, name, control_type):
+        # Initialize instance of play supertype.
+        DynamicControl_play.__init__(self)
         if any( dc.DynamicControlName == name for dc in DynamicControl.instances ):
             print( "ERROR:  duplicate dynamic control detected:", name )
             sys.exit()
@@ -227,8 +229,8 @@ class DynamicControl( DynamicControl_JSON ):
         self.src_occ_txt = AuditEventDefn.c_current_event.OccurrenceId
         self.user_evt_txt = AuditEventDefn.c_current_event.EventName
         self.user_occ_txt = AuditEventDefn.c_current_event.OccurrenceId
-        self.R9_AuditEventDefn = None                           # audit event hosting the control
-        self.user_event = None                             # audit event to be dynamically tested
+        self.R9_AuditEventDefn = None                      # audit event sourcing the control
+        self.R10_AuditEventDefn = None                     # audit event using the control
         DynamicControl.instances.append(self)
     @classmethod
     def resolve_event_linkage(cls):
@@ -241,7 +243,7 @@ class DynamicControl( DynamicControl_JSON ):
                 sys.exit()
             uae = [ae for ae in AuditEventDefn.instances if ae.EventName == dc.user_evt_txt and ae.OccurrenceId == dc.user_occ_txt]
             if uae:
-                dc.user_event = uae[-1]
+                dc.R10_AuditEventDefn = uae[-1]
             else:
                 print( "ERROR:  unresolved USER event in dynamic control:", dc.DynamicControlName, "with name:", dc.user_evt_txt  )
                 sys.exit()
