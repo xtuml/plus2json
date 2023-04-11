@@ -1,6 +1,6 @@
 @startuml 
-partition "job" {
-  group "sequence"
+partition "t05_switch" {
+  group "sequence05"
     :A;
     switch ( test )
     case ( one )

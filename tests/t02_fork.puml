@@ -1,6 +1,6 @@
 @startuml 
-partition "job" {
-  group "sequence"
+partition "t02_fork" {
+  group "sequence02"
     :A;
     fork
       :B;

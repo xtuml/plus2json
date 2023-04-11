@@ -1,5 +1,5 @@
-job defn: job
-sequence: "sequence"
+job defn: t01_straight
+sequence: "sequence01"
 A(0) start                    
 B(0)                     A(0)     
 C(0)                     B(0)     
