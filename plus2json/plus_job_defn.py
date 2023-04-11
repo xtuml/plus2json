@@ -45,12 +45,12 @@ class SequenceDefn( SequenceDefn_AEO, SequenceDefn_JSON, SequenceDefn_play, Sequ
     c_current_sequence = None                              # set at creation, emptied at exit
     def __init__(self, name):
         self.SequenceName = name                           # created when the name is encountered
-        if any( s.SequenceName == name for s in SequenceDefn.instances ):
+        self.R1_JobDefn = JobDefn.instances[-1]            # link self to most recent JobDefn across R1
+        if any( s.SequenceName == name for s in self.R1_JobDefn.R1_SequenceDefn_defines ):
             print( "ERROR:  duplicate sequence detected:", name )
             sys.exit()
-        JobDefn.instances[-1].R1_SequenceDefn_defines.append(self) # link self to JobDefn across R1
-        self.R1_JobDefn = JobDefn.instances[-1]
-        self.R2_AuditEventDefn_defines = []                             # appended with each new event encountered
+        self.R1_JobDefn.R1_SequenceDefn_defines.append(self) # link (most recent) JobDefn to self across R1
+        self.R2_AuditEventDefn_defines = []                # appended with each new event encountered
         self.start_events = []                             # start_events get added by the first event
                                                            # ... that sees an empty list
                                                            # ... and by any event preceded by HIDE
@@ -89,7 +89,7 @@ class AuditEventDefn( AuditEventDefn_AEO, AuditEventDefn_JSON, AuditEventDefn_pl
         AuditEventDefn_play.__init__(self)
         # Initialize instance of JSON supertype.
         AuditEventDefn_JSON.__init__(self)
-        self.R3_PreviousAuditEventDefn = []                          # extended at creation when c_current_event exists
+        self.R3_PreviousAuditEventDefn = []                # extended at creation when c_current_event exists
                                                            # emptied at sequence exit
         if Fork.instances:                                 # get fork, split or if previous event
             if Fork.instances[-1].fork_point_usage:

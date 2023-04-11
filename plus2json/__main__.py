@@ -16,7 +16,7 @@ def main(argv):
 
     if ( "--help" in argv or "-h" in argv or len(argv) < 2 ):
         print("""
-UsAge
+Usage
 =====
   python3 plus2json.pyz <PLUS PlantUML file> [options]
 
