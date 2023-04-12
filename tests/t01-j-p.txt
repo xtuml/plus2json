@@ -1,3 +1,4 @@
+test 4 diff
 job defn: t01_straight
 sequence: "sequence01"
 A(0) start                    
