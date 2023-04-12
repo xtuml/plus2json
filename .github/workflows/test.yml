@@ -3,11 +3,11 @@ on:
 
   # run on PRs to main
   pull_request:
-    branches: [ git_actions_test ]
+    branches: [ main ]
 
   # run on push to main
   push:
-    branches: [ git_actions_test ]
+    branches: [ main ]
 
   # run manually
   workflow_dispatch:
