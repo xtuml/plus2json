@@ -1,6 +1,6 @@
 @startuml 
-partition "job" {
-  group "sequence"
+partition "t01_straight" {
+  group "sequence01"
     :A;
     :B;
     :C;

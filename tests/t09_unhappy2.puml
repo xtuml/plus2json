@@ -1,6 +1,6 @@
 @startuml 
-partition "job" {
-  group "sequence"
+partition "t09_unhappy2" {
+  group "sequence09"
     :A;
     :B;
     :C,CRITICAL;

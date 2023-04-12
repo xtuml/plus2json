@@ -1,6 +1,6 @@
 @startuml 
-partition "job" {
-  group "sequence"
+partition "t07_mixed2" {
+  group "sequence07"
     :A;
     fork
       switch ( XOR )

@@ -1,5 +1,5 @@
-job defn: job
-sequence: "sequence"
+job defn: t07_mixed2
+sequence: "sequence07"
 A(0) start                    
 B(0)                     A(0)xorfork2XOR     
 C(0)                     A(0)xorfork2XOR     

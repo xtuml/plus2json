@@ -1,6 +1,6 @@
 @startuml 
-partition "job" {
-  group "sequence"
+partition "t06_mixed" {
+  group "sequence06"
     :A;
     if ( XOR ) then ( normal )
       fork

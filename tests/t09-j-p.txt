@@ -1,5 +1,5 @@
-job defn: job
-sequence: "sequence"
+job defn: t09_unhappy2
+sequence: "sequence09"
 A(0) start                    
 B(0)                     A(0)     
 C(0)       end           B(0)     
