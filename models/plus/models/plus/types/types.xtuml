@@ -3,12 +3,6 @@
 within plus is
 
   package types is
-    type AuditEvents is set of instance of AuditEventDefn;
-
-    type PreviousAuditEvents is set of instance of PreviousAuditEventDefn;
-
-    type SequenceDefns is set of instance of SequenceDefn;
-
     type UUID is string;
 
   end package;
