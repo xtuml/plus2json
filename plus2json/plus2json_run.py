@@ -182,14 +182,14 @@ class plus2json_run(plus2jsonListener):
     # Link the last event in the loop as a previous event to the first event in the loop.
     def exitLoop(self, ctx:plus2jsonParser.LoopContext):
         if AuditEventDefn.c_current_event: # We may be following a fork/merge.
-            Loop.instances[-1].start_event.R3_PreviousAuditEventDefn.append( PreviousAuditEventDefn( AuditEventDefn.c_current_event ) )
+            Loop.instances[-1].R8_PreviousAuditEventDefn_starts_with.R3_PreviousAuditEventDefn.append( PreviousAuditEventDefn( AuditEventDefn.c_current_event ) )
         else:
             # ended the loop with a merge
             if SequenceDefn.instances[-1].merge_usage_cache:
                 for mu_pe in SequenceDefn.instances[-1].merge_usage_cache:
                     # omit break events
                     if not mu_pe.R3_AuditEventDefn_precedes.isBreak:
-                        Loop.instances[-1].start_event.R3_PreviousAuditEventDefn.append( mu_pe )
+                        Loop.instances[-1].R8_PreviousAuditEventDefn_starts_with.R3_PreviousAuditEventDefn.append( mu_pe )
         Loop.instances.pop()
 
     def exitJob_defn(self, ctx:plus2jsonParser.Job_defnContext):

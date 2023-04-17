@@ -60,7 +60,7 @@ class SequenceDefn_AEO:
     def aeo_config(self):
         """output Sequence AEOrdering json"""
         # Generate only a single event with default parameters.  The user can duplicate to make more.
-        return self.start_events[0].aeo_config( "" )
+        return self.R13_AuditEventDefn_starts[0].aeo_config( "" )
 
 class AuditEventDefn_AEO:
     """AEO methods Audit Event Definition"""

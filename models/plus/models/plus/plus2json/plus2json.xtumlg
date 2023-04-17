@@ -262,3 +262,21 @@ connectors :
         bounds : x : 4523.0 y : 3649.0 width : 0.0 height : 0.0 where : middle
       text :
         bounds : x : 4570.0 y : 3661.0 width : 0.0 height : 0.0 where : end
+  connector : R13
+    render : association "plus::plus2json::R13"
+    polyline :
+      segment :
+        start : x : 4357.0 y : 3526.0
+        end :   x : 4416.0 y : 3526.0
+    anchors :
+      start :
+        point : x : 4357.0 y : 3526.0
+        shape : SequenceDefn
+      end :
+        point : x : 4416.0 y : 3526.0
+        shape : AuditEventDefn
+    texts :
+      text :
+        bounds : x : 4367.0 y : 3536.0 width : 0.0 height : 0.0 where : start
+      text :
+        bounds : x : 4376.0 y : 3488.0 width : 0.0 height : 0.0 where : middle

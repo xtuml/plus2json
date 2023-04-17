@@ -30,6 +30,8 @@ within plus::plus2json is
 
     preferred identifier is (Name);
 
+    identifier is (value);
+
     @dialect("oal");
     @operation_num(1);
     class operation resolve_event_linkage();

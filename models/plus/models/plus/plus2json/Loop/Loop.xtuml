@@ -8,7 +8,7 @@ within plus::plus2json is
 
     c_scope: integer;
 
-    start_events: instance of PreviousAuditEventDefn;
+    R8_PreviousAuditEventDefn_starts_with: instance of PreviousAuditEventDefn;
 
   end class;
 

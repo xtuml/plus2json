@@ -51,7 +51,7 @@ class SequenceDefn( SequenceDefn_AEO, SequenceDefn_JSON, SequenceDefn_play, Sequ
             sys.exit()
         self.R1_JobDefn.R1_SequenceDefn_defines.append(self) # link (most recent) JobDefn to self across R1
         self.R2_AuditEventDefn_defines = []                # appended with each new event encountered
-        self.start_events = []                             # start_events get added by the first event
+        self.R13_AuditEventDefn_starts = []                # start_events get added by the first event
                                                            # ... that sees an empty list
                                                            # ... and by any event preceded by HIDE
         SequenceDefn.c_current_sequence = self
@@ -82,8 +82,8 @@ class AuditEventDefn( AuditEventDefn_AEO, AuditEventDefn_JSON, AuditEventDefn_pl
         self.SequenceEnd = False                           # set when 'detach' follows
         self.isBreak = False                               # set when 'break' follows
         self.sequence.R2_AuditEventDefn_defines.append(self) # link self to SequenceDefn across R2
-        if not self.sequence.start_events:                 # ... or when no starting event, yet
-            self.sequence.start_events.append( self )
+        if not self.sequence.R13_AuditEventDefn_starts:    # ... or when no starting event, yet
+            self.sequence.R13_AuditEventDefn_starts.append( self )
             self.SequenceStart = True
         # Initialize instance of play supertype.
         AuditEventDefn_play.__init__(self)
@@ -103,8 +103,8 @@ class AuditEventDefn( AuditEventDefn_AEO, AuditEventDefn_JSON, AuditEventDefn_pl
             AuditEventDefn.c_current_event = None
         # detect loop
         # if it exists but has no starting event, add this one
-        if Loop.instances and not Loop.instances[-1].start_event:
-            Loop.instances[-1].start_event = self
+        if Loop.instances and not Loop.instances[-1].R8_PreviousAuditEventDefn_starts_with:
+            Loop.instances[-1].R8_PreviousAuditEventDefn_starts_with = self
         AuditEventDefn.c_current_event = self
         AuditEventDefn.instances.append(self)
 
@@ -302,5 +302,5 @@ class Loop:
     instances = []
     c_scope = 0
     def __init__(self):
-        self.start_event = None                            # first event encountered
+        self.R8_PreviousAuditEventDefn_starts_with = None  # first event encountered
         Loop.instances.append(self)
