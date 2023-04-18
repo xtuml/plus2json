@@ -2,9 +2,9 @@
 
 @system_model(use_globals=true);
 package plus is
-	
-	package plus2json;
-	package types;
-	
+  
+  package plus2json;
+  package types;
+  
 end package;
 
