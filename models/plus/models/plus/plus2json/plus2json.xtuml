@@ -23,17 +23,17 @@ within plus is
     relationship R4 is Fork conditionally relates to one PreviousAuditEventDefn,
                        PreviousAuditEventDefn conditionally starts one Fork;
 
-    relationship R5 is Fork conditionally uses one PreviousAuditEventDefn,
+    relationship R5 is Fork conditionally caches_usage one PreviousAuditEventDefn,
                        PreviousAuditEventDefn conditionally relates to one Fork;
 
-    relationship R6 is Fork conditionally relates to many PreviousAuditEventDefn,
-                       PreviousAuditEventDefn conditionally merges one Fork;
-
-    relationship R7 is Fork conditionally uses many PreviousAuditEventDefn,
+    relationship R6 is Fork conditionally merges many PreviousAuditEventDefn,
                        PreviousAuditEventDefn conditionally relates to one Fork;
 
-    relationship R8 is Loop unconditionally starts_with many PreviousAuditEventDefn,
-                       PreviousAuditEventDefn unconditionally relates to one Loop;
+    relationship R7 is Fork conditionally forks_from many PreviousAuditEventDefn,
+                       PreviousAuditEventDefn conditionally relates to one Fork;
+
+    relationship R8 is Loop conditionally starts_with one PreviousAuditEventDefn,
+                       PreviousAuditEventDefn conditionally relates to one Loop;
 
     relationship R9 is AuditEventDefn conditionally sources many DynamicControl,
                        DynamicControl unconditionally relates to one AuditEventDefn;
@@ -46,6 +46,9 @@ within plus is
 
     relationship R12 is AuditEventDefn conditionally uses many Invariant,
                         Invariant conditionally relates to many AuditEventDefn;
+
+    relationship R13 is AuditEventDefn conditionally starts one SequenceDefn,
+                        SequenceDefn unconditionally relates to many AuditEventDefn;
 
   end package;
 

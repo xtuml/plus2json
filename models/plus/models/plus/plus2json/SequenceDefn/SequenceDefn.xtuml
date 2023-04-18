@@ -12,9 +12,9 @@ within plus::plus2json is
 
     R2_AuditEventDefn_defines: set of instance of AuditEventDefn;
 
-    start_events: AuditEvents;
+    R13_AuditEventDefn_starts: set of instance of AuditEventDefn;
 
-    merge_usage_cache: PreviousAuditEvents;
+    merge_usage_cache: set of instance of PreviousAuditEventDefn;
 
     R1_JobDefn: instance of JobDefn;
 

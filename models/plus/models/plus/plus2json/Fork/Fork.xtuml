@@ -14,11 +14,11 @@ within plus::plus2json is
 
     c_number: integer;
 
-    fork_point: PreviousAuditEvents;
+    R7_PreviousAuditEventDefn_forks_from: instance of PreviousAuditEventDefn;
 
-    fork_point_usage: instance of PreviousAuditEventDefn;
+    R5_PreviousAuditEventDefn_caches_usage: instance of PreviousAuditEventDefn;
 
-    merge_inputs: PreviousAuditEvents;
+    R6_PreviousAuditEventDefn_merges: set of instance of PreviousAuditEventDefn;
 
     preferred identifier is (id);
 

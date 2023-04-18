@@ -63,7 +63,7 @@ class SequenceDefn_play:
         j = ""
         if 'pretty' == flavor:
             j += 'seq:' + self.SequenceName + '\n'
-        for start_event in self.start_events:
+        for start_event in self.R13_AuditEventDefn_starts:
             j += start_event.play( flavor, "", job_defn, None )
         if 'aestest' == flavor:
             j += '"'

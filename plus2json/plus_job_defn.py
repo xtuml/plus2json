@@ -51,7 +51,7 @@ class SequenceDefn( SequenceDefn_AEO, SequenceDefn_JSON, SequenceDefn_play, Sequ
             sys.exit()
         self.R1_JobDefn.R1_SequenceDefn_defines.append(self) # link (most recent) JobDefn to self across R1
         self.R2_AuditEventDefn_defines = []                # appended with each new event encountered
-        self.start_events = []                             # start_events get added by the first event
+        self.R13_AuditEventDefn_starts = []                # start_events get added by the first event
                                                            # ... that sees an empty list
                                                            # ... and by any event preceded by HIDE
         SequenceDefn.c_current_sequence = self
@@ -82,8 +82,8 @@ class AuditEventDefn( AuditEventDefn_AEO, AuditEventDefn_JSON, AuditEventDefn_pl
         self.SequenceEnd = False                           # set when 'detach' follows
         self.isBreak = False                               # set when 'break' follows
         self.sequence.R2_AuditEventDefn_defines.append(self) # link self to SequenceDefn across R2
-        if not self.sequence.start_events:                 # ... or when no starting event, yet
-            self.sequence.start_events.append( self )
+        if not self.sequence.R13_AuditEventDefn_starts:    # ... or when no starting event, yet
+            self.sequence.R13_AuditEventDefn_starts.append( self )
             self.SequenceStart = True
         # Initialize instance of play supertype.
         AuditEventDefn_play.__init__(self)
@@ -92,9 +92,9 @@ class AuditEventDefn( AuditEventDefn_AEO, AuditEventDefn_JSON, AuditEventDefn_pl
         self.R3_PreviousAuditEventDefn = []                # extended at creation when c_current_event exists
                                                            # emptied at sequence exit
         if Fork.instances:                                 # get fork, split or if previous event
-            if Fork.instances[-1].fork_point_usage:
-                self.R3_PreviousAuditEventDefn.append( Fork.instances[-1].fork_point_usage )
-                Fork.instances[-1].fork_point_usage = None
+            if Fork.instances[-1].R5_PreviousAuditEventDefn_caches_usage:
+                self.R3_PreviousAuditEventDefn.append( Fork.instances[-1].R5_PreviousAuditEventDefn_caches_usage )
+                Fork.instances[-1].R5_PreviousAuditEventDefn_caches_usage = None
         if self.sequence.merge_usage_cache:                # get merge previous events
             self.R3_PreviousAuditEventDefn.extend( self.sequence.merge_usage_cache )
             self.sequence.merge_usage_cache.clear()
@@ -103,8 +103,8 @@ class AuditEventDefn( AuditEventDefn_AEO, AuditEventDefn_JSON, AuditEventDefn_pl
             AuditEventDefn.c_current_event = None
         # detect loop
         # if it exists but has no starting event, add this one
-        if Loop.instances and not Loop.instances[-1].start_event:
-            Loop.instances[-1].start_event = self
+        if Loop.instances and not Loop.instances[-1].R8_PreviousAuditEventDefn_starts_with:
+            Loop.instances[-1].R8_PreviousAuditEventDefn_starts_with = self
         AuditEventDefn.c_current_event = self
         AuditEventDefn.instances.append(self)
 
@@ -130,12 +130,12 @@ class Fork:
         self.id = flavor.lower() + "fork" + str( Fork.c_number )            # ID factory for ConstraintDefinitionId
         Fork.c_number += 1
         self.flavor = flavor                               # AND, XOR or IOR
-        self.fork_point = None                             # c_current_event pushed as PreviousAuditEventDefn
+        self.R7_PreviousAuditEventDefn_forks_from = None   # c_current_event pushed as PreviousAuditEventDefn
                                                            # when 'split', 'fork', 'if' or 'switch' encountered
                                                            # popped at 'end split', 'end merge', 'endif' or 'endswitch'
-        self.fork_point_usage = None                       # cached here each time 'split again', 'fork again',
+        self.R5_PreviousAuditEventDefn_caches_usage = None # cached here each time 'split again', 'fork again',
                                                            # 'elsif' or 'else' encountered
-        self.merge_inputs = []                             # c_current_event pushed when 'split again', 'fork again',
+        self.R6_PreviousAuditEventDefn_merges = []         # c_current_event pushed when 'split again', 'fork again',
                                                            # 'case', 'end split', 'end fork', 'endswitch',
                                                            # 'elsif', 'else' or 'endif' entered
         Fork.c_scope += 1
@@ -146,56 +146,56 @@ class Fork:
     def begin(self):
         # instead of c_current_event, I might need to copy from the fork_point stack
         if AuditEventDefn.c_current_event: # We may be starting with HIDE.
-            Fork.instances[-1].fork_point = PreviousAuditEventDefn( AuditEventDefn.c_current_event )
+            Fork.instances[-1].R7_PreviousAuditEventDefn_forks_from = PreviousAuditEventDefn( AuditEventDefn.c_current_event )
             AuditEventDefn.c_current_event = None
-            Fork.instances[-1].fork_point.ConstraintValue = self.flavor
-            Fork.instances[-1].fork_point.ConstraintDefinitionId = Fork.instances[-1].id
-            Fork.instances[-1].fork_point_usage = Fork.instances[-1].fork_point
+            Fork.instances[-1].R7_PreviousAuditEventDefn_forks_from.ConstraintValue = self.flavor
+            Fork.instances[-1].R7_PreviousAuditEventDefn_forks_from.ConstraintDefinitionId = Fork.instances[-1].id
+            Fork.instances[-1].R5_PreviousAuditEventDefn_caches_usage = Fork.instances[-1].R7_PreviousAuditEventDefn_forks_from
         else:
             # detecting a nested fork (combined split, fork and/or if)
             # Look to the previous (outer scope) fork in the stack.
-            if Fork.instances[Fork.c_scope-1].fork_point_usage:
-                Fork.instances[-1].fork_point = PreviousAuditEventDefn( Fork.instances[Fork.c_scope-1].fork_point_usage.R3_AuditEventDefn_precedes )
-                Fork.instances[-1].fork_point.ConstraintValue = self.flavor
-                Fork.instances[-1].fork_point.ConstraintDefinitionId = Fork.instances[-1].id
-                Fork.instances[-1].fork_point_usage = Fork.instances[-1].fork_point
+            if Fork.instances[Fork.c_scope-1].R5_PreviousAuditEventDefn_caches_usage:
+                Fork.instances[-1].R7_PreviousAuditEventDefn_forks_from = PreviousAuditEventDefn( Fork.instances[Fork.c_scope-1].R5_PreviousAuditEventDefn_caches_usage.R3_AuditEventDefn_precedes )
+                Fork.instances[-1].R7_PreviousAuditEventDefn_forks_from.ConstraintValue = self.flavor
+                Fork.instances[-1].R7_PreviousAuditEventDefn_forks_from.ConstraintDefinitionId = Fork.instances[-1].id
+                Fork.instances[-1].R5_PreviousAuditEventDefn_caches_usage = Fork.instances[-1].R7_PreviousAuditEventDefn_forks_from
     def again(self):
         if SequenceDefn.instances[-1].merge_usage_cache:
             # The merge usage did not get consumed by an event following the
             # fork/merge.  Therefore, propagate it into the next outer scope.
-            Fork.instances[Fork.c_scope-1].merge_inputs.extend( SequenceDefn.instances[-1].merge_usage_cache )
+            Fork.instances[Fork.c_scope-1].R6_PreviousAuditEventDefn_merges.extend( SequenceDefn.instances[-1].merge_usage_cache )
             SequenceDefn.instances[-1].merge_usage_cache.clear()
         if AuditEventDefn.c_current_event: # We may have 'detach'd and have no c_current_event.
-            Fork.instances[-1].merge_inputs.append( PreviousAuditEventDefn( AuditEventDefn.c_current_event ) )
+            Fork.instances[-1].R6_PreviousAuditEventDefn_merges.append( PreviousAuditEventDefn( AuditEventDefn.c_current_event ) )
             AuditEventDefn.c_current_event = None
-        if Fork.instances[-1].fork_point:
-            Fork.instances[-1].fork_point_usage = Fork.instances[-1].fork_point
+        if Fork.instances[-1].R7_PreviousAuditEventDefn_forks_from:
+            Fork.instances[-1].R5_PreviousAuditEventDefn_caches_usage = Fork.instances[-1].R7_PreviousAuditEventDefn_forks_from
     def endfork(self):
         if AuditEventDefn.c_current_event: # We may have 'detach'd and have no c_current_event.
-            self.merge_inputs.append( PreviousAuditEventDefn( AuditEventDefn.c_current_event ) )
+            self.R6_PreviousAuditEventDefn_merges.append( PreviousAuditEventDefn( AuditEventDefn.c_current_event ) )
             AuditEventDefn.c_current_event = None
-        SequenceDefn.instances[-1].merge_usage_cache.extend( Fork.instances[-1].merge_inputs )
-        self.merge_inputs.clear()
-        self.fork_point_usage = None
+        SequenceDefn.instances[-1].merge_usage_cache.extend( Fork.instances[-1].R6_PreviousAuditEventDefn_merges )
+        self.R6_PreviousAuditEventDefn_merges.clear()
+        self.R5_PreviousAuditEventDefn_caches_usage = None
         Fork.instances.pop()                       # done with this Fork
         if Fork.instances:
             # Clear out usage, because no event was encountered to use it.
-            Fork.instances[-1].fork_point_usage = None
+            Fork.instances[-1].R5_PreviousAuditEventDefn_caches_usage = None
     def print_fork(self):
         merge_inputs = ""
         merge_usages = ""
         fp = ""
         fu = ""
-        if self.fork_point:
-            fp = ( self.fork_point.R3_AuditEventDefn_precedes.EventName +
-                   "-" + self.fork_point.ConstraintDefinitionId +
-                   "-" + self.fork_point.ConstraintValue )
-        if self.fork_point_usage:
-            fu = ( self.fork_point_usage.R3_AuditEventDefn_precedes.EventName +
-                   "-" + self.fork_point_usage.ConstraintDefinitionId +
-                   "-" + self.fork_point.ConstraintValue )
-        if self.merge_inputs:
-            for mi in self.merge_inputs:
+        if self.R7_PreviousAuditEventDefn_forks_from:
+            fp = ( self.R7_PreviousAuditEventDefn_forks_from.R3_AuditEventDefn_precedes.EventName +
+                   "-" + self.R7_PreviousAuditEventDefn_forks_from.ConstraintDefinitionId +
+                   "-" + self.R7_PreviousAuditEventDefn_forks_from.ConstraintValue )
+        if self.R5_PreviousAuditEventDefn_caches_usage:
+            fu = ( self.R5_PreviousAuditEventDefn_caches_usage.R3_AuditEventDefn_precedes.EventName +
+                   "-" + self.R5_PreviousAuditEventDefn_caches_usage.ConstraintDefinitionId +
+                   "-" + self.R7_PreviousAuditEventDefn_forks_from.ConstraintValue )
+        if self.R6_PreviousAuditEventDefn_merges:
+            for mi in self.R6_PreviousAuditEventDefn_merges:
                 merge_inputs += mi.R3_AuditEventDefn_precedes.EventName + mi.ConstraintValue
         if SequenceDefn[-1].merge_usage_cache:
             for mu in SequenceDefn[-1].merge_usage_cache:
@@ -302,5 +302,5 @@ class Loop:
     instances = []
     c_scope = 0
     def __init__(self):
-        self.start_event = None                            # first event encountered
+        self.R8_PreviousAuditEventDefn_starts_with = None  # first event encountered
         Loop.instances.append(self)
