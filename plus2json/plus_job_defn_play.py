@@ -116,7 +116,7 @@ class AuditEventDefn_play:
         #   loop:  for exactly 2 next events with one of them having a lower index, prefer
         #          the lower index event (loop back) until a count has reached a threshold,
         #          then select the event following the loop.
-        for next_ae in self.sequence.R2_AuditEventDefn_defines:
+        for next_ae in self.R2_SequenceDefn.R2_AuditEventDefn_defines:
             paes = [pae for pae in next_ae.R3_PreviousAuditEventDefn if pae.R3_AuditEventDefn_precedes is self]
             if paes:
                 eligible_next_aes.append( next_ae )

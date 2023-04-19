@@ -45,7 +45,7 @@ class AuditEventDefn_JSON:
         aedelim = ',\n'
         j += '{ "EventName": "' + self.EventName + '",'
         j += '"OccurrenceId": ' + self.OccurrenceId + ','
-        j += '"SequenceName": ' + self.sequence.SequenceName + ','
+        j += '"SequenceName": ' + self.R2_SequenceDefn.SequenceName + ','
         if self.SequenceStart: j += '"SequenceStart": true,'
         if self.SequenceEnd: j += '"SequenceEnd": true,'
         if self.isBreak: j += '"IsBreak": true,'

@@ -68,22 +68,22 @@ class AuditEventDefn( AuditEventDefn_AEO, AuditEventDefn_JSON, AuditEventDefn_pl
         self.scope = Fork.c_scope
         if len( name ) > AuditEventDefn.c_longest_name_length:
             AuditEventDefn.c_longest_name_length = len( name )
-        self.sequence = SequenceDefn.c_current_sequence
+        self.R2_SequenceDefn = SequenceDefn.c_current_sequence
         if occurrence:
-            if any( ae for ae in self.sequence.R2_AuditEventDefn_defines if ae.EventName == name and ae.OccurrenceId == occurrence ):
+            if any( ae for ae in self.R2_SequenceDefn.R2_AuditEventDefn_defines if ae.EventName == name and ae.OccurrenceId == occurrence ):
                 print( "ERROR:  duplicate audit event detected:", name + "(" + occurrence + ")" )
                 sys.exit()
             self.OccurrenceId = occurrence
         else:
             # here, we count previous occurrences and assign an incremented value
-            items = [ae for ae in self.sequence.R2_AuditEventDefn_defines if ae.EventName == name]
+            items = [ae for ae in self.R2_SequenceDefn.R2_AuditEventDefn_defines if ae.EventName == name]
             self.OccurrenceId = str( len(items) )
         self.SequenceStart = False                         # set when 'HIDE' precedes
         self.SequenceEnd = False                           # set when 'detach' follows
         self.isBreak = False                               # set when 'break' follows
-        self.sequence.R2_AuditEventDefn_defines.append(self) # link self to SequenceDefn across R2
-        if not self.sequence.R13_AuditEventDefn_starts:    # ... or when no starting event, yet
-            self.sequence.R13_AuditEventDefn_starts.append( self )
+        self.R2_SequenceDefn.R2_AuditEventDefn_defines.append(self) # link self to SequenceDefn across R2
+        if not self.R2_SequenceDefn.R13_AuditEventDefn_starts:      # ... or when no starting event, yet
+            self.R2_SequenceDefn.R13_AuditEventDefn_starts.append( self )
             self.SequenceStart = True
         # Initialize instance of play supertype.
         AuditEventDefn_play.__init__(self)
@@ -95,9 +95,9 @@ class AuditEventDefn( AuditEventDefn_AEO, AuditEventDefn_JSON, AuditEventDefn_pl
             if Fork.instances[-1].R5_PreviousAuditEventDefn_caches_usage:
                 self.R3_PreviousAuditEventDefn.append( Fork.instances[-1].R5_PreviousAuditEventDefn_caches_usage )
                 Fork.instances[-1].R5_PreviousAuditEventDefn_caches_usage = None
-        if self.sequence.merge_usage_cache:                # get merge previous events
-            self.R3_PreviousAuditEventDefn.extend( self.sequence.merge_usage_cache )
-            self.sequence.merge_usage_cache.clear()
+        if self.R2_SequenceDefn.merge_usage_cache:         # get merge previous events
+            self.R3_PreviousAuditEventDefn.extend( self.R2_SequenceDefn.merge_usage_cache )
+            self.R2_SequenceDefn.merge_usage_cache.clear()
         if AuditEventDefn.c_current_event:
             self.R3_PreviousAuditEventDefn.append( PreviousAuditEventDefn( AuditEventDefn.c_current_event ) )
             AuditEventDefn.c_current_event = None

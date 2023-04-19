@@ -2,6 +2,14 @@
 
 within plus::plus2json is
 
+  //! A Fork is an abstraction a point in the graph of audit events where
+  //! multiple audit events may follow from a single instance of AuditEventDefn.
+  //! An instance of Fork is created any time a 'fork', 'split', 'switch' or 'if'
+  //! is parsed from the .puml job definition file.
+  //! 
+  //! A fork keeps track of the fork point and helps define the type of fork
+  //! but adding contraints (AND, XOR, IOR) to the graph edges proceding from
+  //! the fork point (carried on the instances of PreviousAuditEventDefn).
   @key_letters("Fork");
   @class_num(6);
   class Fork is
