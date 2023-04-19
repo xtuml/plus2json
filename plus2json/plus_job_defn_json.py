@@ -109,10 +109,12 @@ class Invariant_JSON:
                     j += '"SourceEventOccurrenceId": ' + invariant.R11_AuditEventDefn.OccurrenceId + ','
                 if invariant.R12_AuditEventDefn:
                     j += '"UserEvents": ['
+                    udelim = ""
                     for user_event in invariant.R12_AuditEventDefn:
-                        j += '{ "UserEventName": "' + user_event.EventName + '",'
+                        j += udelim + '{ "UserEventName": "' + user_event.EventName + '",'
                         j += '"UserOccurrenceId": ' + user_event.OccurrenceId + ','
                         j += '"UserEventDataItemName": "' + invariant.Name + '" }'
+                        udelim = ","
                     j += ']'
                 j += '}'
                 idelim = ','
