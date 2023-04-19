@@ -220,17 +220,13 @@ class AuditEventDefn_play:
                         j += peid_delim + '"' + str( peid ) + '"'
                         peid_delim = ","
                     j += '],'
-            # select many dcs related by self->DynamicControl[R9]
+            # Dynamic controls are attached only to the source audit event.  No output for user events.
+            # select many source_dcs related by self->DynamicControl[R9]
             source_dcs = [dc for dc in plus_job_defn.DynamicControl.instances if dc.R9_AuditEventDefn is self]
-            # select many dcs related by self->DynamicControl[R10]
-            user_dcs = [dc for dc in plus_job_defn.DynamicControl.instances if dc.R10_AuditEventDefn is self]
-            if source_dcs or user_dcs:
+            if source_dcs:
                 delim = ""
                 for dc in source_dcs:
-                    j += dc.play( flavor )
-                    delim = ','
-                for dc in user_dcs:
-                    j += dc.play( flavor )
+                    j += delim + dc.play( flavor )
                     delim = ','
                 j += ','
             # select many invs related by self->Invariant[R11]

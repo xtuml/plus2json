@@ -14,21 +14,21 @@ within plus::plus2json is
 
     c_longest_event_name: integer;
 
+    c_idFactory: integer;
+
     SequenceStart: boolean;
 
     SequenceEnd: boolean;
 
     isBreak: boolean;
 
+    R3_PreviousAuditEventDefn: set of instance of PreviousAuditEventDefn;
+
     visit_count: integer;
 
     eventId: UUID;
 
     previousEventIds: sequence of integer;
-
-    R3_PreviousAuditEventDefn: set of instance of PreviousAuditEventDefn;
-
-    c_idFactory: integer;
 
     preferred identifier is (EventName, OccurrenceId);
 
