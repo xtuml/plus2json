@@ -120,6 +120,13 @@ class AuditEventDefn_play:
             paes = [pae for pae in next_ae.R3_PreviousAuditEventDefn if pae.R3_AuditEventDefn_precedes is self]
             if paes:
                 eligible_next_aes.append( next_ae )
+                # (instance) branch detection
+                # select many dcs related by self->DynamicControl[R10]
+                user_dcs = [dc for dc in plus_job_defn.DynamicControl.instances if dc.R10_AuditEventDefn is self]
+                for user_dc in user_dcs:
+                    if user_dc.DynamicControlType == "BRANCHCOUNT":
+                        for i in range( user_dc.value-1 ): # duplicate next_ae branch count - 1 times
+                            eligible_next_aes.append( next_ae )
         # loop detection
         if len( eligible_next_aes ) == 2:
             if plus_job_defn.AuditEventDefn.instances.index( eligible_next_aes[0] ) <= plus_job_defn.AuditEventDefn.instances.index( self ):
