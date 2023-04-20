@@ -220,6 +220,7 @@ class AuditEventDefn_play:
                         j += peid_delim + '"' + str( peid ) + '"'
                         peid_delim = ","
                     j += '],'
+                self.previousEventIds.clear()
             # Dynamic controls are attached only to the source audit event.  No output for user events.
             # select many source_dcs related by self->DynamicControl[R9]
             source_dcs = [dc for dc in plus_job_defn.DynamicControl.instances if dc.R9_AuditEventDefn is self]
