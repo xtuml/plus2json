@@ -103,7 +103,8 @@ class Invariant_JSON:
                 invariant_type = 'INTRAJOBINV' if invariant.Type == 'IINV' else 'EXTRAJOBINV'
                 j += '"EventDataType": "' + invariant_type + '",'
                 # TODO - navigate to JobDefn
-                j += '"SourceEventJobDefinitionName": "' + plus_job_defn.JobDefn.instances[-1].JobDefinitionName + '",'
+                if invariant.Type == 'EINV':
+                    j += '"SourceEventJobDefinitionName": "' + plus_job_defn.JobDefn.instances[-1].JobDefinitionName + '",'
                 if invariant.R11_AuditEventDefn:
                     j += '"SourceEventType": "' + invariant.R11_AuditEventDefn.EventName + '",'
                     j += '"SourceEventOccurrenceId": ' + invariant.R11_AuditEventDefn.OccurrenceId
