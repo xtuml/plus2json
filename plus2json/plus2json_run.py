@@ -23,6 +23,16 @@ class plus2json_run(plus2jsonListener):
     def exitJob_name(self, ctx:plus2jsonParser.Job_nameContext):
         JobDefn(ctx.identifier().getText().strip('"')) # job name is double-quoted
 
+    def exitExtern(self, ctx:plus2jsonParser.ExternContext):
+        # The default of source or target is the event definition carrying
+        # the invariant parameters.
+        jobdefnname = ctx.jobdefn.getText().strip('"')
+        name = ctx.invname.getText().strip('"')
+        print(jobdefnname, name)
+        invariant = Invariant( name, "EINV", jobdefnname )
+        invariant.src_evt_txt = jobdefnname + " " + name
+        invariant.src_evt_occ = jobdefnname + " " + name + "0"
+
     def exitSequence_name(self, ctx:plus2jsonParser.Sequence_nameContext):
         SequenceDefn(ctx.identifier().getText())
 
@@ -100,7 +110,7 @@ class plus2json_run(plus2jsonListener):
         if invariants:
             invariant = invariants[-1]
         else:
-            invariant = Invariant( name, "EINV" if ctx.EINV() else "IINV" )
+            invariant = Invariant( name, "EINV" if ctx.EINV() else "IINV", JobDefn.instances[-1].JobDefinitionName )
         if ctx.SRC():
             # explicit source event
             if ctx.sname:
@@ -133,8 +143,10 @@ class plus2json_run(plus2jsonListener):
         AuditEventDefn.c_current_event.isBreak = True
 
     def enterDetach(self, ctx:plus2jsonParser.DetachContext):
-        AuditEventDefn.c_current_event.SequenceEnd = True
-        AuditEventDefn.c_current_event = None
+        # 'detach' is used after events but also after EINV declarations.
+        if AuditEventDefn.c_current_event:
+            AuditEventDefn.c_current_event.SequenceEnd = True
+            AuditEventDefn.c_current_event = None
 
     def enterIf(self, ctx:plus2jsonParser.IfContext):
         f = Fork("XOR")

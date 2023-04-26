@@ -11,11 +11,17 @@ umlblock       : STARTUML ( '(' 'id' '=' identifier ')' )? NEWLINE
                  ENDUML NEWLINE?
                ;
 
-job_defn       : PARTITION job_name '{' NEWLINE sequence_defn+ '}' NEWLINE
+job_defn       : PARTITION job_name '{' NEWLINE
+                 extern*
+                 sequence_defn+
+                 '}' NEWLINE
                  ( PACKAGE package_name '{' NEWLINE unhappy_event* '}' NEWLINE )*
                ;
 
 job_name       : identifier
+               ;
+
+extern         : ':' EINV ',' SRC ',' JOBDEFN '=' jobdefn=identifier ',' NEWLINE? NAME '=' invname=identifier '|' NEWLINE? detach NEWLINE
                ;
 
 sequence_defn  : GROUP sequence_name NEWLINE statement+ ( HIDE NEWLINE )? ENDGROUP NEWLINE
@@ -177,6 +183,7 @@ GROUP          : 'group';         // sequence
 HIDE           : '-[hidden]->';
 IF             : 'if';
 IINV           : 'iinv' | 'IINV'; // intra-job invariant
+JOBDEFN        : 'jobdefn' | 'JOBDEFN' ;
 KILL           : 'kill';
 LCNT           : 'lcnt' | 'LCNT'; // loop count
 MCNT           : 'mcnt' | 'MCNT'; // merge count

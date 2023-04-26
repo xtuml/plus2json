@@ -10,6 +10,8 @@ within plus::plus2json is
 
     Type: string;
 
+    SourceJobDefinitionName: string;
+
     value: UUID;
 
     src_evt_txt: string;

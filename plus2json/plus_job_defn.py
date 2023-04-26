@@ -259,13 +259,14 @@ class DynamicControl( DynamicControl_JSON, DynamicControl_play ):
 class Invariant( Invariant_JSON, Invariant_play ):
     """intra- and extra- job invariant information"""
     instances = []
-    def __init__(self, name, invariant_type):
+    def __init__(self, name, invariant_type, jobdefnname):
         if any( inv.Name == name for inv in Invariant.instances ):
             print( "ERROR:  duplicate invariant detected:", name )
             sys.exit()
         # Initialize instance of play supertype.
         Invariant_play.__init__(self)
         self.Name = name                                   # unique name
+        self.SourceJobDefinitionName = jobdefnname         # source job name
         if invariant_type in ('EINV', 'IINV'):
             self.Type = invariant_type                     # extra-job or intra-job invariant
         else:
