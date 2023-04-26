@@ -106,9 +106,9 @@ class Invariant_JSON:
                 j += '"SourceEventJobDefinitionName": "' + plus_job_defn.JobDefn.instances[-1].JobDefinitionName + '",'
                 if invariant.R11_AuditEventDefn:
                     j += '"SourceEventType": "' + invariant.R11_AuditEventDefn.EventName + '",'
-                    j += '"SourceEventOccurrenceId": ' + invariant.R11_AuditEventDefn.OccurrenceId + ','
+                    j += '"SourceEventOccurrenceId": ' + invariant.R11_AuditEventDefn.OccurrenceId
                 if invariant.R12_AuditEventDefn:
-                    j += '"UserEvents": ['
+                    j += ',' + '"UserEvents": ['
                     udelim = ""
                     for user_event in invariant.R12_AuditEventDefn:
                         j += udelim + '{ "UserEventType": "' + user_event.EventName + '",'
