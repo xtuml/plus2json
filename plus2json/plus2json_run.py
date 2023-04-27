@@ -28,7 +28,6 @@ class plus2json_run(plus2jsonListener):
         # the invariant parameters.
         jobdefnname = ctx.jobdefn.getText().strip('"')
         name = ctx.invname.getText().strip('"')
-        print(jobdefnname, name)
         invariant = Invariant( name, "EINV", jobdefnname )
         invariant.src_evt_txt = jobdefnname + " " + name
         invariant.src_evt_occ = jobdefnname + " " + name + "0"
@@ -104,7 +103,7 @@ class plus2json_run(plus2jsonListener):
     def exitInvariant(self, ctx:plus2jsonParser.InvariantContext):
         # The default of source or target is the event definition carrying
         # the invariant parameters.
-        name = ctx.invname.getText()
+        name = ctx.invname.getText().strip('"')
         invariant = None
         invariants = [inv for inv in Invariant.instances if inv.Name == name]
         if invariants:
