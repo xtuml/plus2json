@@ -121,7 +121,10 @@ class Invariant_JSON:
                 elif invariant.Type == 'EINV':
                     true_false = "true" if invariant.SourceJobDefinitionName == plus_job_defn.JobDefn.instances[-1].JobDefinitionName else "false"
                     j += '"SourceJobDefinition": ' + true_false + ','
-                    j += '"EventDataName": "' + invariant.Name + '",'
+                    if true_false == "true":
+                        j += '"EventDataName": "' + invariant.Name + '",'
+                    else:
+                        j += '"SourceEventDataName": "' + invariant.Name + '",'
                     j += '"EventDataType": "' + invariant_type + '"'
                     if true_false == "false":
                         j += ', "SourceJobDefinitionName": "' + invariant.SourceJobDefinitionName + '"'
