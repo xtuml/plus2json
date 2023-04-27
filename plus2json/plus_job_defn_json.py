@@ -45,7 +45,7 @@ class AuditEventDefn_JSON:
         aedelim = ',\n'
         j += '{ "EventName": "' + self.EventName + '",'
         j += '"OccurrenceId": ' + self.OccurrenceId + ','
-        j += '"SequenceName": ' + self.sequence.SequenceName + ','
+        j += '"SequenceName": ' + self.R2_SequenceDefn.SequenceName + ','
         if self.SequenceStart: j += '"SequenceStart": true,'
         if self.SequenceEnd: j += '"SequenceEnd": true,'
         if self.isBreak: j += '"IsBreak": true,'
@@ -99,22 +99,51 @@ class Invariant_JSON:
             idelim = ""
             for invariant in plus_job_defn.Invariant.instances:
                 j += idelim + '{'
-                j += '"EventDataName": "' + invariant.Name + '",'
                 invariant_type = 'INTRAJOBINV' if invariant.Type == 'IINV' else 'EXTRAJOBINV'
-                j += '"EventDataType": "' + invariant_type + '",'
-                # TODO - navigate to JobDefn
-                j += '"SourceEventJobDefinitionName": "' + plus_job_defn.JobDefn.instances[-1].JobDefinitionName + '",'
-                if invariant.R11_AuditEventDefn:
-                    j += '"SourceEventType": "' + invariant.R11_AuditEventDefn.EventName + '",'
-                    j += '"SourceEventOccurrenceId": ' + invariant.R11_AuditEventDefn.OccurrenceId + ','
-                if invariant.R12_AuditEventDefn:
-                    j += '"UserEvents": ['
-                    for user_event in invariant.R12_AuditEventDefn:
-                        j += '{ "UserEventName": "' + user_event.EventName + '",'
-                        j += '"UserOccurrenceId": ' + user_event.OccurrenceId + ','
-                        j += '"UserEventDataItemName": "' + invariant.Name + '" }'
-                    j += ']'
-                j += '}'
-                idelim = ','
+                if invariant.Type == 'IINV':
+                    j += '"EventDataName": "' + invariant.Name + '",'
+                    j += '"EventDataType": "' + invariant_type + '"'
+                    # TODO - navigate to JobDefn
+                    if invariant.R11_AuditEventDefn:
+                        j += ',' + '"SourceEventType": "' + invariant.R11_AuditEventDefn.EventName + '",'
+                        j += '"SourceEventOccurrenceId": ' + invariant.R11_AuditEventDefn.OccurrenceId
+                    if invariant.R12_AuditEventDefn:
+                        j += ',' + '"UserEvents": ['
+                        udelim = ""
+                        for user_event in invariant.R12_AuditEventDefn:
+                            j += udelim + '{ "UserEventType": "' + user_event.EventName + '",'
+                            j += '"UserEventOccurrenceId": ' + user_event.OccurrenceId + ','
+                            j += '"UserEventDataItemName": "' + invariant.Name + '" }'
+                            udelim = ","
+                        j += ']'
+                    j += '}'
+                    idelim = ','
+                elif invariant.Type == 'EINV':
+                    true_false = "true" if invariant.SourceJobDefinitionName == plus_job_defn.JobDefn.instances[-1].JobDefinitionName else "false"
+                    j += '"SourceJobDefinition": ' + true_false + ','
+                    if true_false == "true":
+                        j += '"EventDataName": "' + invariant.Name + '",'
+                    else:
+                        j += '"SourceEventDataName": "' + invariant.Name + '",'
+                    j += '"EventDataType": "' + invariant_type + '"'
+                    if true_false == "false":
+                        j += ', "SourceJobDefinitionName": "' + invariant.SourceJobDefinitionName + '"'
+                    if invariant.R11_AuditEventDefn:
+                        j += ',' + '"SourceEventType": "' + invariant.R11_AuditEventDefn.EventName + '",'
+                        j += '"SourceEventOccurrenceId": ' + invariant.R11_AuditEventDefn.OccurrenceId
+                    if invariant.R12_AuditEventDefn:
+                        j += ',' + '"UserEvents": ['
+                        udelim = ""
+                        for user_event in invariant.R12_AuditEventDefn:
+                            j += udelim + '{ "UserEventType": "' + user_event.EventName + '",'
+                            j += '"UserEventOccurrenceId": ' + user_event.OccurrenceId + ','
+                            j += '"UserEventDataItemName": "' + invariant.Name + '" }'
+                            udelim = ","
+                        j += ']'
+                    j += '}'
+                    idelim = ','
+                else:
+                    print( "ERROR:  invalid invariant type in Invariant_JSON" )
+                    sys.exit()
             j += ']'
             return j

@@ -2,6 +2,10 @@
 
 within plus::plus2json is
 
+  //! AuditEventDefn is a definition of an audit event.
+  //! There will be one instance of AuditEventDefn for each audit event
+  //! parsed from the .puml job definition file.
+  //! Each instance of AuditEventDefn is linked to a SequenceDefn.
   @key_letters("AuditEventDefn");
   @class_num(3);
   class AuditEventDefn is
@@ -14,21 +18,23 @@ within plus::plus2json is
 
     c_longest_event_name: integer;
 
+    c_idFactory: integer;
+
     SequenceStart: boolean;
 
     SequenceEnd: boolean;
 
     isBreak: boolean;
 
+    R2_SequenceDefn: instance of SequenceDefn;
+
+    R3_PreviousAuditEventDefn: set of instance of PreviousAuditEventDefn;
+
     visit_count: integer;
 
     eventId: UUID;
 
     previousEventIds: sequence of integer;
-
-    R3_PreviousAuditEventDefn: set of instance of PreviousAuditEventDefn;
-
-    c_idFactory: integer;
 
     preferred identifier is (EventName, OccurrenceId);
 

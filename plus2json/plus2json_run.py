@@ -23,6 +23,15 @@ class plus2json_run(plus2jsonListener):
     def exitJob_name(self, ctx:plus2jsonParser.Job_nameContext):
         JobDefn(ctx.identifier().getText().strip('"')) # job name is double-quoted
 
+    def exitExtern(self, ctx:plus2jsonParser.ExternContext):
+        # The default of source or target is the event definition carrying
+        # the invariant parameters.
+        jobdefnname = ctx.jobdefn.getText().strip('"')
+        name = ctx.invname.getText().strip('"')
+        invariant = Invariant( name, "EINV", jobdefnname )
+        invariant.src_evt_txt = jobdefnname + " " + name
+        invariant.src_evt_occ = jobdefnname + " " + name + "0"
+
     def exitSequence_name(self, ctx:plus2jsonParser.Sequence_nameContext):
         SequenceDefn(ctx.identifier().getText())
 
@@ -94,13 +103,13 @@ class plus2json_run(plus2jsonListener):
     def exitInvariant(self, ctx:plus2jsonParser.InvariantContext):
         # The default of source or target is the event definition carrying
         # the invariant parameters.
-        name = ctx.invname.getText()
+        name = ctx.invname.getText().strip('"')
         invariant = None
         invariants = [inv for inv in Invariant.instances if inv.Name == name]
         if invariants:
             invariant = invariants[-1]
         else:
-            invariant = Invariant( name, "EINV" if ctx.EINV() else "IINV" )
+            invariant = Invariant( name, "EINV" if ctx.EINV() else "IINV", JobDefn.instances[-1].JobDefinitionName )
         if ctx.SRC():
             # explicit source event
             if ctx.sname:
@@ -113,14 +122,17 @@ class plus2json_run(plus2jsonListener):
                 invariant.src_occ_txt = AuditEventDefn.c_current_event.OccurrenceId
         if ctx.USER():
             # explicit user event
+            uname = ""
+            uocc = ""
             if ctx.uname:
-                invariant.user_evt_txt.append( ctx.uname.getText() )
+                uname = ctx.uname.getText()
             else:
-                invariant.user_evt_txt.append( AuditEventDefn.c_current_event.EventName )
+                uname = AuditEventDefn.c_current_event.EventName
             if ctx.uocc:
-                invariant.user_occ_occ.append( ctx.uocc.getText() )
+                uocc = ctx.uocc.getText()
             else:
-                invariant.user_occ_txt.append( AuditEventDefn.c_current_event.OccurrenceId )
+                uocc = AuditEventDefn.c_current_event.OccurrenceId
+            invariant.users.append( ( uname, uocc ) )
         # neither SRC nor USER defaults source to host
         if not ctx.SRC() and not ctx.USER():
             invariant.src_evt_txt = AuditEventDefn.c_current_event.EventName
@@ -130,8 +142,10 @@ class plus2json_run(plus2jsonListener):
         AuditEventDefn.c_current_event.isBreak = True
 
     def enterDetach(self, ctx:plus2jsonParser.DetachContext):
-        AuditEventDefn.c_current_event.SequenceEnd = True
-        AuditEventDefn.c_current_event = None
+        # 'detach' is used after events but also after EINV declarations.
+        if AuditEventDefn.c_current_event:
+            AuditEventDefn.c_current_event.SequenceEnd = True
+            AuditEventDefn.c_current_event = None
 
     def enterIf(self, ctx:plus2jsonParser.IfContext):
         f = Fork("XOR")

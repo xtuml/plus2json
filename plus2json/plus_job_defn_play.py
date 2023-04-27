@@ -116,10 +116,17 @@ class AuditEventDefn_play:
         #   loop:  for exactly 2 next events with one of them having a lower index, prefer
         #          the lower index event (loop back) until a count has reached a threshold,
         #          then select the event following the loop.
-        for next_ae in self.sequence.R2_AuditEventDefn_defines:
+        for next_ae in self.R2_SequenceDefn.R2_AuditEventDefn_defines:
             paes = [pae for pae in next_ae.R3_PreviousAuditEventDefn if pae.R3_AuditEventDefn_precedes is self]
             if paes:
                 eligible_next_aes.append( next_ae )
+                # (instance) branch detection
+                # select many dcs related by self->DynamicControl[R10]
+                user_dcs = [dc for dc in plus_job_defn.DynamicControl.instances if dc.R10_AuditEventDefn is self]
+                for user_dc in user_dcs:
+                    if user_dc.DynamicControlType == "BRANCHCOUNT":
+                        for i in range( user_dc.value-1 ): # duplicate next_ae branch count - 1 times
+                            eligible_next_aes.append( next_ae )
         # loop detection
         if len( eligible_next_aes ) == 2:
             if plus_job_defn.AuditEventDefn.instances.index( eligible_next_aes[0] ) <= plus_job_defn.AuditEventDefn.instances.index( self ):
@@ -220,17 +227,14 @@ class AuditEventDefn_play:
                         j += peid_delim + '"' + str( peid ) + '"'
                         peid_delim = ","
                     j += '],'
-            # select many dcs related by self->DynamicControl[R9]
+                self.previousEventIds.clear()
+            # Dynamic controls are attached only to the source audit event.  No output for user events.
+            # select many source_dcs related by self->DynamicControl[R9]
             source_dcs = [dc for dc in plus_job_defn.DynamicControl.instances if dc.R9_AuditEventDefn is self]
-            # select many dcs related by self->DynamicControl[R10]
-            user_dcs = [dc for dc in plus_job_defn.DynamicControl.instances if dc.R10_AuditEventDefn is self]
-            if source_dcs or user_dcs:
+            if source_dcs:
                 delim = ""
                 for dc in source_dcs:
-                    j += dc.play( flavor )
-                    delim = ','
-                for dc in user_dcs:
-                    j += dc.play( flavor )
+                    j += delim + dc.play( flavor )
                     delim = ','
                 j += ','
             # select many invs related by self->Invariant[R11]

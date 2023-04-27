@@ -2,6 +2,9 @@
 
 within plus::plus2json is
 
+  //! A JobDefn is the top-level containing element of a job definition.
+  //! A JobDefn defines at least one SequenceDefn.
+  //! The JobDefinitionName must be unique across all known job definitions.
   @key_letters("JobDefn");
   @class_num(1);
   class JobDefn is

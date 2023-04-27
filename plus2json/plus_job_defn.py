@@ -68,22 +68,22 @@ class AuditEventDefn( AuditEventDefn_AEO, AuditEventDefn_JSON, AuditEventDefn_pl
         self.scope = Fork.c_scope
         if len( name ) > AuditEventDefn.c_longest_name_length:
             AuditEventDefn.c_longest_name_length = len( name )
-        self.sequence = SequenceDefn.c_current_sequence
+        self.R2_SequenceDefn = SequenceDefn.c_current_sequence
         if occurrence:
-            if any( ae for ae in self.sequence.R2_AuditEventDefn_defines if ae.EventName == name and ae.OccurrenceId == occurrence ):
+            if any( ae for ae in self.R2_SequenceDefn.R2_AuditEventDefn_defines if ae.EventName == name and ae.OccurrenceId == occurrence ):
                 print( "ERROR:  duplicate audit event detected:", name + "(" + occurrence + ")" )
                 sys.exit()
             self.OccurrenceId = occurrence
         else:
             # here, we count previous occurrences and assign an incremented value
-            items = [ae for ae in self.sequence.R2_AuditEventDefn_defines if ae.EventName == name]
+            items = [ae for ae in self.R2_SequenceDefn.R2_AuditEventDefn_defines if ae.EventName == name]
             self.OccurrenceId = str( len(items) )
         self.SequenceStart = False                         # set when 'HIDE' precedes
         self.SequenceEnd = False                           # set when 'detach' follows
         self.isBreak = False                               # set when 'break' follows
-        self.sequence.R2_AuditEventDefn_defines.append(self) # link self to SequenceDefn across R2
-        if not self.sequence.R13_AuditEventDefn_starts:    # ... or when no starting event, yet
-            self.sequence.R13_AuditEventDefn_starts.append( self )
+        self.R2_SequenceDefn.R2_AuditEventDefn_defines.append(self) # link self to SequenceDefn across R2
+        if not self.R2_SequenceDefn.R13_AuditEventDefn_starts:      # ... or when no starting event, yet
+            self.R2_SequenceDefn.R13_AuditEventDefn_starts.append( self )
             self.SequenceStart = True
         # Initialize instance of play supertype.
         AuditEventDefn_play.__init__(self)
@@ -95,9 +95,9 @@ class AuditEventDefn( AuditEventDefn_AEO, AuditEventDefn_JSON, AuditEventDefn_pl
             if Fork.instances[-1].R5_PreviousAuditEventDefn_caches_usage:
                 self.R3_PreviousAuditEventDefn.append( Fork.instances[-1].R5_PreviousAuditEventDefn_caches_usage )
                 Fork.instances[-1].R5_PreviousAuditEventDefn_caches_usage = None
-        if self.sequence.merge_usage_cache:                # get merge previous events
-            self.R3_PreviousAuditEventDefn.extend( self.sequence.merge_usage_cache )
-            self.sequence.merge_usage_cache.clear()
+        if self.R2_SequenceDefn.merge_usage_cache:         # get merge previous events
+            self.R3_PreviousAuditEventDefn.extend( self.R2_SequenceDefn.merge_usage_cache )
+            self.R2_SequenceDefn.merge_usage_cache.clear()
         if AuditEventDefn.c_current_event:
             self.R3_PreviousAuditEventDefn.append( PreviousAuditEventDefn( AuditEventDefn.c_current_event ) )
             AuditEventDefn.c_current_event = None
@@ -259,13 +259,14 @@ class DynamicControl( DynamicControl_JSON, DynamicControl_play ):
 class Invariant( Invariant_JSON, Invariant_play ):
     """intra- and extra- job invariant information"""
     instances = []
-    def __init__(self, name, invariant_type):
+    def __init__(self, name, invariant_type, jobdefnname):
         if any( inv.Name == name for inv in Invariant.instances ):
             print( "ERROR:  duplicate invariant detected:", name )
             sys.exit()
         # Initialize instance of play supertype.
         Invariant_play.__init__(self)
         self.Name = name                                   # unique name
+        self.SourceJobDefinitionName = jobdefnname         # source job name
         if invariant_type in ('EINV', 'IINV'):
             self.Type = invariant_type                     # extra-job or intra-job invariant
         else:
@@ -273,28 +274,28 @@ class Invariant( Invariant_JSON, Invariant_play ):
             sys.exit()
         self.src_evt_txt = ""                              # SRC event textual EventName
         self.src_occ_txt = "0"                             # SRC event textual OccurrenceId (default)
-        self.user_evt_txt = []                             # USER event textual EventName
-        self.user_occ_txt = []                             # USER event textual OccurrenceId (default)
+        self.users = []                                    # list of string tuples of ( EventName, OccurenceId )
         self.R11_AuditEventDefn = None                     # audit event hosting the invariant
         self.R12_AuditEventDefn = []                       # audit events to be dynamically tested
         Invariant.instances.append(self)
     @classmethod
     def resolve_event_linkage(cls):
         for inv in Invariant.instances:
-            #print( "Resolving invariants:", inv.src_evt_txt, inv.src_occ_txt, inv.user_evt_txt, inv.user_occ_txt )
-            saes = [ae for ae in AuditEventDefn.instances if ae.EventName in inv.src_evt_txt and ae.OccurrenceId in inv.src_occ_txt]
+            #print( "Resolving invariants:", inv.src_evt_txt, inv.src_occ_txt, inv.users )
+            saes = [ae for ae in AuditEventDefn.instances if ae.EventName == inv.src_evt_txt and ae.OccurrenceId == inv.src_occ_txt]
             if not saes:
                 if "IINV" == inv.Type:
                     print( "resolve_event_linkage:  ERROR, no source events for IINV:", inv.Name )
             for sae in saes:
                 inv.R11_AuditEventDefn = sae               # link inv to sae across R11
-            uaes = [ae for ae in AuditEventDefn.instances if ae.EventName in inv.user_evt_txt and ae.OccurrenceId in inv.user_occ_txt]
+            # TODO - this is a sloppy selection.  Name and occurrence need to be correlated.
+            uaes = [ae for ae in AuditEventDefn.instances if ( ae.EventName, ae.OccurrenceId ) in inv.users]
             if not uaes:
                 if "IINV" == inv.Type:
                     print( "resolve_event_linkage:  ERROR, no user events for IINV:", inv.Name )
             # We can have more than one user for an invariant.
             for uae in uaes:
-                #print( "Resolving invariant users:", inv.src_evt_txt, inv.src_occ_txt, inv.user_evt_txt, inv.user_occ_txt )
+                #print( "Resolving invariant users:", inv.src_evt_txt, inv.src_occ_txt, inv.users )
                 inv.R12_AuditEventDefn.append( uae )       # link inv to uae across R12
 
 class Loop:

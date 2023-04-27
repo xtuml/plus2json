@@ -2,6 +2,10 @@
 
 within plus::plus2json is
 
+  //! A SequenceDefn defines an ordered collection of AuditEventDefn instances.
+  //! A SequenceDefn is defined within a JobDefn.
+  //! A SequenceDefn is linked to at least one instance of AuditEventDefn which
+  //! starts the sequence.
   @key_letters("SequenceDefn");
   @class_num(2);
   class SequenceDefn is

@@ -10,15 +10,16 @@ within plus::plus2json is
 
     Type: string;
 
+    SourceJobDefinitionName: string;
+
     value: UUID;
 
     src_evt_txt: string;
 
     src_occ_txt: string;
 
-    user_evt_txt: string;
-
-    user_occ_txt: string;
+    //! This is a list of string tuples of the form ( EventName, OccurrenceId ).
+    user_tuples: sequence of string;
 
     R11_AuditEventDefn: instance of AuditEventDefn;
 

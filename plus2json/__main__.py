@@ -60,55 +60,61 @@ python ../plus2json/__main__.py Tutorial_1.puml --job -p  # run from the raw sou
             JobDefn.instances[-1].pretty_print()
         else:
             j = JobDefn.instances[-1].json()
+            if j:
+                outfile = None
+                if "--outdir" in argv:
+                    outdir = argv[ argv.index( "--outdir" ) + 1 ]
+                    os.makedirs(outdir, exist_ok=True)
+                    outfile = outdir + "/" + JobDefn.instances[-1].JobDefinitionName + ".json"
+                f = open( outfile, 'w') if outfile else sys.stdout
+                json.dump(json.loads(j), f, indent=4, separators=(',', ': '))
+    elif "--audit_event_data" in argv or "-d" in argv:
+        j = Invariant.json()
+        if j:
+            # TODO - name the file after the event?
             outfile = None
             if "--outdir" in argv:
                 outdir = argv[ argv.index( "--outdir" ) + 1 ]
                 os.makedirs(outdir, exist_ok=True)
-                outfile = outdir + "/" + JobDefn.instances[-1].JobDefinitionName + ".json"
+                outfile = outdir + "/" + JobDefn.instances[-1].JobDefinitionName + "_event_data.json"
             f = open( outfile, 'w') if outfile else sys.stdout
             json.dump(json.loads(j), f, indent=4, separators=(',', ': '))
-    elif "--audit_event_data" in argv or "-d" in argv:
-        j = Invariant.json()
-        # TODO - name the file after the event?
-        outfile = None
-        if "--outdir" in argv:
-            outdir = argv[ argv.index( "--outdir" ) + 1 ]
-            os.makedirs(outdir, exist_ok=True)
-            outfile = outdir + "/" + JobDefn.instances[-1].JobDefinitionName + "_event_data.json"
-        f = open( outfile, 'w') if outfile else sys.stdout
-        json.dump(json.loads(j), f, indent=4, separators=(',', ': '))
     elif "--play" in argv:
         outfile = None
         if "--print" in argv or "-p" in argv:
             print( JobDefn.instances[-1].play("pretty") )
         elif "--aesim_config" in argv:
             j = JobDefn.instances[-1].play("aesim")
-            if "--outdir" in argv:
-                outdir = argv[ argv.index( "--outdir" ) + 1 ]
-                os.makedirs(outdir, exist_ok=True)
-                outfile = outdir + "/" + "test-scenario.json"
-            f = open( outfile, 'w') if outfile else sys.stdout
-            json.dump(json.loads(j), f, indent=4, separators=(',', ': '))
+            if j:
+                if "--outdir" in argv:
+                    outdir = argv[ argv.index( "--outdir" ) + 1 ]
+                    os.makedirs(outdir, exist_ok=True)
+                    outfile = outdir + "/" + "test-scenario.json"
+                f = open( outfile, 'w') if outfile else sys.stdout
+                json.dump(json.loads(j), f, indent=4, separators=(',', ': '))
         elif "--aesim_test" in argv:
             j = JobDefn.instances[-1].play("aestest")
+            if j:
+                if "--outdir" in argv:
+                    outdir = argv[ argv.index( "--outdir" ) + 1 ]
+                    os.makedirs(outdir, exist_ok=True)
+                    outfile = outdir + "/" + "test-specification.json"
+                f = open( outfile, 'w') if outfile else sys.stdout
+                json.dump(json.loads(j), f, indent=4, separators=(',', ': '))
+        else:
+            j = JobDefn.instances[-1].play("")
+            if j:
+                print( json.dumps(json.loads(j), indent=4, separators=(',', ': ')) )
+    elif "--aeo_config" in argv:
+        j = JobDefn.aeo_config_all()
+        if j:
+            outfile = None
             if "--outdir" in argv:
                 outdir = argv[ argv.index( "--outdir" ) + 1 ]
                 os.makedirs(outdir, exist_ok=True)
-                outfile = outdir + "/" + "test-specification.json"
+                outfile = outdir + "/" + "config.json"
             f = open( outfile, 'w') if outfile else sys.stdout
             json.dump(json.loads(j), f, indent=4, separators=(',', ': '))
-        else:
-            j = JobDefn.instances[-1].play("")
-            print( json.dumps(json.loads(j), indent=4, separators=(',', ': ')) )
-    elif "--aeo_config" in argv:
-        j = JobDefn.aeo_config_all()
-        outfile = None
-        if "--outdir" in argv:
-            outdir = argv[ argv.index( "--outdir" ) + 1 ]
-            os.makedirs(outdir, exist_ok=True)
-            outfile = outdir + "/" + "config.json"
-        f = open( outfile, 'w') if outfile else sys.stdout
-        json.dump(json.loads(j), f, indent=4, separators=(',', ': '))
     elif 2 == len( argv ):
         print( "syntax check complete" )
     else:
