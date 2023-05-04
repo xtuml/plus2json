@@ -51,14 +51,22 @@ class AuditEventDefn_JSON:
         if self.isBreak: j += '"IsBreak": true,'
         # look for linked DynamicControl
         dcs = [dc for dc in plus_job_defn.DynamicControl.instances if dc.R9_AuditEventDefn is self]
-        for dc in dcs: # preparing for when multiple DynamicControls are allowed
-            j += dc.json()
+        if len(dcs) > 0:
+            j += '"DynamicControl": ['
+            j += ','.join(map(lambda dc: dc.json(), dcs))
+            j += '],'
         prev_aes = ""
         pdelim = ""
         for prev_ae in self.R3_PreviousAuditEventDefn:
             prev_aes += prev_ae.json( pdelim )
             pdelim = ','
         if "" != prev_aes: j += '"PreviousEvents": [ ' + prev_aes + '],'
+        # look for linked Invariant
+        invs = [inv for inv in plus_job_defn.Invariant.instances if inv.R11_AuditEventDefn is self or self in inv.R12_AuditEventDefn]
+        if len(invs) > 0:
+            j += '"EventData": ['
+            j += ','.join(map(lambda inv: inv.json2(is_source=inv.R11_AuditEventDefn is self), invs))
+            j += '],'
         j += '"Application": "' + plus_job_defn.AuditEventDefn.ApplicationName + '"'
         j += '}'
         return j
@@ -81,12 +89,12 @@ class PreviousAuditEventDefn_JSON:
 class DynamicControl_JSON:
     """branch and loop information"""
     def json( self ):
-        j = '"DynamicControl": {'
+        j = '{'
         j += '"DynamicControlName": "' + self.DynamicControlName + '",'
         j += '"DynamicControlType": "' + self.DynamicControlType + '",'
         j += '"UserEventType": "' + self.user_evt_txt + '",'
         j += '"UserOccurrenceId": ' + self.user_occ_txt
-        j += '},'
+        j += '}'
         return j
 
 class Invariant_JSON:
@@ -147,3 +155,17 @@ class Invariant_JSON:
                     sys.exit()
             j += ']'
             return j
+
+    def json2(self, is_source=False):
+        j = '{'
+        j += '"EventDataName": "' + self.Name + '"'
+        j += ',' + '"EventDataType": "' + ('INTRAJOBINV' if self.Type == 'IINV' else 'EXTRAJOBINV') + '"'
+        if not is_source:  # if this is a user event data definition, specify the source
+            j += ',' + '"SourceEventDataName": "' + self.Name + '"'
+            if self.Type == 'EINV':  # if this is an extra job invariant, specify the source job definition
+                j += ', "SourceJobDefinitionName": "' + self.SourceJobDefinitionName + '"'
+            else:
+                j += ',' + '"SourceEventType": "' + self.R11_AuditEventDefn.EventName + '"'
+                j += ',' + '"SourceEventOccurrenceId": ' + self.R11_AuditEventDefn.OccurrenceId
+        j += '}'
+        return j
