@@ -18,7 +18,6 @@ job definitions formatted as JSON.
 
  --help, -h               show this help message and exit
  --job, -j                output PLUS Job Definition (JSON)
- --audit_event_data, -d   output PLUS audit event data (JSON)
  --play                   interpret the job and produce events
  --aeo_config             output AEOrdering config.json (JSON)
  --aesim_test             output AESimulator scenario dispatch JSON with --play
@@ -28,7 +27,6 @@ job definitions formatted as JSON.
 === Examples
 
  python plus2json.pyz Tutorial_1.puml --job                # convert Tutorial_1.puml into JSON
- python plus2json.pyz Tutorial_13.puml -d                  # produce audit event data definition as JSON
  python plus2json.pyz myjobdefn.puml --play                # interpret the job producing event instances
  python plus2json.pyz myjobdefn.puml --play --aesim_config # produce a valid AESimulator sequence
  python -m plus2json Tutorial_1.puml --job -p              # show job in human readable view
