@@ -1,6 +1,8 @@
 import os
+import os.path
 import sys
 import json
+import tempfile
 from antlr4 import *
 from os.path import abspath
 from pathlib import Path
@@ -26,7 +28,6 @@ Options
 =======
 --help, -h               show this help message and exit
 --job, -j                output PLUS Job Definition (JSON)
---audit_event_data, -d   output PLUS audit event data (JSON)
 --play                   interpret the job and produce events
 --aeo_config             output AEOrdering config.json (JSON)
 --aesim_test             output AESimulator scenario dispatch JSON with --play
@@ -36,7 +37,6 @@ Options
 Examples:
 
 python plus2json.pyz Tutorial_1.puml --job                # convert Tutorial_1.puml into JSON
-python plus2json.pyz Tutorial_13.puml -d                  # produce audit event data definition as JSON
 python plus2json.pyz myjobdefn.puml --play                # interpret the job producing event instances
 python plus2json.pyz myjobdefn.puml --play --aesim_config # produce a valid AESimulator sequence
 python -m plus2json Tutorial_1.puml --job -p              # show job in human readable view
@@ -50,8 +50,8 @@ python ../plus2json/__main__.py Tutorial_1.puml --job -p  # run from the raw sou
     parser = plus2jsonParser(stream)
     tree = parser.plusdefn()
     if ( "--print" in argv or "-p" in argv or "--job" in argv or "-j" in argv or
-         "--audit_event_data" in argv or "-d" in argv or "--play" in argv or
-        "--aeo_config" in argv or "--aesim_config" in argv or "--aesim_test" in argv ):
+        "--play" in argv or "--aeo_config" in argv or "--aesim_config" in argv or
+        "--aesim_test" in argv ):
         run = plus2json_run() # custom listener
         walker = ParseTreeWalker()
         walker.walk(run, tree)
@@ -61,24 +61,7 @@ python ../plus2json/__main__.py Tutorial_1.puml --job -p  # run from the raw sou
         else:
             j = JobDefn.instances[-1].json()
             if j:
-                outfile = None
-                if "--outdir" in argv:
-                    outdir = argv[ argv.index( "--outdir" ) + 1 ]
-                    os.makedirs(outdir, exist_ok=True)
-                    outfile = outdir + "/" + JobDefn.instances[-1].JobDefinitionName + ".json"
-                f = open( outfile, 'w') if outfile else sys.stdout
-                json.dump(json.loads(j), f, indent=4, separators=(',', ': '))
-    elif "--audit_event_data" in argv or "-d" in argv:
-        j = Invariant.json()
-        if j:
-            # TODO - name the file after the event?
-            outfile = None
-            if "--outdir" in argv:
-                outdir = argv[ argv.index( "--outdir" ) + 1 ]
-                os.makedirs(outdir, exist_ok=True)
-                outfile = outdir + "/" + JobDefn.instances[-1].JobDefinitionName + "_event_data.json"
-            f = open( outfile, 'w') if outfile else sys.stdout
-            json.dump(json.loads(j), f, indent=4, separators=(',', ': '))
+                write_json_output(j, argv, JobDefn.instances[-1].JobDefinitionName + '.json')
     elif "--play" in argv:
         outfile = None
         if "--print" in argv or "-p" in argv:
@@ -86,39 +69,43 @@ python ../plus2json/__main__.py Tutorial_1.puml --job -p  # run from the raw sou
         elif "--aesim_config" in argv:
             j = JobDefn.instances[-1].play("aesim")
             if j:
-                if "--outdir" in argv:
-                    outdir = argv[ argv.index( "--outdir" ) + 1 ]
-                    os.makedirs(outdir, exist_ok=True)
-                    outfile = outdir + "/" + "test-scenario.json"
-                f = open( outfile, 'w') if outfile else sys.stdout
-                json.dump(json.loads(j), f, indent=4, separators=(',', ': '))
+                write_json_output(j, argv, 'test-scenario.json')
         elif "--aesim_test" in argv:
             j = JobDefn.instances[-1].play("aestest")
             if j:
-                if "--outdir" in argv:
-                    outdir = argv[ argv.index( "--outdir" ) + 1 ]
-                    os.makedirs(outdir, exist_ok=True)
-                    outfile = outdir + "/" + "test-specification.json"
-                f = open( outfile, 'w') if outfile else sys.stdout
-                json.dump(json.loads(j), f, indent=4, separators=(',', ': '))
+                write_json_output(j, argv, 'test-specification.json')
         else:
             j = JobDefn.instances[-1].play("")
             if j:
-                print( json.dumps(json.loads(j), indent=4, separators=(',', ': ')) )
+                write_json_output(j, argv, str(JobDefn.instances[-1].jobId) + '.json')
     elif "--aeo_config" in argv:
         j = JobDefn.aeo_config_all()
         if j:
-            outfile = None
-            if "--outdir" in argv:
-                outdir = argv[ argv.index( "--outdir" ) + 1 ]
-                os.makedirs(outdir, exist_ok=True)
-                outfile = outdir + "/" + "config.json"
-            f = open( outfile, 'w') if outfile else sys.stdout
-            json.dump(json.loads(j), f, indent=4, separators=(',', ': '))
+            write_json_output(j, argv)
     elif 2 == len( argv ):
         print( "syntax check complete" )
     else:
         main( "--help" )
+
+
+def write_json_output(j, argv, outfilename):
+    if j:
+        try:
+            output = json.dumps(json.loads(str(j)), indent=4, separators=(',', ': '))
+        except json.decoder.JSONDecodeError:
+            print('Failed to parse JSON:\n' + j, file=sys.stderr)
+            raise
+        outfile = None
+        if '--outdir' in argv:
+            outdir = argv[ argv.index( '--outdir' ) + 1 ]
+            os.makedirs(outdir, exist_ok=True)
+            outfile = os.path.join(outdir, outfilename)
+            with tempfile.NamedTemporaryFile(mode='w', delete=False) as f:
+                f.write(output)
+                f.flush()
+                os.replace(f.name, outfile)
+        else:
+            print(output)
 
  
 if __name__ == '__main__':
