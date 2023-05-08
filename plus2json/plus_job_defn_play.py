@@ -298,13 +298,5 @@ class Invariant_play:
                 print( "ERROR:  malformed invariant type" )
                 sys.exit()
         else:
-            j += '"' + self.Name + '": { "dataItemType":'
-            if self.Type == "EINV":
-                j += '"EXTRAJOBINV",'
-            elif self.Type == "IINV":
-                j += '"INTRAJOBINV",'
-            else:
-                print( "ERROR:  malformed invariant type" )
-                sys.exit()
-            j += '"value": "' + str( self.value ) + '" }'
+            j += '"' + self.Name + '": "' + str( self.value ) + '"'
         return j
