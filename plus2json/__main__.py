@@ -26,7 +26,6 @@ Options
 =======
 --help, -h               show this help message and exit
 --job, -j                output PLUS Job Definition (JSON)
---audit_event_data, -d   output PLUS audit event data (JSON)
 --play                   interpret the job and produce events
 --aeo_config             output AEOrdering config.json (JSON)
 --aesim_test             output AESimulator scenario dispatch JSON with --play
@@ -36,7 +35,6 @@ Options
 Examples:
 
 python plus2json.pyz Tutorial_1.puml --job                # convert Tutorial_1.puml into JSON
-python plus2json.pyz Tutorial_13.puml -d                  # produce audit event data definition as JSON
 python plus2json.pyz myjobdefn.puml --play                # interpret the job producing event instances
 python plus2json.pyz myjobdefn.puml --play --aesim_config # produce a valid AESimulator sequence
 python -m plus2json Tutorial_1.puml --job -p              # show job in human readable view
@@ -50,8 +48,8 @@ python ../plus2json/__main__.py Tutorial_1.puml --job -p  # run from the raw sou
     parser = plus2jsonParser(stream)
     tree = parser.plusdefn()
     if ( "--print" in argv or "-p" in argv or "--job" in argv or "-j" in argv or
-         "--audit_event_data" in argv or "-d" in argv or "--play" in argv or
-        "--aeo_config" in argv or "--aesim_config" in argv or "--aesim_test" in argv ):
+        "--play" in argv or "--aeo_config" in argv or "--aesim_config" in argv or
+        "--aesim_test" in argv ):
         run = plus2json_run() # custom listener
         walker = ParseTreeWalker()
         walker.walk(run, tree)
@@ -68,17 +66,6 @@ python ../plus2json/__main__.py Tutorial_1.puml --job -p  # run from the raw sou
                     outfile = outdir + "/" + JobDefn.instances[-1].JobDefinitionName + ".json"
                 f = open( outfile, 'w') if outfile else sys.stdout
                 json.dump(json.loads(j), f, indent=4, separators=(',', ': '))
-    elif "--audit_event_data" in argv or "-d" in argv:
-        j = Invariant.json()
-        if j:
-            # TODO - name the file after the event?
-            outfile = None
-            if "--outdir" in argv:
-                outdir = argv[ argv.index( "--outdir" ) + 1 ]
-                os.makedirs(outdir, exist_ok=True)
-                outfile = outdir + "/" + JobDefn.instances[-1].JobDefinitionName + "_event_data.json"
-            f = open( outfile, 'w') if outfile else sys.stdout
-            json.dump(json.loads(j), f, indent=4, separators=(',', ': '))
     elif "--play" in argv:
         outfile = None
         if "--print" in argv or "-p" in argv:

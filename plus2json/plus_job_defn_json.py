@@ -65,7 +65,7 @@ class AuditEventDefn_JSON:
         invs = [inv for inv in plus_job_defn.Invariant.instances if inv.R11_AuditEventDefn is self or self in inv.R12_AuditEventDefn]
         if len(invs) > 0:
             j += '"EventData": ['
-            j += ','.join(map(lambda inv: inv.json2(is_source=inv.R11_AuditEventDefn is self), invs))
+            j += ','.join(map(lambda inv: inv.json(is_source=inv.R11_AuditEventDefn is self), invs))
             j += '],'
         j += '"Application": "' + plus_job_defn.AuditEventDefn.ApplicationName + '"'
         j += '}'
@@ -99,64 +99,7 @@ class DynamicControl_JSON:
 
 class Invariant_JSON:
     """Produce Invariant JSON"""
-    @classmethod
-    def json(cls):
-        # Output invariants separately.
-        if plus_job_defn.Invariant.instances:
-            j = '['
-            idelim = ""
-            for invariant in plus_job_defn.Invariant.instances:
-                j += idelim + '{'
-                invariant_type = 'INTRAJOBINV' if invariant.Type == 'IINV' else 'EXTRAJOBINV'
-                if invariant.Type == 'IINV':
-                    j += '"EventDataName": "' + invariant.Name + '",'
-                    j += '"EventDataType": "' + invariant_type + '"'
-                    # TODO - navigate to JobDefn
-                    if invariant.R11_AuditEventDefn:
-                        j += ',' + '"SourceEventType": "' + invariant.R11_AuditEventDefn.EventName + '",'
-                        j += '"SourceEventOccurrenceId": ' + invariant.R11_AuditEventDefn.OccurrenceId
-                    if invariant.R12_AuditEventDefn:
-                        j += ',' + '"UserEvents": ['
-                        udelim = ""
-                        for user_event in invariant.R12_AuditEventDefn:
-                            j += udelim + '{ "UserEventType": "' + user_event.EventName + '",'
-                            j += '"UserEventOccurrenceId": ' + user_event.OccurrenceId + ','
-                            j += '"UserEventDataItemName": "' + invariant.Name + '" }'
-                            udelim = ","
-                        j += ']'
-                    j += '}'
-                    idelim = ','
-                elif invariant.Type == 'EINV':
-                    true_false = "true" if invariant.SourceJobDefinitionName == plus_job_defn.JobDefn.instances[-1].JobDefinitionName else "false"
-                    j += '"SourceJobDefinition": ' + true_false + ','
-                    if true_false == "true":
-                        j += '"EventDataName": "' + invariant.Name + '",'
-                    else:
-                        j += '"SourceEventDataName": "' + invariant.Name + '",'
-                    j += '"EventDataType": "' + invariant_type + '"'
-                    if true_false == "false":
-                        j += ', "SourceJobDefinitionName": "' + invariant.SourceJobDefinitionName + '"'
-                    if invariant.R11_AuditEventDefn:
-                        j += ',' + '"SourceEventType": "' + invariant.R11_AuditEventDefn.EventName + '",'
-                        j += '"SourceEventOccurrenceId": ' + invariant.R11_AuditEventDefn.OccurrenceId
-                    if invariant.R12_AuditEventDefn:
-                        j += ',' + '"UserEvents": ['
-                        udelim = ""
-                        for user_event in invariant.R12_AuditEventDefn:
-                            j += udelim + '{ "UserEventType": "' + user_event.EventName + '",'
-                            j += '"UserEventOccurrenceId": ' + user_event.OccurrenceId + ','
-                            j += '"UserEventDataItemName": "' + invariant.Name + '" }'
-                            udelim = ","
-                        j += ']'
-                    j += '}'
-                    idelim = ','
-                else:
-                    print( "ERROR:  invalid invariant type in Invariant_JSON" )
-                    sys.exit()
-            j += ']'
-            return j
-
-    def json2(self, is_source=False):
+    def json(self, is_source=False):
         j = '{'
         j += '"EventDataName": "' + self.Name + '"'
         j += ',' + '"EventDataType": "' + ('INTRAJOBINV' if self.Type == 'IINV' else 'EXTRAJOBINV') + '"'
