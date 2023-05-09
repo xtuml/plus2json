@@ -280,29 +280,3 @@ connectors :
         bounds : x : 4367.0 y : 3536.0 width : 0.0 height : 0.0 where : start
       text :
         bounds : x : 4376.0 y : 3488.0 width : 0.0 height : 0.0 where : middle
-  connector : R14
-    render : association "R14"
-    polyline :
-      segment :
-        start : x : 4128.0 y : 3287.0
-        end :   x : 4102.0 y : 3287.0
-      segment :
-        start : x : 4102.0 y : 3287.0
-        end :   x : 4102.0 y : 3780.0
-      segment :
-        start : x : 4102.0 y : 3780.0
-        end :   x : 4416.0 y : 3780.0
-    anchors :
-      start :
-        point : x : 4128.0 y : 3287.0
-        shape : JobDefn
-      end :
-        point : x : 4416.0 y : 3780.0
-        shape : Invariant
-    texts :
-      text :
-        bounds : x : 4109.0 y : 3304.0 width : 0.0 height : 0.0 where : start
-      text :
-        bounds : x : 4112.0 y : 3723.0 width : 0.0 height : 0.0 where : middle
-      text :
-        bounds : x : 4333.0 y : 3748.0 width : 0.0 height : 0.0 where : end

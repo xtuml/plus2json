@@ -27,9 +27,7 @@ within plus::plus2json is
 
     c_idFactory: integer;
 
-    iId: integer;
-
-    preferred identifier is (Name);
+    preferred identifier is (Name, SourceJobDefinitionName);
 
     identifier is (value);
 

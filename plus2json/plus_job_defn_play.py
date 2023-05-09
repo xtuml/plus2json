@@ -210,7 +210,6 @@ class AuditEventDefn_play:
         elif 'aestest' == flavor:
             j += self.aesim_test( delim )
         else:
-            # TODO - This is a start at actually producing audit event instances.
             j += delim + '{'
             j += '"jobName": "' + job_defn.JobDefinitionName + '",'
             j += '"jobId": "' + str( job_defn.jobId ) + '",'
@@ -283,20 +282,31 @@ class DynamicControl_play:
 
 class Invariant_play:
     c_idFactory = 0
-    def __init__(self):
+    def __init__(self, is_extern):
         Invariant_play.c_idFactory += 1
-        self.iId = Invariant_play.c_idFactory     # pretty printable id
-        self.value = uuid.uuid4()                 # value of an instance of this invariant
+        self.iId = str( Invariant_play.c_idFactory ) # pretty printable id
+        self.value = str( uuid.uuid4() )             # value of an instance of this invariant
+        self.is_extern = is_extern                   # external declaration of extra-job invariant
     def play( self, flavor ):
         j = ""
+        if self.Type == "EINV":
+            # An 'extern' is an extra-job invariant from a previous source job.
+            if self.is_extern:
+                # It is loaded from the invariant persistent store.
+                i = self.load_named_invariant( self.Name, self.SourceJobDefinitionName )
+                self.value = i[1]
+            else:
+                # It is persisted to the invariant store.
+                i = ( self.Name, self.value, "", "", self.SourceJobDefinitionName, "", "" )
+                self.persist( i )
         if 'pretty' == flavor:
             if self.Type == "EINV":
-                j += "einv:" + self.Name + ":" + str( self.iId )
+                j += "einv:" + self.Name + ":" + self.value[0]
             elif self.Type == "IINV":
-                j += "iinv:" + self.Name + ":" + str( self.iId )
+                j += "iinv:" + self.Name + ":" + self.value[0]
             else:
                 print( "ERROR:  malformed invariant type" )
                 sys.exit()
         else:
-            j += '"' + self.Name + '": "' + str( self.value ) + '"'
+            j += '"' + self.Name + '": "' + self.value + '"'
         return j
