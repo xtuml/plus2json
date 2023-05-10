@@ -249,7 +249,7 @@ class AuditEventDefn_play:
                     j += delim + inv.play( flavor )
                     delim = ','
                 j += ','
-            j += '"timestamp": "' + '{:%Y-%m-%dT%H:%M:%SZ}'.format(datetime.datetime.now()) + '",'
+            j += '"timestamp": "' + '{:%Y-%m-%dT%H:%M:%SZ}'.format(datetime.datetime.utcnow()) + '",'
             j += '"applicationName": "' + plus_job_defn.AuditEventDefn.ApplicationName + '"'
             j += '}'
         for ae in next_aes:
@@ -295,12 +295,15 @@ class Invariant_play:
                 # It is loaded from the invariant persistent store.
                 i = self.load_named_invariant( self.Name, self.SourceJobDefinitionName )
                 if i:
-                    print( "Named invariant:", self.Name, "not found in invariant store.", sys.stderr )
-                else:
                     self.value = i[1]
+                else:
+                    plus_job_defn.eprint( "Named invariant:", self.Name, "not found in invariant store." )
             else:
                 # It is persisted to the invariant store.
-                i = ( self.Name, self.value, "", "", self.SourceJobDefinitionName, "", "" )
+                i = ( self.Name, self.value,
+                    '{:%Y-%m-%dT%H:%M:%SZ}'.format(datetime.datetime.utcnow()),
+                    '{:%Y-%m-%dT%H:%M:%SZ}'.format(datetime.datetime.utcnow() + datetime.timedelta(days=30)),
+                    self.SourceJobDefinitionName, "", "" )
                 self.persist( i )
         if 'pretty' == flavor:
             if self.Type == "EINV":

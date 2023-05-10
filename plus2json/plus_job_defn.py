@@ -26,6 +26,10 @@ from plus_job_defn_aesim_test import *
 # classes that provide methods for various forms of output.  This is a "mixin" pattern,
 # which allows cohesive packaging of special-purpose output routines in one file each.
 
+def eprint(*args, **kwargs):
+    """ utility to print error messages """
+    print(*args, file=sys.stderr, **kwargs)
+
 class JobDefn( JobDefn_AEO, JobDefn_JSON, JobDefn_play, JobDefn_print, JobDefn_AESim, JobDefn_AEStest ):
     """PLUS Job Definition"""
     instances = []                                         # instance population (pattern for all)
@@ -300,15 +304,21 @@ class Invariant( Invariant_JSON, Invariant_play ):
                 inv.R12_AuditEventDefn.append( uae )       # link inv to uae across R12
     def persist( self, invariant ):
         """ Persist a single invariant into the named file.  """
-        with open(Invariant.c_invariant_store_filename, 'a') as f:
-            f.write(','.join(str(s) for s in invariant) + '\n')
+        try:
+            with open(Invariant.c_invariant_store_filename, 'a') as f:
+                f.write(','.join(str(s) for s in invariant) + '\n')
+        except IOError:
+            eprint( "Could not write invariant store file:", Invariant.c_invariant_store_filename )
     def load_named_invariant( self, invariant_name, job_name ):
         """ Load the invariant matching the given name and job.  """
-        with open(Invariant.c_invariant_store_filename, 'r') as f:
-            for line in f.readlines():
-                i = line.rstrip().split(',')
-                if i[0] == invariant_name and i[4] == job_name:
-                    return i
+        try:
+            with open(Invariant.c_invariant_store_filename, 'r') as f:
+                for line in f.readlines():
+                    i = line.rstrip().split(',')
+                    if i[0] == invariant_name and i[4] == job_name:
+                        return i
+        except IOError:
+            eprint( "Could not read invariant store file:", Invariant.c_invariant_store_filename )
         return []
     def load_invariants( self ):
         """ Load all invariants from the named file.  """

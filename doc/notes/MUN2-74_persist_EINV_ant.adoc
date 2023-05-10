@@ -123,8 +123,6 @@ event instance.
 
 == 6 Acceptance Test
 
-TODO - How do I verify that the job name stuff is working?
-
 === 6.1 Existing Tests
 
 All existing tests must pass.
@@ -141,15 +139,15 @@ All existing tests must pass.
 
 . Configure Protocol Verifier with the following jobs:
   .. Extra Job Invariant Source Job
-     ... `plus2json.pyx Extra\ Job\ Invariant\ Source\ Job.puml -j > config/job_definitions/Extra\ Job\ Invariant\ Source\ Job.json`
+     ... `plus2json.pyx Extra\ Job\ Invariant\ Source\ Job.puml -j --outdir config/job_definitions`
   .. Extra Job Invariant User Job
-     ... `plus2json.pyx Extra\ Job\ Invariant\ User\ Job.puml -j > config/job_definitions/Extra\ Job\ Invariant\ User\ Job.json`
+     ... `plus2json.pyx Extra\ Job\ Invariant\ User\ Job.puml -j --outdir config/job_definitions`
 . Launch Protocol Verifier.
 . Run the jobs.
   .. Extra Job Invariant Source Job
-     ... `plus2json.pyx Extra\ Job\ Invariant\ Source\ Job.puml --play > reception-incoming/Extra\ Job\ Invariant\ Source\ Job.json`
+     ... `plus2json.pyx Extra\ Job\ Invariant\ Source\ Job.puml --play --outdir reception-incoming`
   .. Extra Job Invariant User Job
-     ... `plus2json.pyx Extra\ Job\ Invariant\ User\ Job.puml --play > reception-incoming/Extra\ Job\ Invariant\ User\ Job.json`
+     ... `plus2json.pyx Extra\ Job\ Invariant\ User\ Job.puml --play --outdir reception-incoming`
 . Confirm success in the Verifier log.
 
 == 7 Document References
