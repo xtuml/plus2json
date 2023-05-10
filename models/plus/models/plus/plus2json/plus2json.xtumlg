@@ -15,7 +15,7 @@ shapes :
     bounds : x : 4728.0 y : 3360.0 width : 217.0 height : 132.0
   shape : Invariant
     render : class "plus::plus2json::Invariant"
-    bounds : x : 4416.0 y : 3720.0 width : 216.0 height : 253.0
+    bounds : x : 4416.0 y : 3720.0 width : 216.0 height : 276.0
   shape : Fork
     render : class "plus::plus2json::Fork"
     bounds : x : 4728.0 y : 3564.0 width : 241.0 height : 229.0

@@ -294,7 +294,10 @@ class Invariant_play:
             if self.is_extern:
                 # It is loaded from the invariant persistent store.
                 i = self.load_named_invariant( self.Name, self.SourceJobDefinitionName )
-                self.value = i[1]
+                if i:
+                    print( "Named invariant:", self.Name, "not found in invariant store.", sys.stderr )
+                else:
+                    self.value = i[1]
             else:
                 # It is persisted to the invariant store.
                 i = ( self.Name, self.value, "", "", self.SourceJobDefinitionName, "", "" )

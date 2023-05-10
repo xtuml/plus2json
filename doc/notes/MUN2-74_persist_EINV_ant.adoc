@@ -5,7 +5,7 @@ xtUML Project Analysis Note
 == 1 Abstract
 
 This analysis note outlines the requirements and work required to support
-extra-job invariant runtime behaviour in 'plus2json'.
+extra-job invariant run-time behaviour in 'plus2json'.
 
 == 2 Introduction and Background
 
@@ -14,7 +14,7 @@ a "user" job then references the invariant.  This implies that the
 invariant with the associated name, value and validity period are somehow
 communicated from the source job to the user job.  In the Protocol
 Verifier this is accomplished using a persistent Invariant Store
-(literally the InvariantStore domain).  'plus2json' needs to support and
+(literally the 'InvariantStore' domain).  'plus2json' needs to support and
 emulate this capability in the production of audit event instance streams.
 
 == 3 Requirements
@@ -22,17 +22,17 @@ emulate this capability in the production of audit event instance streams.
 === 3.1 Maintain Source Invariants
 
 . Extra-job invariants legally received in source jobs on source audit
-  events shall be persisted to a store (file).
+  event instances shall be persisted to a store (file).
 
 === 3.2 Access Source Invariants
 
-. Extra-job invariants legally received in user jobs on user audit events
-  will extract the value from the persisted invariant store.
+. Extra-job invariants legally received in user jobs on user audit event
+  instances shall extract the value from the persisted invariant store.
 
-=== 3.3 Congruency with Invariant Store
+=== 3.3 Congruence with Invariant Store
 
-The implemenation of extra-job invariant persistence will be consistent
-with the implementation found in the Protocol Verifier.
+The implementation of extra-job invariant persistence in 'plus2json' will
+be consistent with the implementation found in the Protocol Verifier.
 
 == 4 Analysis
 
@@ -42,15 +42,15 @@ Invariant _definitions_ are supplied in job definitions expressed as PLUS
 (PlantUML).  The value of these invariants are supplied at run-time in
 audit event instance streams.  'plus2json' processes job definitions for
 Protocol Verifier set-up.  'plus2json --play' produces audit event
-instance streams.
+instance streams compliant with a given job definition.
 
 Invariant definitions configure the Protocol Verifier to expect invariant
 values at certain points within run-time jobs.  Values are supplied on the
-runtime source and user events.  The Protocol Verifier compares the source
-value with the user value to ensure a match.
+run-time source and user event instances.  The Protocol Verifier compares
+the source value with the user value to enforce a match.
 
 For intra-job invariants, 'plus2json' references a single invariant from
-the source and user events.  One value is supplied and kept in runtime
+the source and user events.  One value is supplied and kept in run-time
 memory.
 
 For extra-job invariants, there will (may) be two independent runnings of
@@ -61,16 +61,17 @@ invariant value.
 === 4.2 Design Alternatives
 
 There are (at least) two ways to accomplish a match between a source
-invariant and a user invariant.
+invariant and a user invariant.  Both are outlined; one is selected for
+implementation.
 
 ==== 4.2.1 Extra-Job Reference
 
 'plus2json' could conceivably process multiple job definitions and
-maintain them in memory.  If this were done a single extra-job invariant
-could be referenced from multiple jobs, namely the source and user job(s).
+maintain them in memory.  If this were done, a single extra-job invariant
+could be referenced from multiple jobs, namely the source and user jobs.
 It is desirable to support multiple job definitions at the same time.
-This is a feature planned for support.  However, a simpler, shorter term
-approach may be useful in the short term.
+This is a feature planned for support in the future.  However, a simpler,
+shorter term approach may be expedient in the short term.
 
 ==== 4.2.2 Invariant Persistence
 
@@ -83,8 +84,11 @@ taken at least in the short term.
 
 === 5.1 Design Invariant Store
 
-. A default file will be defined named `InvariantStore`.
+. A default file will be defined named `p2jInvariantStore`.
 . The invariant store will be human-readable text, one invariant per line.
+
+Here is an example of what the inside of the p2jInvariantStore might look
+like:
 
  inv1,11111,2023-03-01T09:11:18Z,2025-03-01T09:11:18Z,Job1,Event1,0
  inv2,22222,2023-03-02T09:11:18Z,2025-03-02T09:11:18Z,Job1,Event2,0
@@ -97,28 +101,29 @@ taken at least in the short term.
 | inv2 | 22222 | 2023-03-02T09:11:18Z | 2025-03-02T09:11:18Z | Job1 | Event2 | 0
 |===
 
+For this work, only the 'name', 'value' and 'job' fields are used.
+However, all fields are loaded and stored.  And the timestamp fields are
+parsed into a 'datetime' object.
+
 === 5.2 Persist from Source Jobs
 
 In --play mode, when an extra-job invariant is detected sourced on an
 audit event instance, the invariant is appended to the invariant store.
 No attempt is made to avoid a duplicate invariant.
 
-At construction, when the EINV is detected, it is persisted to the
-invariant store.
-
 === 5.3 Restore from User Jobs
 
-In --play mode, when an extra-job invariant usage is detected and the
-invariant is not found in memory, it is restored from the invariant store.
+At construction, when the 'extern' EINV is detected the invariant is
+created.  However, the value is not loaded from persistent store
+immediately.  The invariant is simply marked as 'is_extern'.
 
-At construction, when the 'extern' EINV is detected , the value is loaded from the invariant
-store.
+In --play mode, when an extra-job invariant usage is detected it, the
+value is restored from the invariant store and "played" out with the audit
+event instance.
 
 == 6 Acceptance Test
 
 TODO - How do I verify that the job name stuff is working?
-
-TODO - Sync the model (invariant file name).
 
 === 6.1 Existing Tests
 

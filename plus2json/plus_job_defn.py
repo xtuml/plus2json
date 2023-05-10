@@ -259,7 +259,7 @@ class DynamicControl( DynamicControl_JSON, DynamicControl_play ):
 class Invariant( Invariant_JSON, Invariant_play ):
     """intra- and extra- job invariant information"""
     instances = []
-    c_invariant_store_filename = 'InvariantStore'
+    c_invariant_store_filename = 'p2jInvariantStore'       # default hard-coded invariant store file name
     def __init__(self, name, invariant_type, jobdefnname, is_extern):
         if any( inv.Name == name and inv.JobDefinitionName == jobdefnname for inv in Invariant.instances ):
             print( "ERROR:  duplicate invariant detected:", name )
