@@ -102,7 +102,8 @@ def write_json_output(j, argv, outfilename):
             with tempfile.NamedTemporaryFile(mode='w', delete=False) as f:
                 f.write(output)
                 f.flush()
-                os.replace(f.name, outfile)
+                tmpfilename = f.name
+            os.replace(tmpfilename, outfile)
         else:
             print(output)
 
