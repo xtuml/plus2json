@@ -63,7 +63,6 @@ python ../plus2json/__main__.py Tutorial_1.puml --job -p  # run from the raw sou
             if j:
                 write_json_output(j, argv, JobDefn.instances[-1].JobDefinitionName + '.json')
     elif "--play" in argv:
-        outfile = None
         if "--print" in argv or "-p" in argv:
             print( JobDefn.instances[-1].play("pretty") )
         elif "--aesim_config" in argv:

@@ -26,6 +26,10 @@ from plus_job_defn_aesim_test import *
 # classes that provide methods for various forms of output.  This is a "mixin" pattern,
 # which allows cohesive packaging of special-purpose output routines in one file each.
 
+def eprint(*args, **kwargs):
+    """ utility to print error messages """
+    print(*args, file=sys.stderr, **kwargs)
+
 class JobDefn( JobDefn_AEO, JobDefn_JSON, JobDefn_play, JobDefn_print, JobDefn_AESim, JobDefn_AEStest ):
     """PLUS Job Definition"""
     instances = []                                         # instance population (pattern for all)
@@ -259,12 +263,11 @@ class DynamicControl( DynamicControl_JSON, DynamicControl_play ):
 class Invariant( Invariant_JSON, Invariant_play ):
     """intra- and extra- job invariant information"""
     instances = []
-    def __init__(self, name, invariant_type, jobdefnname):
-        if any( inv.Name == name for inv in Invariant.instances ):
+    c_invariant_store_filename = 'p2jInvariantStore'       # default hard-coded invariant store file name
+    def __init__(self, name, invariant_type, jobdefnname, is_extern):
+        if any( inv.Name == name and inv.JobDefinitionName == jobdefnname for inv in Invariant.instances ):
             print( "ERROR:  duplicate invariant detected:", name )
             sys.exit()
-        # Initialize instance of play supertype.
-        Invariant_play.__init__(self)
         self.Name = name                                   # unique name
         self.SourceJobDefinitionName = jobdefnname         # source job name
         if invariant_type in ('EINV', 'IINV'):
@@ -277,9 +280,12 @@ class Invariant( Invariant_JSON, Invariant_play ):
         self.users = []                                    # list of string tuples of ( EventName, OccurenceId )
         self.R11_AuditEventDefn = None                     # audit event hosting the invariant
         self.R12_AuditEventDefn = []                       # audit events to be dynamically tested
+        # Initialize instance of play supertype (after the name and job have been populated).
+        Invariant_play.__init__(self, is_extern)
         Invariant.instances.append(self)
     @classmethod
     def resolve_event_linkage(cls):
+        """ Match the text of the invariant event src and user to audit events.  """
         for inv in Invariant.instances:
             #print( "Resolving invariants:", inv.src_evt_txt, inv.src_occ_txt, inv.users )
             saes = [ae for ae in AuditEventDefn.instances if ae.EventName == inv.src_evt_txt and ae.OccurrenceId == inv.src_occ_txt]
@@ -288,7 +294,6 @@ class Invariant( Invariant_JSON, Invariant_play ):
                     print( "resolve_event_linkage:  ERROR, no source events for IINV:", inv.Name )
             for sae in saes:
                 inv.R11_AuditEventDefn = sae               # link inv to sae across R11
-            # TODO - this is a sloppy selection.  Name and occurrence need to be correlated.
             uaes = [ae for ae in AuditEventDefn.instances if ( ae.EventName, ae.OccurrenceId ) in inv.users]
             if not uaes:
                 if "IINV" == inv.Type:
@@ -297,6 +302,35 @@ class Invariant( Invariant_JSON, Invariant_play ):
             for uae in uaes:
                 #print( "Resolving invariant users:", inv.src_evt_txt, inv.src_occ_txt, inv.users )
                 inv.R12_AuditEventDefn.append( uae )       # link inv to uae across R12
+    def persist( self, invariant ):
+        """ Persist a single invariant into the named file.  """
+        try:
+            with open(Invariant.c_invariant_store_filename, 'a') as f:
+                f.write(','.join(str(s) for s in invariant) + '\n')
+        except IOError:
+            eprint( "Could not write invariant store file:", Invariant.c_invariant_store_filename )
+    def load_named_invariant( self, invariant_name, job_name ):
+        """ Load the invariant matching the given name and job.  """
+        try:
+            with open(Invariant.c_invariant_store_filename, 'r') as f:
+                for line in f.readlines():
+                    i = line.rstrip().split(',')
+                    if i[0] == invariant_name and i[4] == job_name:
+                        return i
+        except IOError:
+            eprint( "Could not read invariant store file:", Invariant.c_invariant_store_filename )
+        return []
+    def load_invariants( self ):
+        """ Load all invariants from the named file.  """
+        my_invariants = []
+        with open(Invariant.c_invariant_store_filename, 'r') as f:
+            for line in f.readlines():
+                i = line.rstrip().split(',')
+                #from datetime import datetime
+                #validity_start = datetime.strptime(i[2], '%Y-%m-%dT%H:%M:%SZ')
+                #validity_expiration = datetime.strptime(i[3], '%Y-%m-%dT%H:%M:%SZ')
+                my_invariants.append(i)
+        return my_invariants
 
 class Loop:
     """data collected from PLUS repeat loop"""

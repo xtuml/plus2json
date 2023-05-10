@@ -25,11 +25,13 @@ within plus::plus2json is
 
     R12_AuditEventDefn: set of instance of AuditEventDefn;
 
+    is_extern: boolean;
+
     c_idFactory: integer;
 
-    iId: integer;
+    c_invariant_store_filename: string;
 
-    preferred identifier is (Name);
+    preferred identifier is (Name, SourceJobDefinitionName);
 
     identifier is (value);
 
@@ -44,6 +46,14 @@ within plus::plus2json is
     @dialect("oal");
     @operation_num(3);
     operation play(flavor: in string) return string;
+
+    @dialect("oal");
+    @operation_num(4);
+    operation persist(invariant: in string);
+
+    @dialect("oal");
+    @operation_num(5);
+    operation load_named_invariant(invariant_name: in string, job_name: in string) return string;
 
   end class;
 

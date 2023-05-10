@@ -6,6 +6,8 @@ Tutorial - Extra Job Invariant User Definition
 
 @startuml 
 partition "Job Using Extra-Job Invariant" {
+ :EINV,SRC,jobdefn="Job sourcing Extra-Job Invariant",name=Q|
+ detach
   group "Sequence Consuming EINV"
       #green:A;
       :B,EINV,USER,name=Q;

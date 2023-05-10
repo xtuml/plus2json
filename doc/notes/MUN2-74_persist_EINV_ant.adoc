@@ -1,0 +1,161 @@
+= Support Extra-Job Invariants in 'plus2json --play'
+
+xtUML Project Analysis Note
+
+== 1 Abstract
+
+This analysis note outlines the requirements and work required to support
+extra-job invariant run-time behaviour in 'plus2json'.
+
+== 2 Introduction and Background
+
+Extra-Job Invariants span jobs.  A "source" job establishes an invariant;
+a "user" job then references the invariant.  This implies that the
+invariant with the associated name, value and validity period are somehow
+communicated from the source job to the user job.  In the Protocol
+Verifier this is accomplished using a persistent Invariant Store
+(literally the 'InvariantStore' domain).  'plus2json' needs to support and
+emulate this capability in the production of audit event instance streams.
+
+== 3 Requirements
+
+=== 3.1 Maintain Source Invariants
+
+. Extra-job invariants legally received in source jobs on source audit
+  event instances shall be persisted to a store (file).
+
+=== 3.2 Access Source Invariants
+
+. Extra-job invariants legally received in user jobs on user audit event
+  instances shall extract the value from the persisted invariant store.
+
+=== 3.3 Congruence with Invariant Store
+
+The implementation of extra-job invariant persistence in 'plus2json' will
+be consistent with the implementation found in the Protocol Verifier.
+
+== 4 Analysis
+
+=== 4.1 Invariant Definitions and Invariant Values
+
+Invariant _definitions_ are supplied in job definitions expressed as PLUS
+(PlantUML).  The value of these invariants are supplied at run-time in
+audit event instance streams.  'plus2json' processes job definitions for
+Protocol Verifier set-up.  'plus2json --play' produces audit event
+instance streams compliant with a given job definition.
+
+Invariant definitions configure the Protocol Verifier to expect invariant
+values at certain points within run-time jobs.  Values are supplied on the
+run-time source and user event instances.  The Protocol Verifier compares
+the source value with the user value to enforce a match.
+
+For intra-job invariants, 'plus2json' references a single invariant from
+the source and user events.  One value is supplied and kept in run-time
+memory.
+
+For extra-job invariants, there will (may) be two independent runnings of
+'plus2json'.  Therefore, for the user job to invariant to match the source
+job invariant, 'plus2json' will need to store and retrieve a single
+invariant value.
+
+=== 4.2 Design Alternatives
+
+There are (at least) two ways to accomplish a match between a source
+invariant and a user invariant.  Both are outlined; one is selected for
+implementation.
+
+==== 4.2.1 Extra-Job Reference
+
+'plus2json' could conceivably process multiple job definitions and
+maintain them in memory.  If this were done, a single extra-job invariant
+could be referenced from multiple jobs, namely the source and user jobs.
+It is desirable to support multiple job definitions at the same time.
+This is a feature planned for support in the future.  However, a simpler,
+shorter term approach may be expedient in the short term.
+
+==== 4.2.2 Invariant Persistence
+
+'plus2json' can persist an extra-job invariant when running (--play) a
+source job.  User jobs can access the persisted invariant to produce a
+match in the run-time audit event instance stream.  This approach will be
+taken at least in the short term.
+
+== 5 Work Required
+
+=== 5.1 Design Invariant Store
+
+. A default file will be defined named `p2jInvariantStore`.
+. The invariant store will be human-readable text, one invariant per line.
+
+Here is an example of what the inside of the p2jInvariantStore might look
+like:
+
+ inv1,11111,2023-03-01T09:11:18Z,2025-03-01T09:11:18Z,Job1,Event1,0
+ inv2,22222,2023-03-02T09:11:18Z,2025-03-02T09:11:18Z,Job1,Event2,0
+
+.Invariant Store Format
+[options="header"]
+|===
+| name | value | validity start       | validity expiration  | job  | event  | occurrence
+| inv1 | 11111 | 2023-03-02T09:11:18Z | 2025-03-02T09:11:18Z | Job1 | Event1 | 0
+| inv2 | 22222 | 2023-03-02T09:11:18Z | 2025-03-02T09:11:18Z | Job1 | Event2 | 0
+|===
+
+For this work, only the 'name', 'value' and 'job' fields are used.
+However, all fields are loaded and stored.  And the timestamp fields are
+parsed into a 'datetime' object.
+
+=== 5.2 Persist from Source Jobs
+
+In --play mode, when an extra-job invariant is detected sourced on an
+audit event instance, the invariant is appended to the invariant store.
+No attempt is made to avoid a duplicate invariant.
+
+=== 5.3 Restore from User Jobs
+
+At construction, when the 'extern' EINV is detected the invariant is
+created.  However, the value is not loaded from persistent store
+immediately.  The invariant is simply marked as 'is_extern'.
+
+In --play mode, when an extra-job invariant usage is detected it, the
+value is restored from the invariant store and "played" out with the audit
+event instance.
+
+== 6 Acceptance Test
+
+=== 6.1 Existing Tests
+
+All existing tests must pass.
+
+=== 6.2 Manual Test
+
+. Run the jobs in --play -p mode.
+  .. Run the Extra Job Invariant Source Job
+  .. Observe the einv on the output.
+  .. Run the Extra Job Invariant User Job
+  .. Observe the _same_ einv on the output.
+
+=== 6.3 Manual Test with Protocol Verifier
+
+. Configure Protocol Verifier with the following jobs:
+  .. Extra Job Invariant Source Job
+     ... `plus2json.pyx Extra\ Job\ Invariant\ Source\ Job.puml -j --outdir config/job_definitions`
+  .. Extra Job Invariant User Job
+     ... `plus2json.pyx Extra\ Job\ Invariant\ User\ Job.puml -j --outdir config/job_definitions`
+. Launch Protocol Verifier.
+. Run the jobs.
+  .. Extra Job Invariant Source Job
+     ... `plus2json.pyx Extra\ Job\ Invariant\ Source\ Job.puml --play --outdir reception-incoming`
+  .. Extra Job Invariant User Job
+     ... `plus2json.pyx Extra\ Job\ Invariant\ User\ Job.puml --play --outdir reception-incoming`
+. Confirm success in the Verifier log.
+
+== 7 Document References
+
+. [[dr-1]] https://onefact.atlassian.net/browse/MUN2-74[MUN2-74 - Add EINV source to plus2json.]
+
+---
+
+This work is licensed under the Creative Commons CC0 License
+
+---
