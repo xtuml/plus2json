@@ -45,8 +45,7 @@ class JobDefn_play:
         else:
             j += '[' # event instances
         # Play out the sequences.
-        for seq in self.R1_SequenceDefn_defines:
-            j += seq.play( flavor, self )
+        j += ','.join(map(lambda seq: seq.play( flavor, self ), self.R1_SequenceDefn_defines))
         if 'pretty' == flavor:
             j = j # NOP
         elif 'aesim' == flavor:
