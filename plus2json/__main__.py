@@ -2,6 +2,7 @@ import os
 import os.path
 import sys
 import json
+import shutil
 import tempfile
 from antlr4 import *
 from os.path import abspath
@@ -103,7 +104,7 @@ def write_json_output(j, argv, outfilename):
                 f.write(output)
                 f.flush()
                 tmpfilename = f.name
-            os.replace(tmpfilename, outfile)
+            shutil.move(tmpfilename, outfile)
         else:
             print(output)
 
