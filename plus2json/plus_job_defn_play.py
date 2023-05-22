@@ -95,6 +95,15 @@ class AuditEventDefn_play:
         if len( self.R3_PreviousAuditEventDefn ) > len( self.previousEventIds ) and self.drill_back_for_constraint_type( self.scope+1 ) == 'AND':
             return ""
         self.visit_count += 1
+        # Detect instance branch/fork merge.
+        # Do this when the event is the user of a merge count (MCNT).
+        # When it is, pass until the visit count equals the merge count.
+        # select many dcs related by self->DynamicControl[R10]
+        user_dcs = [dc for dc in plus_job_defn.DynamicControl.instances if dc.R10_AuditEventDefn is self]
+        for user_dc in user_dcs:
+            if user_dc.DynamicControlType == "MERGECOUNT":
+                if self.visit_count < 4:
+                    return ""
         AuditEventDefn_play.c_idFactory += 1
         if 'pretty' == flavor:
             self.eventId = AuditEventDefn_play.c_idFactory
