@@ -2,7 +2,6 @@ import os
 import os.path
 import sys
 import json
-import shutil
 import tempfile
 from antlr4 import *
 from os.path import abspath
@@ -100,11 +99,11 @@ def write_json_output(j, argv, outfilename):
             outdir = argv[ argv.index( '--outdir' ) + 1 ]
             os.makedirs(outdir, exist_ok=True)
             outfile = os.path.join(outdir, outfilename)
-            with tempfile.NamedTemporaryFile(mode='w', delete=False) as f:
+            with tempfile.NamedTemporaryFile(mode='w', dir=os.getcwd(), delete=False) as f:
                 f.write(output)
                 f.flush()
                 tmpfilename = f.name
-            shutil.move(tmpfilename, outfile)
+            os.replace(tmpfilename, outfile)
         else:
             print(output)
 
