@@ -1,0 +1,209 @@
+= PLUS-to-JSON Desin
+
+xtUML Project Design Note
+
+== 1 Abstract
+
+This note documents the design of the 'plus2json' utility.
+
+== 2 Introduction and Background
+
+A language named 'PLUS' (roughly PlantUML Sequences) is defined using UML
+Activity Diagram syntax.  This language supplies a syntax with which
+"protocol jobs" may be expressed.  Protocol jobs prescribe the sequencing
+of audit events produced during the execution of some system or device
+adhering to an explicit protocol.  PLUS job definitions are used to
+configure a __Protocol Verifier__ enabling it to monitor runtime
+performance of a device and enforce adherence to the prescribed protocol
+as expressed in the PLUS job definitions.
+
+'plus2json' is a utility which converts PLUS job definitions into a JSON
+format consumable by a Protocol Verifier.  'plus2json' performs other
+tasks as documented in this design note.
+
+== 3 Requirements
+
+=== 3.1 PLUS Language Definition (Grammar)
+
+. 'plus2json' shall define the legal syntax of the PLUS language.
+. 'plus2json' shall express the legal syntax of PLUS in an `antlr4`
+  grammar (expressed in Backus-Naur Form).
+
+=== 3.2 PLUS Parser
+
+. 'plus2json' shall implement a parser which performs lexical analysis and
+  parses input PLUS job definitions enforcing correct syntax.
+. The 'plus2json' parser shall report syntax errors clearly enough that a
+  user receives sufficient feedback to repair erroneous PLUS job definitions.
+
+=== 3.3 PLUS Tree Walker
+
+. 'plus2json' shall employ a mechanism to convert the textual PLUS job
+  definition into an absract data model derived from a Shlaer-Mellor class
+  diagram.
+. 'plus2json' shall employ a method of conversion (from textual PLUS into
+  data model instances) that minimises coupling between the PLUS syntax and
+  the abstract data model.
+
+=== 3.4 PLUS Job Definition Data Model
+
+. At the core of 'plus2json' shall be a data structure derived from an
+  abstract data model of the PLUS job definition domain.
+. The 'plus2json' data model shall abstract the key concepts of the PLUS
+  job definition domain including definition elements such a 'job',
+  'sequence', 'audit event' and 'invariant'.
+. The 'plus2json' data model shall (also) abstract run-time data elements
+  conforming to the definition elements.
+
+=== 3.5 PLUS Job Definition JSON
+
+. 'plus2json' shall convert input PLUS job definitions expressed as PLUS
+  into JSON compliant with a format consumable by a Protocol Verifier.
+
+=== 3.6 Protocol Verifier Configuration
+
+. 'plus2json' shall assist in the production of configuration files (in
+  JSON format) for the Protocol Verifier.
+
+=== 3.7 PLUS Job Definition Play
+
+. 'plus2json' shall interpret PLUS job definitions and produce run-time
+  audit event instance streams in JSON format compliant with the schema
+  prescribed by the Protocol Verifier.
+. 'plus2json' shall produce legal audit event instance streams in
+  conformance with given job definitions.
+. 'plus2json' shall produce multiple legal audit event instance streams to
+  provide coverage of all possible paths (excluding variance in repetition)
+  through a legal job definition.
+
+== 4 Analysis
+
+== 5 Design
+
+=== 5.1 PLUS Language Definition (Grammar)
+
+The grammar for 'plus2json' is defined in `plus2json.g4`.  The production
+rules for the parser are supplied at the top.  The lexical tokens for the
+keywords and syntax are supplied at the bottom.
+
+=== 5.2 PLUS Parser
+
+The PLUS parser is automatically generated from the antlr4 grammar.  The
+command used to produce the parser is as follows:
+
+`antlr4 -Dlanguage=Python3 plus2json.g4`
+
+=== 5.3 PLUS Tree Walker
+
+A listener pattern is used to override 'enter' and 'exit' methods on a
+tree-walking pass of the parser.  These methods have access to the textual
+tokens and identifiers being parsed from the PLUS job definition.  The
+population of the PLUS job definition data model is realised by invoking
+model element constructors during the parse.
+
+The listener methods are packaged in `plus2json_run.py`.
+
+=== 5.4 PLUS Job Definition Data Model
+
+The 'plus2json' data model is a set of Python classes (indirectly) derived
+from a Shlaer-Mellor class diagram.  Both class-based and instance-based
+attributes are employed as appropriate.  Both class-based and
+instance-based operations are defined on the classes.  Association links
+are realised using reference attributes.
+
+The data structures and operations at the core of 'plus2json' are defined
+in `plus_job_defn.py`.
+
+.PLUS Job Definition Data Model
+image::../../plus_job_defn.png[PLUS Job Definition Data Model]
+
+=== 5.5 PLUS Job Definition JSON
+
+The behavior of
+
+=== 5.6 Protocol Verifier Configuration
+=== 5.7 PLUS Job Definition Play
+
+
+== 6 Design Comments
+
+=== 6.1 antlr4
+
+antlr4 is a widely (perhaps most widely) used and popular parser
+generator.  The requirement for a grammar-based language drove this design
+choice.  All other design choices follow from this one.
+
+antlr4 can generate parsers from a grammar, but it also supports a means
+of loosely coupling language transformations to the grammar.  The grammar
+remains pure with no language transformation statements within the
+grammar.  antlr4 provides a means to "walk" the abstract syntax tree of a
+given parse instance.  "listeners" are supplied to be invoked at key
+stages within the parse.
+
+The listener pattern was chosen over the alternate "visitor" pattern.
+The listener pattern is the default, is simpler than the visitor pattern
+and is sufficient for our purposes.
+
+=== 6.2 Python
+
+After antlr4 was chosen, Python was chosen.  Python is supported along
+with Java, which was the second choice.  Unfortunately, antlr4 does not
+(yet) support MASL or any of the Shlaer-Mellor dialects.
+
+=== 6.3 Segregation of Behaviour ("mixin" pattern)
+
+An attempt has been made to segregate and package the behaviour of various
+features.  This is accomplished using inheritance in a "mixin" pattern.
+Specific behaviours are factored out into supertype classes.
+
+The following behaviours are segregated using this strategy:
+
+* AEO configuration (`plus_job_defn_aeo.py)
+* JSON production (`plus_job_defn_json.py)
+* play (`plus_job_defn_play.py)
+* print (`plus_job_defn_print.py)
+* AESim (to be deprecated)
+* AEStest (to be deprecated)
+
+=== 6.3 Build and Packaging
+
+Packaging attempts to follow the Python Way.  However, it can be improved
+upon.
+
+=== 6.4 Testing
+
+Unit tests are defined in separate files using the Python 'unittest'
+package.  These tests are discovered by the continuous integration (CI) flow
+and run upon creation of pull requests (PRs) targeted for the 'main'
+branch.
+
+Some test scripts have been written to exercise 'plus2json'.  These are
+run with the following command.  There is no automation of
+success/failure.  At present, if they do not crash, they are considered
+successful.
+
+ sh ./regress_j_p.sh ; sh ./regress_json.sh; sh ./regress_parser.sh; sh ./regress_play.sh; sh ./regress_w_compare.sh
+
+=== 6.5 Interesting Files
+
+ plus2json/plus2json.g4 - anltr4 grammar for PLUS
+ plus2json/plus2son_run.py - source for the tree walker listener JSON generator
+ plus2json/plus_job_defn.py - data model for the job definition
+ plus2json/plus_job_defn_*.py - "mixin" classes to supply output routines
+ plus2json/__main__.py
+ bin/plus2json.pyz - Python 3 executable with dependencies included
+
+
+== 7 User Documentation
+
+== 8 Unit Test
+
+== 9 Document References
+
+. [[dr-1]] https://onefact.atlassian.net/browse/MUN2-100[MUN2-100 plus2json design]
+
+---
+
+This work is licensed under the Creative Commons CC0 License
+
+---
