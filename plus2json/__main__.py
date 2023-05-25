@@ -29,16 +29,12 @@ Options
 --help, -h               show this help message and exit
 --job, -j                output PLUS Job Definition (JSON)
 --play                   interpret the job and produce events
---aeo_config             output AEOrdering config.json (JSON)
---aesim_test             output AESimulator scenario dispatch JSON with --play
---aesim_config           output AESimulator config JSON when combined with --play
 --print, -p              pretty print human readable output
 
 Examples:
 
 python plus2json.pyz Tutorial_1.puml --job                # convert Tutorial_1.puml into JSON
 python plus2json.pyz myjobdefn.puml --play                # interpret the job producing event instances
-python plus2json.pyz myjobdefn.puml --play --aesim_config # produce a valid AESimulator sequence
 python -m plus2json Tutorial_1.puml --job -p              # show job in human readable view
 python ../plus2json/__main__.py Tutorial_1.puml --job -p  # run from the raw source code
 
@@ -50,8 +46,7 @@ python ../plus2json/__main__.py Tutorial_1.puml --job -p  # run from the raw sou
     parser = plus2jsonParser(stream)
     tree = parser.plusdefn()
     if ( "--print" in argv or "-p" in argv or "--job" in argv or "-j" in argv or
-        "--play" in argv or "--aeo_config" in argv or "--aesim_config" in argv or
-        "--aesim_test" in argv ):
+        "--play" in argv ):
         run = plus2json_run() # custom listener
         walker = ParseTreeWalker()
         walker.walk(run, tree)
@@ -65,22 +60,10 @@ python ../plus2json/__main__.py Tutorial_1.puml --job -p  # run from the raw sou
     elif "--play" in argv:
         if "--print" in argv or "-p" in argv:
             print( JobDefn.instances[-1].play("pretty") )
-        elif "--aesim_config" in argv:
-            j = JobDefn.instances[-1].play("aesim")
-            if j:
-                write_json_output(j, argv, 'test-scenario.json')
-        elif "--aesim_test" in argv:
-            j = JobDefn.instances[-1].play("aestest")
-            if j:
-                write_json_output(j, argv, 'test-specification.json')
         else:
             j = JobDefn.instances[-1].play("")
             if j:
                 write_json_output(j, argv, str(JobDefn.instances[-1].jobId) + '.json')
-    elif "--aeo_config" in argv:
-        j = JobDefn.aeo_config_all()
-        if j:
-            write_json_output(j, argv)
     elif 2 == len( argv ):
         print( "syntax check complete" )
     else:

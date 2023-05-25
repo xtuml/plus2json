@@ -9,12 +9,9 @@ from os.path import abspath
 from pathlib import Path
 package_path = abspath(Path(__file__).parent)
 sys.path.insert(0, package_path)
-from plus_job_defn_aeo import *
 from plus_job_defn_json import *
 from plus_job_defn_play import *
 from plus_job_defn_print import *
-from plus_job_defn_aesim import *
-from plus_job_defn_aesim_test import *
 
 # TODO
 # Deal with merge-in-merge with no event in between.  This may require joining 2 merge usages.
@@ -30,7 +27,7 @@ def eprint(*args, **kwargs):
     """ utility to print error messages """
     print(*args, file=sys.stderr, **kwargs)
 
-class JobDefn( JobDefn_AEO, JobDefn_JSON, JobDefn_play, JobDefn_print, JobDefn_AESim, JobDefn_AEStest ):
+class JobDefn( JobDefn_JSON, JobDefn_play, JobDefn_print ):
     """PLUS Job Definition"""
     instances = []                                         # instance population (pattern for all)
     def __init__(self, name):
@@ -40,7 +37,7 @@ class JobDefn( JobDefn_AEO, JobDefn_JSON, JobDefn_play, JobDefn_print, JobDefn_A
         self.R1_SequenceDefn_defines = []                  # job may contain multiple peer sequences
         JobDefn.instances.append(self)
 
-class SequenceDefn( SequenceDefn_AEO, SequenceDefn_JSON, SequenceDefn_play, SequenceDefn_print, SequenceDefn_AESim, SequenceDefn_AEStest ):
+class SequenceDefn( SequenceDefn_JSON, SequenceDefn_play, SequenceDefn_print ):
     """PLUS Sequence Definition"""
     instances = []
     merge_usage_cache = []                                 # previous event collection carried across scopes
@@ -61,7 +58,7 @@ class SequenceDefn( SequenceDefn_AEO, SequenceDefn_JSON, SequenceDefn_play, Sequ
         SequenceDefn.c_current_sequence = self
         SequenceDefn.instances.append(self)
 
-class AuditEventDefn( AuditEventDefn_AEO, AuditEventDefn_JSON, AuditEventDefn_play, AuditEventDefn_print, AuditEventDefn_AESim, AuditEventDefn_AEStest ):
+class AuditEventDefn( AuditEventDefn_JSON, AuditEventDefn_play, AuditEventDefn_print ):
     """PLUS Audit Event Definition"""
     instances = []
     ApplicationName = "default_application_name"           # not presently used
