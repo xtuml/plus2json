@@ -324,3 +324,32 @@ class Invariant_play:
         else:
             j += '"' + self.Name + '": "' + self.value + '"'
         return j
+    def persist( self, invariant ):
+        """ Persist a single invariant into the named file.  """
+        try:
+            with open(self.__class__.c_invariant_store_filename, 'a') as f:
+                f.write(','.join(str(s) for s in invariant) + '\n')
+        except IOError:
+            print( "Could not write invariant store file:", self.__class__.c_invariant_store_filename )
+    def load_named_invariant( self, invariant_name, job_name ):
+        """ Load the invariant matching the given name and job.  """
+        try:
+            with open(self.__class__.c_invariant_store_filename, 'r') as f:
+                for line in f.readlines():
+                    i = line.rstrip().split(',')
+                    if i[0] == invariant_name and i[4] == job_name:
+                        return i
+        except IOError:
+            print( "Could not read invariant store file:", self.__class__.c_invariant_store_filename )
+        return []
+    def load_invariants( self ):
+        """ Load all invariants from the named file.  """
+        my_invariants = []
+        with open(self.__class__.c_invariant_store_filename, 'r') as f:
+            for line in f.readlines():
+                i = line.rstrip().split(',')
+                #from datetime import datetime
+                #validity_start = datetime.strptime(i[2], '%Y-%m-%dT%H:%M:%SZ')
+                #validity_expiration = datetime.strptime(i[3], '%Y-%m-%dT%H:%M:%SZ')
+                my_invariants.append(i)
+        return my_invariants
