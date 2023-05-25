@@ -26,8 +26,8 @@ tasks as documented in this design note.
 === 3.1 PLUS Language Definition (Grammar)
 
 . 'plus2json' shall define the legal syntax of the PLUS language.
-. 'plus2json' shall express the legal syntax of PLUS in an `antlr4`
-  grammar (expressed in Backus-Naur Form).
+. The PLUS grammar shall be free of translation rules (pure grammar
+  production rules only).
 
 === 3.2 PLUS Parser
 
@@ -59,6 +59,11 @@ tasks as documented in this design note.
 
 . 'plus2json' shall convert input PLUS job definitions expressed as PLUS
   into JSON compliant with a format consumable by a Protocol Verifier.
+. The format of the output JSON is governed by a JSON schema which shall
+  be obtained from the Protocol Verifier.
+
+TODO:  Consider publishing the JSON schema here.
+       It would be better to talk about the schema more than PV application.
 
 === 3.6 Protocol Verifier Configuration
 
@@ -78,6 +83,9 @@ tasks as documented in this design note.
 
 == 4 Analysis
 
+The primary analysis work around 'plus2json' was accomplished in the
+development of the <<dr-4,PLUS Tutorial>>.
+
 == 5 Design
 
 This section outlines design choices made during the development of
@@ -87,7 +95,8 @@ This section outlines design choices made during the development of
 
 The grammar for 'plus2json' is defined in `plus2json.g4`.  The production
 rules for the parser are supplied at the top.  The lexical tokens for the
-keywords and syntax are supplied at the bottom.
+keywords and punctuation are supplied at the bottom.  The PLUS grammar is
+expressed in Extended Backus-Naur Form.
 
 === 5.2 PLUS Parser
 
@@ -96,13 +105,17 @@ command used to produce the parser is as follows:
 
 `antlr4 -Dlanguage=Python3 plus2json.g4`
 
+TODO:  automate this in setup.py
+
+TODO:  perhaps use the antlr4.jar directly
+
 === 5.3 PLUS Tree Walker
 
 A listener pattern is used to override 'enter' and 'exit' methods on a
 tree-walking pass of the parser.  These methods have access to the textual
 tokens and identifiers being parsed from the PLUS job definition.  The
 population of the PLUS job definition data model is realised by invoking
-model element constructors during the parse.
+model element constructors during the walk.
 
 The listener methods are packaged in `plus2json_run.py`.
 
@@ -132,6 +145,8 @@ Some relationships from the data model are realised with references named
 after the relationship (including role phrase).  This is not implemented
 in a consistent manner.
 
+TODO:  Consider importing pyxtuml to get the relationship navigation idiom.
+
 ==== 5.4.3 previous event
 
 An instance of PreviousAuditEvent is created for each reference to a
@@ -140,10 +155,10 @@ previous events refer to the same audit event.
 
 ==== 5.4.4 current event
 
-The population of the data model relies on remembering the current audit
-event while parsing and processing the next audit event.  This implies
-that much of the processing depends upon the sequential parsing of the
-textual PLUS.
+The population of the data model relies on remembering the current audit event
+while parsing (walking) and processing the next audit event.  This implies that
+much of the processing depends upon the sequential parsing of the textual
+PLUS.
 
 ==== 5.4.5 occurrence assignment
 
@@ -198,8 +213,10 @@ The primary requirement and use case of 'plus2json' is to convert PLUS job
 definition files into the JSON format consumable by the Protocol Verifier.
 This behaviour is defined in `plus_job_defn_json.py`.  The JSON production
 is accomplished by simple string arithmetic.  It has been a consideration
-to use a Python json object package.  However, the benefits have not so
+to use Python objects, instead.  However, the benefits have not so
 far outweighed the direct approach chosen.
+
+TODO:  Disagreement noted.  Let us look more deeply.  I would like it to be cleaner than it is.
 
 ==== 5.5.1 Pretty Print
 
@@ -212,8 +229,7 @@ utility as well as having an alternate form to visualise the job
 definition (and the --play audit event instance sequence).
 
 The pretty print output is compact, textual and intended to be easy to
-understand.  It is anticipated that users will inspect the pretty print
-output before re-running to get JSON output.
+understand.
 
 === 5.6 Protocol Verifier Configuration
 
@@ -295,7 +311,7 @@ documented <<dr-3,here>>.
 
 === 5.7.6 Magic 4
 
-For all loops and branches (and merges), 4 if the magic number.
+Loops, branches and merges, 4 is the magic number.
 
 == 6 Design Comments
 
@@ -376,6 +392,7 @@ successful.
 . Support branch and merge across "sequence gaps".
 . Address "feature adjacency problem" with nested forks and loops.
 . Add option for coverage.
+. Add -v (version) somehow.
 
 == 8 Unit Test
 
@@ -384,6 +401,7 @@ successful.
 . [[dr-1]] https://onefact.atlassian.net/browse/MUN2-100[MUN2-100 plus2json design]
 . [[dr-2]] https://github.com/xtuml/plus2json[plus2json git repository on GitHub]
 . [[dr-3]] link:./MUN2-74_persist_EINV_ant.adoc[Extra-job Invariant Persistence in plus2json --play]
+. [[dr-4]] link:../tutorial/AuditEventTopologyTutorial.pdf[Audit Event Topology Tutorial]
 
 ---
 
