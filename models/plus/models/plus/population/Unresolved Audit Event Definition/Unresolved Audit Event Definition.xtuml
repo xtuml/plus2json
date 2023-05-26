@@ -1,0 +1,15 @@
+// BP 7.1.6 content: ModelClass syschar: 3 persistence-version: 7.1.6
+
+within plus::population is
+
+  @key_letters("UnrsvdAEDefn");
+  @class_num(1);
+  class 'Unresolved Audit Event Definition' is
+
+    Name: string;
+
+    OccurenceId: integer;
+
+  end class;
+
+end;

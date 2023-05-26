@@ -1,0 +1,13 @@
+// BP 7.1.6 content: Package syschar: 3 persistence-version: 7.1.6
+
+within plus is
+
+  package population is
+    class 'Unresolved Audit Event Definition';
+    class 'Event Data Definition' is plus::definition::'Event Data Definition';
+    relationship R50 is 'Event Data Definition' conditionally used_by_future many 'Unresolved Audit Event Definition',
+                        'Unresolved Audit Event Definition' conditionally relates to many 'Event Data Definition';
+
+  end package;
+
+end;

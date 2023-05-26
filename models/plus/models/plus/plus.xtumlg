@@ -1,11 +1,14 @@
 render : "plus"
 
 shapes :
-  shape : plus2json
-    render : package "plus::plus2json"
+  shape : definition
+    render : package "plus::definition"
     bounds : x : 4104.0 y : 3084.0 width : 133.0 height : 61.0
   shape : types
     render : package "plus::types"
     bounds : x : 4272.0 y : 3084.0 width : 121.0 height : 61.0
+  shape : population
+    render : package "plus::population"
+    bounds : x : 4413.0 y : 3084.0 width : 200.0 height : 150.0
 
 connectors :

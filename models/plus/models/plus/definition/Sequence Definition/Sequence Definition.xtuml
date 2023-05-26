@@ -1,0 +1,23 @@
+// BP 7.1.6 content: ModelClass syschar: 3 persistence-version: 7.1.6
+
+within plus::definition is
+
+  //! A Sequence Definition defines an ordered collection of Audit Event Definition
+  //! instances.
+  //! A Sequence Definition is linked to at least one instance of AuditEventDefn which
+  //! starts the sequence.
+  @key_letters("SeqDefn");
+  @class_num(2);
+  class 'Sequence Definition' is
+
+    Name: string;
+
+    @ref_mode("referred_to");
+    @use_prefix(prefix="Job", root_name="Name");
+    JobName: referential (R1.'Job Definition'.Name) string;
+
+    preferred identifier is (Name, JobName);
+
+  end class;
+
+end;

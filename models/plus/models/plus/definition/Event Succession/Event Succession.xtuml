@@ -1,0 +1,11 @@
+// BP 7.1.6 content: ModelClass syschar: 3 persistence-version: 7.1.6
+
+within plus::definition is
+
+  @key_letters("EvtSucc");
+  @class_num(4);
+  class 'Event Succession' is
+
+  end class;
+
+end;

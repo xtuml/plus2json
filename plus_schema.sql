@@ -1,67 +1,45 @@
 CREATE TABLE AuditEventDefn (
-    EventName STRING,
-    OccurrenceId STRING,
-    SequenceStart BOOLEAN,
-    SequenceEnd BOOLEAN,
-    isBreak BOOLEAN,
-    visit_count INTEGER,
-    eventId STRING,
-    previousEventIds INTEGER
-);
-CREATE UNIQUE INDEX I1 ON AuditEventDefn (EventName, OccurrenceId);
-CREATE TABLE DynamicControl (
-    DynamicControlName STRING,
-    DynamicControlType STRING,
-    src_evt_txt STRING,
-    src_occ_txt STRING,
-    user_evt_txt STRING,
-    user_occ_txt STRING
-);
-CREATE UNIQUE INDEX I1 ON DynamicControl (DynamicControlName);
-CREATE TABLE Fork (
-    id STRING,
-    flavor STRING
-);
-CREATE UNIQUE INDEX I1 ON Fork (id);
-CREATE TABLE Invariant (
     Name STRING,
-    Type STRING,
-    SourceJobDefinitionName STRING,
-    value STRING,
-    src_evt_txt STRING,
-    src_occ_txt STRING,
-    user_tuples STRING,
-    is_extern BOOLEAN
+    OccurrenceId INTEGER,
+    IsBreak BOOLEAN,
+    SequenceName STRING,
+    JobName STRING
 );
-CREATE UNIQUE INDEX I1 ON Invariant (Name, SourceJobDefinitionName);
-CREATE UNIQUE INDEX I2 ON Invariant (value);
-CREATE TABLE JobDefn (
-    JobDefinitionName STRING,
-    jobId STRING
+CREATE UNIQUE INDEX I1 ON AuditEventDefn (Name, OccurrenceId);
+CREATE TABLE ConstDefn (
+    Id STRING,
+    Type INTEGER
 );
-CREATE UNIQUE INDEX I1 ON JobDefn (JobDefinitionName);
-CREATE TABLE Loop (
+CREATE TABLE EvtDataDefn (
+    Name STRING,
+    Type INTEGER,
+    SourceJobName STRING
+);
+CREATE UNIQUE INDEX I1 ON EvtDataDefn (Name, SourceJobName);
+CREATE TABLE EvtSucc (
     
 );
-CREATE TABLE PreviousAuditEventDefn (
-    ConstraintDefinitionId STRING,
-    ConstraintValue STRING
+CREATE TABLE JobDefn (
+    Name STRING
 );
-CREATE TABLE SequenceDefn (
-    SequenceName STRING
+CREATE UNIQUE INDEX I1 ON JobDefn (Name);
+CREATE TABLE SeqDefn (
+    Name STRING,
+    JobName STRING
 );
-CREATE UNIQUE INDEX I1 ON SequenceDefn (SequenceName);
-CREATE ROP REF_ID R1 FROM 1 JobDefn () TO M SequenceDefn ();
-CREATE ROP REF_ID R10 FROM 1 AuditEventDefn () TO MC DynamicControl ();
-CREATE ROP REF_ID R11 FROM 1C AuditEventDefn () TO MC Invariant ();
-CREATE ROP REF_ID R12 FROM MC AuditEventDefn () TO MC Invariant ();
-CREATE ROP REF_ID R13 FROM M AuditEventDefn () TO 1C SequenceDefn ();
-CREATE ROP REF_ID R2 FROM M AuditEventDefn () TO 1 SequenceDefn ();
-CREATE ROP REF_ID R3 FROM MC PreviousAuditEventDefn () PHRASE 'follows' TO 1 AuditEventDefn () PHRASE 'precedes';
-CREATE ROP REF_ID R3 FROM MC PreviousAuditEventDefn () PHRASE 'precedes' TO 1 AuditEventDefn () PHRASE 'follows';
-CREATE ROP REF_ID R4 FROM 1C Fork () TO 1C PreviousAuditEventDefn ();
-CREATE ROP REF_ID R5 FROM 1C Fork () TO 1C PreviousAuditEventDefn ();
-CREATE ROP REF_ID R6 FROM 1C Fork () TO MC PreviousAuditEventDefn ();
-CREATE ROP REF_ID R7 FROM 1C Fork () TO MC PreviousAuditEventDefn ();
-CREATE ROP REF_ID R8 FROM 1C Loop () TO 1C PreviousAuditEventDefn ();
-CREATE ROP REF_ID R9 FROM 1 AuditEventDefn () TO MC DynamicControl ();
+CREATE UNIQUE INDEX I1 ON SeqDefn (Name, JobName);
+CREATE TABLE UnrsvdAEDefn (
+    Name STRING,
+    OccurenceId INTEGER
+);
+CREATE ROP REF_ID R1 FROM M SeqDefn (JobName) TO 1 JobDefn (Name);
+CREATE ROP REF_ID R11 FROM 1C AuditEventDefn () TO MC EvtDataDefn ();
+CREATE ROP REF_ID R12 FROM MC AuditEventDefn () TO MC EvtDataDefn ();
+CREATE ROP REF_ID R13 FROM M AuditEventDefn (SequenceName, JobName) TO 1C SeqDefn (Name, JobName);
+CREATE ROP REF_ID R14 FROM MC EvtDataDefn (SourceJobName) TO 1 JobDefn (Name);
+CREATE ROP REF_ID R15 FROM M AuditEventDefn (SequenceName, JobName) TO 1C SeqDefn (Name, JobName);
+CREATE ROP REF_ID R16 FROM 1C ConstDefn () TO 1 EvtSucc ();
+CREATE ROP REF_ID R2 FROM M AuditEventDefn (SequenceName, JobName) TO 1 SeqDefn (Name, JobName);
+CREATE ROP REF_ID R3 FROM MC EvtSucc () PHRASE 'follows' TO 1 AuditEventDefn () PHRASE 'precedes';
+CREATE ROP REF_ID R3 FROM MC EvtSucc () PHRASE 'precedes' TO 1 AuditEventDefn () PHRASE 'follows';
+CREATE ROP REF_ID R50 FROM MC EvtDataDefn () TO MC UnrsvdAEDefn ();

@@ -1,0 +1,29 @@
+render : "plus::population"
+
+shapes :
+  shape : UnresolvedAuditEventDefinition
+    render : class "plus::population::Unresolved Audit Event Definition"
+    bounds : x : 4272.0 y : 3252.0 width : 204.0 height : 121.0
+  shape : EventDataDefinition
+    render : imported_class "plus::population::Event Data Definition"
+    bounds : x : 4692.0 y : 3252.0 width : 204.0 height : 121.0
+
+connectors :
+  connector : R50
+    render : association "plus::population::R50"
+    polyline :
+      segment :
+        start : x : 4692.0 y : 3312.0
+        end :   x : 4476.0 y : 3312.0
+    anchors :
+      start :
+        point : x : 4692.0 y : 3312.0
+        shape : EventDataDefinition
+      end :
+        point : x : 4476.0 y : 3312.0
+        shape : UnresolvedAuditEventDefinition
+    texts :
+      text :
+        bounds : x : 4578.0 y : 3274.0 width : 0.0 height : 0.0 where : middle
+      text :
+        bounds : x : 4486.0 y : 3322.0 width : 0.0 height : 0.0 where : end
