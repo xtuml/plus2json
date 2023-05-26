@@ -4,6 +4,7 @@ Provide a listener to the PLUS parser and tree walker.
 
 """
 
+import json
 import sys
 import xtuml
 from plus2jsonListener import plus2jsonListener
@@ -16,6 +17,8 @@ class PlusPopulator(plus2jsonListener):
     def __init__(self):
         super(PlusPopulator, self).__init__()
         self.metamodel = xtuml.load_metamodel('plus_schema.sql')
+        # TODO this is janky
+        self.metamodel.find_metaclass('Invariant').append_attribute('users', 'STRING')
         self.current_job = None
         self.current_sequence = None
         self.current_event = None
@@ -29,7 +32,7 @@ class PlusPopulator(plus2jsonListener):
         # the invariant parameters.
         jobdefnname = ctx.jobdefn.getText().strip('"')
         name = ctx.invname.getText().strip('"')
-        self.metamodel.new('Invariant', Name=name, Type='EINV', SourceJobDefinitionName=jobdefnname, is_extern=True)
+        self.metamodel.new('Invariant', Name=name, Type='EINV', SourceJobDefinitionName=jobdefnname, is_extern=True, users='[]')
 
     def exitSequence_name(self, ctx: plus2jsonParser.Sequence_nameContext):
         self.current_sequence = self.metamodel.new('SequenceDefn', SequenceName=ctx.identifier().getText())
@@ -50,7 +53,7 @@ class PlusPopulator(plus2jsonListener):
         xtuml.relate(self.current_sequence, evt, 2)
 
         # link the start event
-        if not xtuml.navigate_one(evt).SequenceDefn[13]():
+        if not xtuml.navigate_one(self.current_sequence).AuditEventDefn[13]():
             xtuml.relate(evt, self.current_sequence, 13)
             evt.SequenceStart = True
 
@@ -139,9 +142,9 @@ class PlusPopulator(plus2jsonListener):
         invariants = self.metamodel.select_many('Invariant', lambda sel: sel.Name == name)
         if invariants:
             # TODO relies on insertion order
-            invariant = invariants[-1]
+            invariant = list(invariants)[-1]
         else:
-            invariant = self.metamodel.new('Invariant', Name=name, Type=('EINV' if ctx.EINV() else 'IINV'), SourceJobDefinitionName=self.current_job.JobDefinitionName)
+            invariant = self.metamodel.new('Invariant', Name=name, Type=('EINV' if ctx.EINV() else 'IINV'), SourceJobDefinitionName=self.current_job.JobDefinitionName, users='[]')
         if ctx.SRC():
             # explicit source event
             if ctx.sname:
@@ -164,7 +167,7 @@ class PlusPopulator(plus2jsonListener):
                 uocc = ctx.uocc.getText()
             else:
                 uocc = self.current_event.OccurrenceId
-            invariant.users.append((uname, uocc))
+            invariant.users = json.dumps(json.loads(invariant.users) + [(uname, uocc)])
         # neither SRC nor USER defaults source to host
         if not ctx.SRC() and not ctx.USER():
             invariant.src_evt_txt = self.current_event.EventName
@@ -195,7 +198,7 @@ class PlusPopulator(plus2jsonListener):
                     print(f'resolve_event_linkage:  ERROR, no source events for IINV: {inv.Name}')
             for sae in saes:
                 xtuml.relate(inv, sae, 11)
-            uaes = self.metamodel.select_many('AuditEventDefn', lambda sel: (sel.EventName, sel.OccurrenceId) in inv.users)
+            uaes = self.metamodel.select_many('AuditEventDefn', lambda sel: (sel.EventName, sel.OccurrenceId) in json.loads(inv.users))
             if not uaes:
                 if type == 'IINV':
                     print('fresolve_event_linkage:  ERROR, no user events for IINV: {inv.Name}')

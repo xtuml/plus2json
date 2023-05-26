@@ -16,6 +16,7 @@ from plus2json_run import plus2json_run
 from plus_job_defn import *
 
 from populate import PlusPopulator
+import plus_job_defn_print2
 
 def main(argv):
 
@@ -58,7 +59,8 @@ python ../plus2json/__main__.py Tutorial_1.puml --job -p  # run from the raw sou
         walker.walk(run, tree)
     if "--job" in argv or "-j" in argv:
         if "--print" in argv or "-p" in argv:
-            JobDefn.instances[-1].pretty_print()
+            #JobDefn.instances[-1].pretty_print()
+            plus_job_defn_print2.JobDefn_pretty_print(populator.metamodel.select_one('JobDefn'))
         else:
             j = JobDefn.instances[-1].json()
             if j:
