@@ -18,16 +18,6 @@ within plus::plus2json is
 
     flavor: string;
 
-    c_scope: integer;
-
-    c_number: integer;
-
-    R7_PreviousAuditEventDefn_forks_from: instance of PreviousAuditEventDefn;
-
-    R5_PreviousAuditEventDefn_caches_usage: instance of PreviousAuditEventDefn;
-
-    R6_PreviousAuditEventDefn_merges: set of instance of PreviousAuditEventDefn;
-
     preferred identifier is (id);
 
     @dialect("oal");

@@ -17,8 +17,9 @@ within plus is
     relationship R2 is AuditEventDefn unconditionally relates to one SequenceDefn,
                        SequenceDefn unconditionally defines many AuditEventDefn;
 
-    relationship R3 is AuditEventDefn conditionally relates to many PreviousAuditEventDefn,
-                       PreviousAuditEventDefn unconditionally precedes one AuditEventDefn;
+    relationship R3 is AuditEventDefn conditionally follows many AuditEventDefn,
+                       AuditEventDefn conditionally precedes many AuditEventDefn
+                       using one PreviousAuditEventDefn;
 
     relationship R4 is Fork conditionally relates to one PreviousAuditEventDefn,
                        PreviousAuditEventDefn conditionally starts one Fork;

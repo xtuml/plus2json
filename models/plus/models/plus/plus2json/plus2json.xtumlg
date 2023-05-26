@@ -3,185 +3,164 @@ render : "plus::plus2json"
 shapes :
   shape : JobDefn
     render : class "plus::plus2json::JobDefn"
-    bounds : x : 4128.0 y : 3108.0 width : 229.0 height : 193.0
+    bounds : x : 4092.0 y : 3132.0 width : 229.0 height : 169.0
   shape : SequenceDefn
     render : class "plus::plus2json::SequenceDefn"
-    bounds : x : 4128.0 y : 3360.0 width : 229.0 height : 205.0
+    bounds : x : 4092.0 y : 3408.0 width : 229.0 height : 145.0
   shape : AuditEventDefn
     render : class "plus::plus2json::AuditEventDefn"
-    bounds : x : 4416.0 y : 3360.0 width : 216.0 height : 300.0
+    bounds : x : 4416.0 y : 3360.0 width : 216.0 height : 240.0
   shape : PreviousAuditEventDefn
     render : class "plus::plus2json::PreviousAuditEventDefn"
-    bounds : x : 4728.0 y : 3360.0 width : 217.0 height : 132.0
+    bounds : x : 4812.0 y : 3384.0 width : 217.0 height : 132.0
   shape : Invariant
     render : class "plus::plus2json::Invariant"
-    bounds : x : 4416.0 y : 3720.0 width : 216.0 height : 276.0
+    bounds : x : 4416.0 y : 3672.0 width : 216.0 height : 228.0
   shape : Fork
     render : class "plus::plus2json::Fork"
-    bounds : x : 4728.0 y : 3564.0 width : 241.0 height : 229.0
+    bounds : x : 4812.0 y : 3588.0 width : 241.0 height : 145.0
   shape : Loop
     render : class "plus::plus2json::Loop"
-    bounds : x : 4728.0 y : 3204.0 width : 205.0 height : 73.0
+    bounds : x : 4812.0 y : 3228.0 width : 205.0 height : 73.0
   shape : DynamicControl
     render : class "plus::plus2json::DynamicControl"
-    bounds : x : 4416.0 y : 3110.0 width : 216.0 height : 190.0
+    bounds : x : 4416.0 y : 3132.0 width : 216.0 height : 168.0
 
 connectors :
   connector : R1
     render : association "plus::plus2json::R1"
     polyline :
       segment :
-        start : x : 4211.0 y : 3301.0
-        end :   x : 4211.0 y : 3360.0
+        start : x : 4176.0 y : 3301.0
+        end :   x : 4176.0 y : 3408.0
     anchors :
       start :
-        point : x : 4211.0 y : 3301.0
+        point : x : 4176.0 y : 3301.0
         shape : JobDefn
       end :
-        point : x : 4211.0 y : 3360.0
+        point : x : 4176.0 y : 3408.0
         shape : SequenceDefn
     texts :
       text :
-        bounds : x : 4182.0 y : 3317.0 width : 0.0 height : 0.0 where : middle
+        bounds : x : 4147.0 y : 3341.0 width : 0.0 height : 0.0 where : middle
       text :
-        bounds : x : 4220.0 y : 3332.0 width : 0.0 height : 0.0 where : end
+        bounds : x : 4185.0 y : 3380.0 width : 0.0 height : 0.0 where : end
   connector : R2
     render : association "plus::plus2json::R2"
     polyline :
       segment :
-        start : x : 4357.0 y : 3456.0
+        start : x : 4321.0 y : 3456.0
         end :   x : 4416.0 y : 3456.0
     anchors :
       start :
-        point : x : 4357.0 y : 3456.0
+        point : x : 4321.0 y : 3456.0
         shape : SequenceDefn
       end :
         point : x : 4416.0 y : 3456.0
         shape : AuditEventDefn
     texts :
       text :
-        bounds : x : 4376.0 y : 3413.0 width : 0.0 height : 0.0 where : middle
+        bounds : x : 4358.0 y : 3413.0 width : 0.0 height : 0.0 where : middle
       text :
         bounds : x : 4360.0 y : 3464.0 width : 0.0 height : 0.0 where : end
-  connector : R3
-    render : association "plus::plus2json::R3"
-    polyline :
-      segment :
-        start : x : 4728.0 y : 3384.0
-        end :   x : 4680.0 y : 3384.0
-      segment :
-        start : x : 4680.0 y : 3384.0
-        end :   x : 4632.0 y : 3384.0
-    anchors :
-      start :
-        point : x : 4728.0 y : 3384.0
-        shape : PreviousAuditEventDefn
-      end :
-        point : x : 4680.0 y : 3384.0
-        shape : AuditEventDefn
-    texts :
-      text :
-        bounds : x : 4658.0 y : 3360.0 width : 0.0 height : 0.0 where : middle
-      text :
-        bounds : x : 4635.0 y : 3389.0 width : 0.0 height : 0.0 where : end
   connector : R4
     render : association "plus::plus2json::R4"
     polyline :
       segment :
-        start : x : 4728.0 y : 3432.0
-        end :   x : 4679.0 y : 3432.0
+        start : x : 4812.0 y : 3456.0
+        end :   x : 4763.0 y : 3456.0
       segment :
-        start : x : 4679.0 y : 3432.0
-        end :   x : 4679.0 y : 3600.0
+        start : x : 4763.0 y : 3456.0
+        end :   x : 4763.0 y : 3624.0
       segment :
-        start : x : 4679.0 y : 3600.0
-        end :   x : 4728.0 y : 3600.0
+        start : x : 4763.0 y : 3624.0
+        end :   x : 4812.0 y : 3624.0
     anchors :
       start :
-        point : x : 4728.0 y : 3432.0
+        point : x : 4812.0 y : 3456.0
         shape : PreviousAuditEventDefn
       end :
-        point : x : 4679.0 y : 3432.0
+        point : x : 4763.0 y : 3456.0
         shape : Fork
     texts :
       text :
-        bounds : x : 4680.0 y : 3440.0 width : 0.0 height : 0.0 where : middle
+        bounds : x : 4764.0 y : 3464.0 width : 0.0 height : 0.0 where : middle
       text :
-        bounds : x : 4679.0 y : 3608.0 width : 0.0 height : 0.0 where : end
+        bounds : x : 4763.0 y : 3632.0 width : 0.0 height : 0.0 where : end
   connector : R5
     render : association "plus::plus2json::R5"
     polyline :
       segment :
-        start : x : 4752.0 y : 3492.0
-        end :   x : 4752.0 y : 3564.0
+        start : x : 4836.0 y : 3516.0
+        end :   x : 4836.0 y : 3588.0
     anchors :
       start :
-        point : x : 4752.0 y : 3492.0
+        point : x : 4836.0 y : 3516.0
         shape : PreviousAuditEventDefn
       end :
-        point : x : 4752.0 y : 3564.0
+        point : x : 4836.0 y : 3588.0
         shape : Fork
     texts :
       text :
-        bounds : x : 4755.0 y : 3491.0 width : 0.0 height : 0.0 where : start
+        bounds : x : 4839.0 y : 3515.0 width : 0.0 height : 0.0 where : start
       text :
-        bounds : x : 4712.0 y : 3521.0 width : 0.0 height : 0.0 where : middle
+        bounds : x : 4796.0 y : 3545.0 width : 0.0 height : 0.0 where : middle
   connector : R6
     render : association "plus::plus2json::R6"
     polyline :
       segment :
-        start : x : 4836.0 y : 3492.0
-        end :   x : 4836.0 y : 3564.0
+        start : x : 4920.0 y : 3516.0
+        end :   x : 4920.0 y : 3588.0
     anchors :
       start :
-        point : x : 4836.0 y : 3492.0
+        point : x : 4920.0 y : 3516.0
         shape : PreviousAuditEventDefn
       end :
-        point : x : 4836.0 y : 3564.0
+        point : x : 4920.0 y : 3588.0
         shape : Fork
     texts :
       text :
-        bounds : x : 4846.0 y : 3502.0 width : 0.0 height : 0.0 where : start
+        bounds : x : 4930.0 y : 3526.0 width : 0.0 height : 0.0 where : start
       text :
-        bounds : x : 4805.0 y : 3518.0 width : 0.0 height : 0.0 where : middle
+        bounds : x : 4889.0 y : 3542.0 width : 0.0 height : 0.0 where : middle
       text :
-        bounds : x : 4841.0 y : 3535.0 width : 0.0 height : 0.0 where : end
+        bounds : x : 4925.0 y : 3559.0 width : 0.0 height : 0.0 where : end
   connector : R7
     render : association "plus::plus2json::R7"
     polyline :
       segment :
-        start : x : 4932.0 y : 3492.0
-        end :   x : 4932.0 y : 3564.0
+        start : x : 5016.0 y : 3516.0
+        end :   x : 5016.0 y : 3588.0
     anchors :
       start :
-        point : x : 4932.0 y : 3492.0
+        point : x : 5016.0 y : 3516.0
         shape : PreviousAuditEventDefn
       end :
-        point : x : 4932.0 y : 3564.0
+        point : x : 5016.0 y : 3588.0
         shape : Fork
     texts :
       text :
-        bounds : x : 4934.0 y : 3493.0 width : 0.0 height : 0.0 where : start
+        bounds : x : 5018.0 y : 3517.0 width : 0.0 height : 0.0 where : start
       text :
-        bounds : x : 4902.0 y : 3516.0 width : 0.0 height : 0.0 where : middle
+        bounds : x : 4986.0 y : 3540.0 width : 0.0 height : 0.0 where : middle
   connector : R8
     render : association "plus::plus2json::R8"
     polyline :
       segment :
-        start : x : 4830.0 y : 3277.0
-        end :   x : 4830.0 y : 3360.0
+        start : x : 4914.0 y : 3301.0
+        end :   x : 4914.0 y : 3384.0
     anchors :
       start :
-        point : x : 4830.0 y : 3277.0
+        point : x : 4914.0 y : 3301.0
         shape : Loop
       end :
-        point : x : 4830.0 y : 3360.0
+        point : x : 4914.0 y : 3384.0
         shape : PreviousAuditEventDefn
     texts :
       text :
-        bounds : x : 4790.0 y : 3312.0 width : 0.0 height : 0.0 where : middle
+        bounds : x : 4874.0 y : 3336.0 width : 0.0 height : 0.0 where : middle
       text :
-        bounds : x : 4840.0 y : 3337.0 width : 0.0 height : 0.0 where : end
+        bounds : x : 4924.0 y : 3361.0 width : 0.0 height : 0.0 where : end
   connector : R9
     render : association "plus::plus2json::R9"
     polyline :
@@ -226,57 +205,97 @@ connectors :
     render : association "plus::plus2json::R11"
     polyline :
       segment :
-        start : x : 4428.0 y : 3660.0
-        end :   x : 4428.0 y : 3720.0
+        start : x : 4428.0 y : 3600.0
+        end :   x : 4428.0 y : 3672.0
     anchors :
       start :
-        point : x : 4428.0 y : 3660.0
+        point : x : 4428.0 y : 3600.0
         shape : AuditEventDefn
       end :
-        point : x : 4428.0 y : 3720.0
+        point : x : 4428.0 y : 3672.0
         shape : Invariant
     texts :
       text :
-        bounds : x : 4432.0 y : 3664.0 width : 0.0 height : 0.0 where : start
+        bounds : x : 4432.0 y : 3604.0 width : 0.0 height : 0.0 where : start
       text :
-        bounds : x : 4392.0 y : 3678.0 width : 0.0 height : 0.0 where : middle
+        bounds : x : 4392.0 y : 3624.0 width : 0.0 height : 0.0 where : middle
       text :
-        bounds : x : 4436.0 y : 3695.0 width : 0.0 height : 0.0 where : end
+        bounds : x : 4436.0 y : 3647.0 width : 0.0 height : 0.0 where : end
   connector : R12
     render : association "plus::plus2json::R12"
     polyline :
       segment :
-        start : x : 4560.0 y : 3660.0
-        end :   x : 4560.0 y : 3720.0
+        start : x : 4560.0 y : 3600.0
+        end :   x : 4560.0 y : 3672.0
     anchors :
       start :
-        point : x : 4560.0 y : 3660.0
+        point : x : 4560.0 y : 3600.0
         shape : AuditEventDefn
       end :
-        point : x : 4560.0 y : 3720.0
+        point : x : 4560.0 y : 3672.0
         shape : Invariant
     texts :
       text :
-        bounds : x : 4565.0 y : 3663.0 width : 0.0 height : 0.0 where : start
+        bounds : x : 4565.0 y : 3603.0 width : 0.0 height : 0.0 where : start
       text :
-        bounds : x : 4523.0 y : 3678.0 width : 0.0 height : 0.0 where : middle
+        bounds : x : 4523.0 y : 3624.0 width : 0.0 height : 0.0 where : middle
       text :
-        bounds : x : 4570.0 y : 3697.0 width : 0.0 height : 0.0 where : end
+        bounds : x : 4570.0 y : 3649.0 width : 0.0 height : 0.0 where : end
   connector : R13
     render : association "plus::plus2json::R13"
     polyline :
       segment :
-        start : x : 4357.0 y : 3526.0
+        start : x : 4321.0 y : 3528.0
         end :   x : 4416.0 y : 3526.0
     anchors :
       start :
-        point : x : 4357.0 y : 3526.0
+        point : x : 4321.0 y : 3528.0
         shape : SequenceDefn
       end :
         point : x : 4416.0 y : 3526.0
         shape : AuditEventDefn
     texts :
       text :
-        bounds : x : 4367.0 y : 3536.0 width : 0.0 height : 0.0 where : start
+        bounds : x : 4331.0 y : 3538.0 width : 0.0 height : 0.0 where : start
       text :
-        bounds : x : 4376.0 y : 3488.0 width : 0.0 height : 0.0 where : middle
+        bounds : x : 4358.0 y : 3489.0 width : 0.0 height : 0.0 where : middle
+  connector : R3
+    render : association "plus::plus2json::R3"
+    polyline :
+      segment :
+        start : x : 4632.0 y : 3396.0
+        end :   x : 4704.0 y : 3396.0
+      segment :
+        start : x : 4704.0 y : 3396.0
+        end :   x : 4704.0 y : 3516.0
+      segment :
+        start : x : 4704.0 y : 3516.0
+        end :   x : 4632.0 y : 3516.0
+    anchors :
+      start :
+        point : x : 4632.0 y : 3396.0
+        shape : AuditEventDefn
+      end :
+        point : x : 4632.0 y : 3516.0
+        shape : AuditEventDefn
+    texts :
+      text :
+        bounds : x : 4642.0 y : 3406.0 width : 0.0 height : 0.0 where : start
+      text :
+        bounds : x : 4653.0 y : 3450.0 width : 0.0 height : 0.0 where : middle
+      text :
+        bounds : x : 4642.0 y : 3526.0 width : 0.0 height : 0.0 where : end
+  connector : R3____PreviousAuditEventDefn
+    render : associative_link "plus::plus2json::R3::PreviousAuditEventDefn"
+    polyline :
+      segment :
+        start : x : 4812.0 y : 3420.0
+        end :   x : 4704.0 y : 3420.0
+    anchors :
+      start :
+        point : x : 4812.0 y : 3420.0
+        shape : PreviousAuditEventDefn
+      end :
+        point : x : 4704.0 y : 3420.0
+        connector : R3
+    texts :

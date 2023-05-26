@@ -11,10 +11,6 @@ within plus::plus2json is
 
     JobDefinitionName: string;
 
-    R1_SequenceDefn_defines: set of instance of SequenceDefn;
-
-    c_idFactory: integer;
-
     jobId: UUID;
 
     preferred identifier is (JobDefinitionName);

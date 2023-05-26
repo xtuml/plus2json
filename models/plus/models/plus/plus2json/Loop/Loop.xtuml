@@ -6,10 +6,6 @@ within plus::plus2json is
   @class_num(7);
   class Loop is
 
-    c_scope: integer;
-
-    R8_PreviousAuditEventDefn_starts_with: instance of PreviousAuditEventDefn;
-
   end class;
 
 end;

@@ -10,10 +10,6 @@ within plus::plus2json is
 
     DynamicControlType: string;
 
-    R9_AuditEventDefn: instance of AuditEventDefn;
-
-    R10_AuditEventDefn: instance of AuditEventDefn;
-
     src_evt_txt: string;
 
     src_occ_txt: string;

@@ -12,15 +12,7 @@ within plus::plus2json is
 
     SequenceName: string;
 
-    c_current_sequence: instance of SequenceDefn;
-
-    R2_AuditEventDefn_defines: set of instance of AuditEventDefn;
-
-    R13_AuditEventDefn_starts: set of instance of AuditEventDefn;
-
     merge_usage_cache: set of instance of PreviousAuditEventDefn;
-
-    R1_JobDefn: instance of JobDefn;
 
     preferred identifier is (SequenceName);
 

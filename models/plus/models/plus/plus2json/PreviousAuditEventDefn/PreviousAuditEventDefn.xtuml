@@ -6,8 +6,6 @@ within plus::plus2json is
   @class_num(4);
   class PreviousAuditEventDefn is
 
-    R3_AuditEventDefn_precedes: instance of AuditEventDefn;
-
     ConstraintDefinitionId: string;
 
     ConstraintValue: string;

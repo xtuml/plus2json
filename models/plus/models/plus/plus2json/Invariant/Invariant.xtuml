@@ -21,15 +21,7 @@ within plus::plus2json is
     //! This is a list of string tuples of the form ( EventName, OccurrenceId ).
     user_tuples: sequence of string;
 
-    R11_AuditEventDefn: instance of AuditEventDefn;
-
-    R12_AuditEventDefn: set of instance of AuditEventDefn;
-
     is_extern: boolean;
-
-    c_idFactory: integer;
-
-    c_invariant_store_filename: string;
 
     preferred identifier is (Name, SourceJobDefinitionName);
 
