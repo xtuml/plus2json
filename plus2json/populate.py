@@ -17,8 +17,6 @@ class PlusPopulator(plus2jsonListener):
     def __init__(self):
         super(PlusPopulator, self).__init__()
         self.metamodel = xtuml.load_metamodel('plus_schema.sql')
-        # TODO this is janky
-        self.metamodel.find_metaclass('Invariant').append_attribute('users', 'STRING')
         self.current_job = None
         self.current_sequence = None
         self.current_event = None
@@ -32,7 +30,7 @@ class PlusPopulator(plus2jsonListener):
         # the invariant parameters.
         jobdefnname = ctx.jobdefn.getText().strip('"')
         name = ctx.invname.getText().strip('"')
-        self.metamodel.new('Invariant', Name=name, Type='EINV', SourceJobDefinitionName=jobdefnname, is_extern=True, users='[]')
+        self.metamodel.new('Invariant', Name=name, Type='EINV', SourceJobDefinitionName=jobdefnname, is_extern=True, user_tuples='[]')
 
     def exitSequence_name(self, ctx: plus2jsonParser.Sequence_nameContext):
         self.current_sequence = self.metamodel.new('SequenceDefn', SequenceName=ctx.identifier().getText())
@@ -59,7 +57,7 @@ class PlusPopulator(plus2jsonListener):
 
         # link the previous event
         if self.current_event:
-            xtuml.relate(evt, self.metamodel.new('PreviousAuditEventDefn'), 3)
+            xtuml.relate_using(self.current_event, evt, self.metamodel.new('PreviousAuditEventDefn'), 3, 'precedes')
 
         # TODO fork and loop
 
@@ -144,7 +142,7 @@ class PlusPopulator(plus2jsonListener):
             # TODO relies on insertion order
             invariant = list(invariants)[-1]
         else:
-            invariant = self.metamodel.new('Invariant', Name=name, Type=('EINV' if ctx.EINV() else 'IINV'), SourceJobDefinitionName=self.current_job.JobDefinitionName, users='[]')
+            invariant = self.metamodel.new('Invariant', Name=name, Type=('EINV' if ctx.EINV() else 'IINV'), SourceJobDefinitionName=self.current_job.JobDefinitionName, user_tuples='[]')
         if ctx.SRC():
             # explicit source event
             if ctx.sname:
@@ -167,7 +165,7 @@ class PlusPopulator(plus2jsonListener):
                 uocc = ctx.uocc.getText()
             else:
                 uocc = self.current_event.OccurrenceId
-            invariant.users = json.dumps(json.loads(invariant.users) + [(uname, uocc)])
+            invariant.user_tuples = json.dumps(json.loads(invariant.user_tuples) + [(uname, uocc)])
         # neither SRC nor USER defaults source to host
         if not ctx.SRC() and not ctx.USER():
             invariant.src_evt_txt = self.current_event.EventName
@@ -198,7 +196,8 @@ class PlusPopulator(plus2jsonListener):
                     print(f'resolve_event_linkage:  ERROR, no source events for IINV: {inv.Name}')
             for sae in saes:
                 xtuml.relate(inv, sae, 11)
-            uaes = self.metamodel.select_many('AuditEventDefn', lambda sel: (sel.EventName, sel.OccurrenceId) in json.loads(inv.users))
+            uaes = self.metamodel.select_many('AuditEventDefn', lambda sel: [sel.EventName, sel.OccurrenceId] in json.loads(inv.user_tuples))
+            print(uaes)
             if not uaes:
                 if type == 'IINV':
                     print('fresolve_event_linkage:  ERROR, no user events for IINV: {inv.Name}')

@@ -66,7 +66,7 @@ def AuditEventDefn_pretty_print(self):
         else:
             print("ERROR:  malformed invariant type")
             sys.exit()
-    prev_aes = '    ' + ','.join(map(lambda prev_ae: f'{xtuml.navigate_one(prev_ae).AuditEventDefn[3]().EventName}({xtuml.navigate_one(prev_ae).AuditEventDefn[3]().OccurrenceId}){prev_ae.ConstraintDefinitionId}{prev_ae.ConstraintValue}',
-                                     xtuml.navigate_many(self).PreviousAuditEventDefn[3]()))
+    prev_aes = '    ' + ','.join(map(lambda prev_ae: f'{xtuml.navigate_one(prev_ae).AuditEventDefn[3, "follows"]().EventName}({xtuml.navigate_one(prev_ae).AuditEventDefn[3, "follows"]().OccurrenceId}){prev_ae.ConstraintDefinitionId}{prev_ae.ConstraintValue}',
+                                     xtuml.navigate_many(self).PreviousAuditEventDefn[3, 'follows']()))
     print(f'{self.EventName+"("+self.OccurrenceId+")":{10}}',
           f'{ss:{5}}', f'{se:{3}}', b, prev_aes, bcnt, mcnt, lcnt, einv, iinv)
