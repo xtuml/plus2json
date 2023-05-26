@@ -3,6 +3,7 @@ import os.path
 import sys
 import json
 import tempfile
+import xtuml
 from antlr4 import *
 from os.path import abspath
 from pathlib import Path
@@ -13,6 +14,8 @@ from plus2jsonParser import plus2jsonParser
 from plus2jsonListener import plus2jsonListener
 from plus2json_run import plus2json_run
 from plus_job_defn import *
+
+from populate import PlusPopulator
 
 def main(argv):
 
@@ -45,6 +48,9 @@ python ../plus2json/__main__.py Tutorial_1.puml --job -p  # run from the raw sou
     stream = CommonTokenStream(lexer)
     parser = plus2jsonParser(stream)
     tree = parser.plusdefn()
+    populator = PlusPopulator()
+    walker = ParseTreeWalker()
+    walker.walk(populator, tree)
     if ( "--print" in argv or "-p" in argv or "--job" in argv or "-j" in argv or
         "--play" in argv ):
         run = plus2json_run() # custom listener
