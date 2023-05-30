@@ -4,217 +4,250 @@ Provide a listener to the PLUS parser and tree walker.
 
 """
 
+import antlr4
 import json
 import sys
 import xtuml
 from plus2jsonListener import plus2jsonListener
 from plus2jsonParser import plus2jsonParser
+import plus2jsonVisitor
+
+from enum import IntEnum, auto
+from uuid import uuid4
+
+from xtuml import relate, unrelate, relate_using, unrelate_using, navigate_one as one, navigate_many as many, navigate_any as any
 
 
-class PlusPopulator(plus2jsonListener):
-    """extension to tree-walker/listener for PLUS grammar"""
+def flatten(lst):
+    return [item for sublist in lst for item in sublist]
+
+
+class ConstraintType(IntEnum):
+    AND = auto()
+    XOR = auto()
+    IOR = auto()
+
+
+class PlusPopulator(plus2jsonVisitor.plus2jsonVisitor):
 
     def __init__(self):
         super(PlusPopulator, self).__init__()
-        self.metamodel = xtuml.load_metamodel('plus_schema.sql')
+        self.m = xtuml.load_metamodel('plus_schema.sql')
         self.current_job = None
         self.current_sequence = None
-        self.current_event = None
-        self.current_loop = None
+        self.current_fragment = None
+        self.current_tine = None
 
-    def exitJob_name(self, ctx: plus2jsonParser.Job_nameContext):
-        self.current_job = self.metamodel.new('JobDefn', JobDefinitionName=ctx.identifier().getText().strip('"'))
+    def aggregateResult(self, aggregate, nextResult):
+        return nextResult or aggregate  # do not overwrite with None
 
-    def exitExtern(self, ctx: plus2jsonParser.ExternContext):
-        # The default of source or target is the event definition carrying
-        # the invariant parameters.
-        jobdefnname = ctx.jobdefn.getText().strip('"')
-        name = ctx.invname.getText().strip('"')
-        self.metamodel.new('Invariant', Name=name, Type='EINV', SourceJobDefinitionName=jobdefnname, is_extern=True, user_tuples='[]')
+    def visitJob_defn(self, ctx: plus2jsonParser.Job_defnContext):
+        # process external invariant definitions
+        for extern in ctx.extern():
+            self.visit(extern)
 
-    def exitSequence_name(self, ctx: plus2jsonParser.Sequence_nameContext):
-        self.current_sequence = self.metamodel.new('SequenceDefn', SequenceName=ctx.identifier().getText())
-        if self.current_job:
-            xtuml.relate(self.current_sequence, self.current_job, 1)
+        # create a new job
+        job = self.m.new('JobDefn', Name=ctx.job_name().getText())
+        self.current_job = job
 
-    def exitSequence_defn(self, ctx: plus2jsonParser.Sequence_defnContext):
-        if self.current_event:
-            self.current_event.SequenceEnd = True
+        # process all sequences
+        for seq in ctx.sequence_defn():
+            self.visit(seq)
+
+        self.current_job = None
+        return job
+
+    def visitSequence_defn(self, ctx: plus2jsonParser.Sequence_defnContext):
+        # create a new sequence
+        seq = self.m.new('SeqDefn', Name=ctx.sequence_name().getText())
+        relate(seq, self.current_job, 1)
+        self.current_sequence = seq
+
+        # process all statements
+        for smt in ctx.statement():
+            # process the statement
+            frag = self.visit(smt)
+
+            # set the start event(s)
+            if not any(self.current_sequence).AuditEventDefn[13]():
+                for start_evt in self.get_first_events(frag):
+                    relate(start_evt, self.current_sequence, 13)
+
+            # link the fragments in order
+            if self.current_fragment:
+                relate(self.current_fragment, frag, 57, 'precedes')
+
+            # set the current fragment
+            self.current_fragment = frag
+
+        # set the end event(s)
+        # all the last events of the most recent fragment and the last event in any terminal
+        # tines can be an end event for the sequence
+        end_evts = self.get_last_events(self.current_fragment) + list(many(self.current_sequence).AuditEventDefn[2](lambda sel: any(sel).Fragment[56].Tine[52](lambda sel: sel.IsTerminal)))
+        for end_evt in end_evts:
+            relate(end_evt, self.current_sequence, 15)
+
+        self.current_events = []
         self.current_sequence = None
-        self.current_event = None
+        return seq
 
-    def exitEvent_name(self, ctx: plus2jsonParser.Event_nameContext):
+    # TODO maybe the belongs on the model and is useful for later
+    def get_first_events(self, fragment):
+        sub = xtuml.navigate_subtype(fragment, 56)
+        match sub.__metaclass__.kind:
+            case 'Fork':
+                return flatten(map(lambda f: self.get_last_events(f), many(sub).Tine[54].Fragment[51]()))
+            case 'Loop':
+                return flatten(map(lambda f: self.get_last_events(f), many(sub).Tine[55].Fragment[51]()))
+            case 'AuditEventDefn':
+                return [sub]
+
+    # TODO maybe the belongs on the model and is useful for later
+    def get_last_events(self, fragment):
+        sub = xtuml.navigate_subtype(fragment, 56)
+        match sub.__metaclass__.kind:
+            case 'Fork':
+                return flatten(map(lambda f: self.get_last_events(f), many(many(sub).Tine[54](lambda sel: not sel.IsTerminal)).Fragment[52]()))
+            case 'Loop':
+                return flatten(map(lambda f: self.get_last_events(f), many(many(sub).Tine[55](lambda sel: not sel.IsTerminal)).Fragment[52]()))
+            case 'AuditEventDefn':
+                return [sub]
+
+    def visitStatement(self, ctx: plus2jsonParser.StatementContext):
+        # visit the subtype
+        frag = self.visitChildren(ctx)
+
+        # link all event successions
+        prev_evts = self.get_last_events(self.current_fragment) if self.current_fragment else []
+        next_evts = self.get_first_events(frag)
+        for prev_evt in prev_evts:
+            for next_evt in next_evts:
+                relate_using(prev_evt, next_evt, self.m.new('EvtSucc'), 3, 'precedes')
+
+        return frag
+
+    def visitEvent_defn(self, ctx: plus2jsonParser.Event_defnContext):
+        # create a new audit event definition and corresponding fragment
+        frag = self.m.new('Fragment')
+        name, occurrence = self.visit(ctx.event_name())
+        evt = self.m.new('AuditEventDefn', Name=name, OccurrenceId=occurrence, IsBreak=(ctx.break_() is not None))
+        relate(frag, evt, 56)
+
+        # check if this is the termination of a tine
+        if self.current_tine and ctx.detach():
+            self.current_tine.IsTerminal = True
+
+        # relate the event to the current sequence
+        relate(evt, self.current_sequence, 2)
+
+        return frag
+
+    def visitEvent_name(self, ctx: plus2jsonParser.Event_nameContext):
         name = ctx.identifier().getText()
-        occurrence = str(len(xtuml.navigate_many(self.current_sequence).AuditEventDefn[2](lambda sel: sel.EventName == name))) if not ctx.number() else ctx.number().getText()
-        # TODO scope
-        evt = self.metamodel.new('AuditEventDefn', EventName=name, OccurrenceId=occurrence, SequenceStart=False, SequenceEnd=False, isBreak=False, scope=-1)
-        xtuml.relate(self.current_sequence, evt, 2)
-
-        # link the start event
-        if not xtuml.navigate_one(self.current_sequence).AuditEventDefn[13]():
-            xtuml.relate(evt, self.current_sequence, 13)
-            evt.SequenceStart = True
-
-        # link the previous event
-        if self.current_event:
-            xtuml.relate_using(self.current_event, evt, self.metamodel.new('PreviousAuditEventDefn'), 3, 'precedes')
-
-        # TODO fork and loop
-
-        self.current_event = evt
-
-    def exitEvent_defn(self, ctx: plus2jsonParser.Event_defnContext):
-        if ctx.HIDE():
-            self.current_event.SequenceStart = True
-
-    def create_dynamic_control(self, name, control_type):
-        dynamic_control = self.metamodel.new('DynamicControl', DynamicControlName=name)
-        if control_type in ('BRANCHCOUNT', 'MERGECOUNT', 'LOOPCOUNT'):
-            dynamic_control.DynamicControlType = control_type         # branch or loop
+        if ctx.number():
+            occurrence = int(ctx.number().getText())
         else:
-            # TODO error logging
-            print(f'ERROR:  invalid dynamic control type: {control_type} with name: {name}')
-        # Default source and user event to be the host audit event.  Adjustments will be made by SRC/USER.
-        dynamic_control.src_evt_txt = self.current_event.EventName
-        dynamic_control.src_occ_txt = self.current_event.OccurrenceId
-        dynamic_control.user_evt_txt = self.current_event.EventName
-        dynamic_control.user_occ_txt = self.current_event.OccurrenceId
+            # if a number is not provided, generate a default
+            occurrence = len(many(self.current_job).SeqDefn[1].AuditEventDefn[2](lambda sel: sel.Name == name))
+        return name, occurrence
 
-    def exitBranch_count(self, ctx: plus2jsonParser.Branch_countContext):
-        """almost the same as Loop and Merge"""
-        # The default of source or target is the event definition carrying
-        # the branch_count parameters.
-        dynamic_control = self.create_dynamic_control(ctx.bcname.getText(), 'BRANCHCOUNT')
-        if ctx.SRC():
-            # explicit source event
-            dynamic_control.src_evt_txt = ctx.sname.getText()
-            if ctx.socc:
-                dynamic_control.src_evt_occ = ctx.socc.getText()
-        if ctx.USER():
-            # explicit user event
-            dynamic_control.user_evt_txt = ctx.uname.getText()
-            if ctx.uocc:
-                dynamic_control.user_evt_occ = ctx.uocc.getText()
+    def processFork(self, type, tines):
+        # cache the current fragment
+        pre_fork_frag = self.current_fragment
 
-    def exitMerge_count(self, ctx: plus2jsonParser.Merge_countContext):
-        """almost the same as Branch and Loop"""
-        # The default of source or target is the event definition carrying
-        # the loop_count parameters.
-        dynamic_control = self.create_dynamic_control(ctx.mcname.getText(), 'MERGECOUNT')
-        if ctx.SRC():
-            # explicit source event
-            if ctx.sname:
-                dynamic_control.src_evt_txt = ctx.sname.getText()
-            if ctx.socc:
-                dynamic_control.src_evt_occ = ctx.socc.getText()
-        if ctx.USER():
-            # explicit user event
-            if ctx.uname:
-                dynamic_control.user_evt_txt = ctx.uname.getText()
-            if ctx.uocc:
-                dynamic_control.user_evt_occ = ctx.uocc.getText()
+        # create a new fork and corresponding fragment
+        frag = self.m.new('Fragment')
+        fork = self.m.new('Fork', Type=type)
+        relate(frag, fork, 56)
 
-    def exitLoop_count(self, ctx: plus2jsonParser.Loop_countContext):
-        """almost the same as Branch and Merge"""
-        # The default of source or target is the event definition carrying
-        # the loop_count parameters.
-        dynamic_control = self.create_dynamic_control(ctx.lcname.getText(), 'LOOPCOUNT')
-        if ctx.SRC():
-            # explicit source event
-            if ctx.sname:
-                dynamic_control.src_evt_txt = ctx.sname.getText()
-            if ctx.socc:
-                dynamic_control.src_occ_txt = ctx.socc.getText()
-        if ctx.USER():
-            # explicit user event
-            if ctx.uname:
-                dynamic_control.user_evt_txt = ctx.uname.getText()
-            if ctx.uocc:
-                dynamic_control.user_occ_txt = ctx.uocc.getText()
+        # process all tines
+        for tine in tines:
+            relate(fork, self.processTine(tine), 54)
 
-    def exitInvariant(self, ctx: plus2jsonParser.InvariantContext):
-        # The default of source or target is the event definition carrying
-        # the invariant parameters.
-        name = ctx.invname.getText().strip('"')
-        invariant = None
-        invariants = self.metamodel.select_many('Invariant', lambda sel: sel.Name == name)
-        if invariants:
-            # TODO relies on insertion order
-            invariant = list(invariants)[-1]
-        else:
-            invariant = self.metamodel.new('Invariant', Name=name, Type=('EINV' if ctx.EINV() else 'IINV'), SourceJobDefinitionName=self.current_job.JobDefinitionName, user_tuples='[]')
-        if ctx.SRC():
-            # explicit source event
-            if ctx.sname:
-                invariant.src_evt_txt = ctx.sname.getText()
-            else:
-                invariant.src_evt_txt = self.current_event.EventName
-            if ctx.socc:
-                invariant.src_evt_occ = ctx.socc.getText()
-            else:
-                invariant.src_occ_txt = self.current_event.OccurrenceId
-        if ctx.USER():
-            # explicit user event
-            uname = ""
-            uocc = ""
-            if ctx.uname:
-                uname = ctx.uname.getText()
-            else:
-                uname = self.current_event.EventName
-            if ctx.uocc:
-                uocc = ctx.uocc.getText()
-            else:
-                uocc = self.current_event.OccurrenceId
-            invariant.user_tuples = json.dumps(json.loads(invariant.user_tuples) + [(uname, uocc)])
-        # neither SRC nor USER defaults source to host
-        if not ctx.SRC() and not ctx.USER():
-            invariant.src_evt_txt = self.current_event.EventName
-            invariant.src_occ_txt = self.current_event.OccurrenceId
+        # link all event successions
+        prev_evts = self.get_last_events(pre_fork_frag) if pre_fork_frag else []
+        next_evts = self.get_first_events(frag)
+        for prev_evt in prev_evts:
+            for next_evt in next_evts:
+                evt_succ = self.m.new('EvtSucc')
+                relate(evt_succ, self.m.new('ConstDefn', Id=str(uuid4()), Type=fork.Type), 16)
+                relate_using(prev_evt, next_evt, evt_succ, 3, 'precedes')
 
-    def enterBreak(self, ctx: plus2jsonParser.BreakContext):
-        self.current_event.isBreak = True
+        self.current_fragment = None
+        return frag
 
-    def enterDetach(self, ctx: plus2jsonParser.DetachContext):
-        # 'detach' is used after events but also after EINV declarations.
-        if self.current_event:
-            self.current_event.SequenceEnd = True
-            self.current_event = None
+    def processTine(self, ctx):
+        # process the tine
+        self.current_fragment = None
+        tine = self.m.new('Tine')
+        self.current_tine = tine
+        for smt in ctx.statement():
+            # process the statement
+            frag = self.visit(smt)
 
-    def exitJob_defn(self, ctx: plus2jsonParser.Job_defnContext):
-        # Resolve the linkage between audit events using name and occurrence.
-        # This is due to forward references made in the job definition.
-        self.resolve_event_linkage()
-        xtuml.check_uniqueness_constraint(self.metamodel)
-        xtuml.check_association_integrity(self.metamodel)
+            # link the first fragment
+            if not one(tine).Fragment[51]():
+                relate(frag, tine, 51)
 
-    def resolve_event_linkage(self):
-        """ Match the text of the invariant event src and user to audit events.  """
-        for inv in self.metamodel.select_many('Invariant'):
-            saes = self.metamodel.select_many('AuditEventDefn', lambda sel: sel.EventName == inv.src_evt_txt and sel.OccurrenceId == inv.src_occ_txt)
-            if not saes:
-                if inv.Type == 'IINV':
-                    print(f'resolve_event_linkage:  ERROR, no source events for IINV: {inv.Name}')
-            for sae in saes:
-                xtuml.relate(inv, sae, 11)
-            uaes = self.metamodel.select_many('AuditEventDefn', lambda sel: [sel.EventName, sel.OccurrenceId] in json.loads(inv.user_tuples))
-            print(uaes)
-            if not uaes:
-                if type == 'IINV':
-                    print('fresolve_event_linkage:  ERROR, no user events for IINV: {inv.Name}')
-            # We can have more than one user for an invariant.
-            for uae in uaes:
-                xtuml.relate(inv, uae, 12)
+            # link the fragments in order
+            if self.current_fragment:
+                relate(self.current_fragment, frag, 57, 'precedes')
 
-        for dc in self.metamodel.select_many('DynamicControl'):
-            sae = xtuml.metamodel.select_one('AuditEventDefn', lambda sel: sel.EventName == dc.src_evt_txt and sel.OccurrenceId == dc.src_occ_txt)
-            if sae:
-                xtuml.relate(dc, sae, 9)
-            else:
-                print(f'ERROR:  unresolved SRC event in dynamic control: {dc.DynamicControlName} with name: {dc.src_evt_txt}')
-                sys.exit()
-            uae = xtuml.metamodel.select_one('AuditEventDefn', lambda sel: sel.EventName == dc.user_evt_txt and sel.OccurrenceId == dc.user_occ_txt)
-            if uae:
-                xtuml.relate(dc, uae, 10)
-            else:
-                print(f'ERROR:  unresolved USER event in dynamic control: {dc.DynamicControlName} with name: {dc.user_evt_txt}')
-                sys.exit()
+            # set the current fragment
+            self.current_fragment = frag
+
+        self.current_tine = None
+
+        # link the last fragment
+        relate(frag, tine, 52)
+        return tine
+
+    def visitIf(self, ctx: plus2jsonParser.IfContext):
+        return self.processFork(ConstraintType.XOR, [ctx] + ctx.elseif() + [ctx.else_()])
+
+    def visitElseif(self, ctx: plus2jsonParser.ElseifContext):
+        return self.processTine(ctx)
+
+    def visitElse(self, ctx: plus2jsonParser.ElseContext):
+        return self.processTine(ctx)
+
+    def visitSwitch(self, ctx: plus2jsonParser.SwitchContext):
+        return self.processFork(ConstraintType.XOR, ctx.case())
+
+    def visitCase(self, ctx: plus2jsonParser.CaseContext):
+        return self.processTine(ctx)
+
+    def visitLoop(self, ctx: plus2jsonParser.LoopContext):
+        # cache the current fragment
+        pre_loop_frag = self.current_fragment
+
+        # create a new loop and corresponding fragment
+        frag = self.m.new('Fragment')
+        loop = self.m.new('Loop')
+        relate(frag, loop, 56)
+
+        # process the tine
+        relate(loop, self.processTine(ctx), 55)
+
+        # link all event successions
+        prev_evts = self.get_last_events(frag) + (self.get_last_events(pre_loop_frag) if pre_loop_frag else [])
+        next_evts = self.get_first_events(frag)
+        for prev_evt in prev_evts:
+            for next_evt in next_evts:
+                relate_using(prev_evt, next_evt, self.m.new('EvtSucc'), 3, 'precedes')
+
+        self.current_fragment = None
+
+        return frag
+
+    def visitFork(self, ctx: plus2jsonParser.ForkContext):
+        return self.processFork(ConstraintType.AND, [ctx] + ctx.fork_again())
+
+    def visitFork_again(self, ctx: plus2jsonParser.Fork_againContext):
+        return self.processTine(ctx)
+
+    def visitSplit(self, ctx: plus2jsonParser.SplitContext):
+        return self.processFork(ConstraintType.IOR, [ctx] + ctx.split_again())
+
+    def visitSplit_again(self, ctx: plus2jsonParser.Split_againContext):
+        return self.processTine(ctx)

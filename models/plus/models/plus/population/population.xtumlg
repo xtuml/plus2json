@@ -3,27 +3,209 @@ render : "plus::population"
 shapes :
   shape : UnresolvedAuditEventDefinition
     render : class "plus::population::Unresolved Audit Event Definition"
-    bounds : x : 4272.0 y : 3252.0 width : 204.0 height : 121.0
+    bounds : x : 3900.0 y : 3228.0 width : 204.0 height : 97.0
   shape : EventDataDefinition
     render : imported_class "plus::population::Event Data Definition"
-    bounds : x : 4692.0 y : 3252.0 width : 204.0 height : 121.0
+    bounds : x : 4320.0 y : 3228.0 width : 204.0 height : 109.0
+  shape : AuditEventDefinition
+    render : imported_class "plus::population::Audit Event Definition"
+    bounds : x : 4464.0 y : 3696.0 width : 192.0 height : 120.0
+  shape : Tine
+    render : class "plus::population::Tine"
+    bounds : x : 3900.0 y : 3444.0 width : 205.0 height : 120.0
+  shape : Fork
+    render : class "plus::population::Fork"
+    bounds : x : 3900.0 y : 3684.0 width : 156.0 height : 72.0
+  shape : Loop
+    render : class "plus::population::Loop"
+    bounds : x : 4200.0 y : 3696.0 width : 156.0 height : 60.0
+  shape : Fragment
+    render : class "plus::population::Fragment"
+    bounds : x : 4236.0 y : 3444.0 width : 156.0 height : 120.0
 
 connectors :
   connector : R50
     render : association "plus::population::R50"
     polyline :
       segment :
-        start : x : 4692.0 y : 3312.0
-        end :   x : 4476.0 y : 3312.0
+        start : x : 4320.0 y : 3288.0
+        end :   x : 4104.0 y : 3288.0
     anchors :
       start :
-        point : x : 4692.0 y : 3312.0
+        point : x : 4320.0 y : 3288.0
         shape : EventDataDefinition
       end :
-        point : x : 4476.0 y : 3312.0
+        point : x : 4104.0 y : 3288.0
         shape : UnresolvedAuditEventDefinition
     texts :
       text :
-        bounds : x : 4578.0 y : 3274.0 width : 0.0 height : 0.0 where : middle
+        bounds : x : 4206.0 y : 3250.0 width : 0.0 height : 0.0 where : middle
       text :
-        bounds : x : 4486.0 y : 3322.0 width : 0.0 height : 0.0 where : end
+        bounds : x : 4114.0 y : 3298.0 width : 0.0 height : 0.0 where : end
+  connector : R51
+    render : association "plus::population::R51"
+    polyline :
+      segment :
+        start : x : 4236.0 y : 3486.0
+        end :   x : 4105.0 y : 3486.0
+    anchors :
+      start :
+        point : x : 4236.0 y : 3486.0
+        shape : Fragment
+      end :
+        point : x : 4105.0 y : 3486.0
+        shape : Tine
+    texts :
+      text :
+        bounds : x : 4182.0 y : 3486.0 width : 0.0 height : 0.0 where : start
+      text :
+        bounds : x : 4156.0 y : 3460.0 width : 0.0 height : 0.0 where : middle
+  connector : R52
+    render : association "plus::population::R52"
+    polyline :
+      segment :
+        start : x : 4236.0 y : 3540.0
+        end :   x : 4105.0 y : 3540.0
+    anchors :
+      start :
+        point : x : 4236.0 y : 3540.0
+        shape : Fragment
+      end :
+        point : x : 4105.0 y : 3540.0
+        shape : Tine
+    texts :
+      text :
+        bounds : x : 4179.0 y : 3539.0 width : 0.0 height : 0.0 where : start
+      text :
+        bounds : x : 4155.0 y : 3514.0 width : 0.0 height : 0.0 where : middle
+  connector : R54
+    render : association "plus::population::R54"
+    polyline :
+      segment :
+        start : x : 3924.0 y : 3684.0
+        end :   x : 3924.0 y : 3564.0
+    anchors :
+      start :
+        point : x : 3924.0 y : 3684.0
+        shape : Fork
+      end :
+        point : x : 3924.0 y : 3564.0
+        shape : Tine
+    texts :
+      text :
+        bounds : x : 3929.0 y : 3616.0 width : 0.0 height : 0.0 where : middle
+      text :
+        bounds : x : 3927.0 y : 3565.0 width : 0.0 height : 0.0 where : end
+  connector : R55
+    render : association "plus::population::R55"
+    polyline :
+      segment :
+        start : x : 4200.0 y : 3719.0
+        end :   x : 4082.0 y : 3719.0
+      segment :
+        start : x : 4082.0 y : 3719.0
+        end :   x : 4082.0 y : 3564.0
+    anchors :
+      start :
+        point : x : 4200.0 y : 3719.0
+        shape : Loop
+      end :
+        point : x : 4082.0 y : 3564.0
+        shape : Tine
+    texts :
+      text :
+        bounds : x : 4080.0 y : 3688.0 width : 0.0 height : 0.0 where : middle
+      text :
+        bounds : x : 4085.0 y : 3567.0 width : 0.0 height : 0.0 where : end
+  connector : R56
+    render : supertype "plus::population::R56"
+    polyline :
+      segment :
+        start : x : 4308.0 y : 3564.0
+        end :   x : 4308.0 y : 3636.0
+    anchors :
+      start :
+        point : x : 4308.0 y : 3564.0
+        shape : Fragment
+      end :
+        point : x : 4308.0 y : 3636.0
+    texts :
+      text :
+        bounds : x : 4313.0 y : 3643.0 width : 0.0 height : 0.0 where : end
+  connector : R56____AuditEventDefinition
+    render : subtype "plus::population::R56::Audit Event Definition"
+    polyline :
+      segment :
+        start : x : 4512.0 y : 3696.0
+        end :   x : 4512.0 y : 3636.0
+      segment :
+        start : x : 4512.0 y : 3636.0
+        end :   x : 4284.0 y : 3636.0
+    anchors :
+      start :
+        point : x : 4512.0 y : 3696.0
+        shape : AuditEventDefinition
+      end :
+        point : x : 4512.0 y : 3636.0
+        connector : R56
+    texts :
+  connector : R56____Fork
+    render : subtype "plus::population::R56::Fork"
+    polyline :
+      segment :
+        start : x : 4020.0 y : 3684.0
+        end :   x : 4020.0 y : 3636.0
+      segment :
+        start : x : 4020.0 y : 3636.0
+        end :   x : 4284.0 y : 3636.0
+    anchors :
+      start :
+        point : x : 4020.0 y : 3684.0
+        shape : Fork
+      end :
+        point : x : 4020.0 y : 3636.0
+        connector : R56
+    texts :
+  connector : R56____Loop
+    render : subtype "plus::population::R56::Loop"
+    polyline :
+      segment :
+        start : x : 4308.0 y : 3696.0
+        end :   x : 4308.0 y : 3636.0
+    anchors :
+      start :
+        point : x : 4308.0 y : 3696.0
+        shape : Loop
+      end :
+        point : x : 4308.0 y : 3636.0
+        connector : R56
+    texts :
+  connector : R57
+    render : association "plus::population::R57"
+    polyline :
+      segment :
+        start : x : 4392.0 y : 3504.0
+        end :   x : 4441.0 y : 3504.0
+      segment :
+        start : x : 4441.0 y : 3504.0
+        end :   x : 4441.0 y : 3395.0
+      segment :
+        start : x : 4441.0 y : 3395.0
+        end :   x : 4344.0 y : 3395.0
+      segment :
+        start : x : 4344.0 y : 3395.0
+        end :   x : 4344.0 y : 3444.0
+    anchors :
+      start :
+        point : x : 4392.0 y : 3504.0
+        shape : Fragment
+      end :
+        point : x : 4441.0 y : 3504.0
+        shape : Fragment
+    texts :
+      text :
+        bounds : x : 4402.0 y : 3514.0 width : 0.0 height : 0.0 where : start
+      text :
+        bounds : x : 4395.0 y : 3444.0 width : 0.0 height : 0.0 where : middle
+      text :
+        bounds : x : 4352.0 y : 3413.0 width : 0.0 height : 0.0 where : end

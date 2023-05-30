@@ -3,10 +3,32 @@
 within plus is
 
   package population is
+    class Fork;
+    class Fragment;
+    class Loop;
+    class Tine;
     class 'Unresolved Audit Event Definition';
+    class 'Audit Event Definition' is plus::definition::'Audit Event Definition';
     class 'Event Data Definition' is plus::definition::'Event Data Definition';
     relationship R50 is 'Event Data Definition' conditionally used_by_future many 'Unresolved Audit Event Definition',
                         'Unresolved Audit Event Definition' conditionally relates to many 'Event Data Definition';
+
+    relationship R51 is Fragment conditionally relates to one Tine,
+                        Tine unconditionally has_first one Fragment;
+
+    relationship R52 is Fragment conditionally relates to one Tine,
+                        Tine unconditionally has_last one Fragment;
+
+    relationship R54 is Fork unconditionally is_made_of many Tine,
+                        Tine conditionally relates to one Fork;
+
+    relationship R55 is Loop unconditionally is_made_of one Tine,
+                        Tine conditionally relates to one Loop;
+
+    relationship R56 is Fragment is_a ('Audit Event Definition', Fork, Loop);
+
+    relationship R57 is Fragment conditionally follows one Fragment,
+                        Fragment conditionally precedes one Fragment;
 
   end package;
 

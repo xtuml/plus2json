@@ -1,0 +1,16 @@
+// BP 7.1.6 content: ModelClass syschar: 3 persistence-version: 7.1.6
+
+within plus::population is
+
+  //! A Fork represents an "if", "switch", "fork", or "split" construct in PUML and
+  //! maps to an XOR, AND, or IOR condition in the protocol verifier each fork two one
+  //! or more branches which contain more Fragments
+  @key_letters("Fork");
+  @class_num(3);
+  class Fork is
+
+    Type: ConstraintType;
+
+  end class;
+
+end;
