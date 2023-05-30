@@ -110,11 +110,11 @@ connectors :
         point : x : 4200.0 y : 3719.0
         shape : Loop
       end :
-        point : x : 4082.0 y : 3564.0
+        point : x : 4082.0 y : 3719.0
         shape : Tine
     texts :
       text :
-        bounds : x : 4080.0 y : 3688.0 width : 0.0 height : 0.0 where : middle
+        bounds : x : 4088.0 y : 3691.0 width : 0.0 height : 0.0 where : middle
       text :
         bounds : x : 4085.0 y : 3567.0 width : 0.0 height : 0.0 where : end
   connector : R56

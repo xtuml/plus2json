@@ -11,10 +11,20 @@ def flatten(lst):
     return [item for sublist in lst for item in sublist]
 
 
+# TODO move this somewhere else
 class ConstraintType(IntEnum):
     AND = auto()
     XOR = auto()
     IOR = auto()
+
+
+# TODO move this somewhere else
+class EventDataType(IntEnum):
+    EINV = auto()
+    IINV = auto()
+    LCNT = auto()
+    BCNT = auto()
+    MCNT = auto()
 
 
 class PlusPopulator(plus2jsonVisitor.plus2jsonVisitor):
@@ -26,6 +36,7 @@ class PlusPopulator(plus2jsonVisitor.plus2jsonVisitor):
         self.current_sequence = None
         self.current_fragment = None
         self.current_tine = None
+        self.current_event = None
 
     def aggregateResult(self, aggregate, nextResult):
         return nextResult or aggregate  # do not overwrite with None
@@ -36,7 +47,7 @@ class PlusPopulator(plus2jsonVisitor.plus2jsonVisitor):
             self.visit(extern)
 
         # create a new job
-        job = self.m.new('JobDefn', Name=ctx.job_name().getText())
+        job = self.m.new('JobDefn', Name=ctx.job_name().getText().strip('"'))
         self.current_job = job
 
         # process all sequences
@@ -48,7 +59,7 @@ class PlusPopulator(plus2jsonVisitor.plus2jsonVisitor):
 
     def visitSequence_defn(self, ctx: plus2jsonParser.Sequence_defnContext):
         # create a new sequence
-        seq = self.m.new('SeqDefn', Name=ctx.sequence_name().getText())
+        seq = self.m.new('SeqDefn', Name=ctx.sequence_name().getText().strip('"'))
         relate(seq, self.current_job, 1)
         self.current_sequence = seq
 
@@ -76,7 +87,6 @@ class PlusPopulator(plus2jsonVisitor.plus2jsonVisitor):
         for end_evt in end_evts:
             relate(end_evt, self.current_sequence, 15)
 
-        self.current_events = []
         self.current_sequence = None
         return seq
 
@@ -129,6 +139,12 @@ class PlusPopulator(plus2jsonVisitor.plus2jsonVisitor):
         # relate the event to the current sequence
         relate(evt, self.current_sequence, 2)
 
+        # process event data
+        self.current_event = evt
+        for tag in ctx.event_tag():
+            self.visit(tag)
+        self.current_event = None
+
         return frag
 
     def visitEvent_name(self, ctx: plus2jsonParser.Event_nameContext):
@@ -139,6 +155,44 @@ class PlusPopulator(plus2jsonVisitor.plus2jsonVisitor):
             # if a number is not provided, generate a default
             occurrence = len(many(self.current_job).SeqDefn[1].AuditEventDefn[2](lambda sel: sel.Name == name))
         return name, occurrence
+
+    def visitInvariant(self, ctx: plus2jsonParser.InvariantContext):
+        # process intra-job invariants
+        if ctx.IINV():
+
+            # find or create invariant definition
+            name = ctx.invname.getText()
+            inv = one(self.current_job).EvtDataDefn[14](lambda sel: sel.Name == name)
+            if not inv:
+                inv = self.m.new('EvtDataDefn', Name=name, Type=EventDataType.IINV, SourceJobDefnName=self.current_job.Name)
+                relate(inv, self.current_job, 14)
+
+            # link the source event
+            if ctx.sevt:
+                src_evt = one(self.current_job).SeqDefn[1].AuditEventDefn[2](lambda sel: (sel.Name, sel.OccurenceId) == self.visit(ctx.sevt))
+                if not src_evt:
+                    pass  # TODO create forward reference
+            elif ctx.SRC() or (not ctx.SRC() and not ctx.USER()):
+                src_evt = self.current_event
+            else:
+                src_evt = None
+            if src_evt:
+                relate(src_evt, inv, 11)
+
+            # get the user event
+            if ctx.uevt:
+                user_evt = one(self.current_job).SeqDefn[1].AuditEventDefn[2](lambda sel: (sel.Name, sel.OccurenceId) == self.visit(ctx.uevt))
+                if not user_evt:
+                    pass  # TODO create forward reference
+            elif ctx.USER():
+                user_evt = self.current_event
+            else:
+                user_evt = None
+            if user_evt:
+                relate(user_evt, inv, 12)
+
+        else:  # EINV
+            pass  # TODO
 
     def processFork(self, type, tines):
         # cache the current fragment

@@ -1,5 +1,7 @@
 import argparse
 import antlr4
+import logging
+import sys
 import xtuml
 
 import plus_job_defn_print3  # TODO
@@ -7,6 +9,8 @@ import plus_job_defn_print3  # TODO
 from plus2jsonLexer import plus2jsonLexer
 from plus2jsonParser import plus2jsonParser
 from populate import PlusPopulator
+
+logger = logging.getLogger('plus2json')
 
 
 def main():
@@ -36,6 +40,11 @@ def main():
         tree = parser.plusdefn()
         populator = PlusPopulator(metamodel)
         populator.visit(tree)
+
+    # assure model consistency
+    if xtuml.check_association_integrity(metamodel) + xtuml.check_uniqueness_constraint(metamodel) > 0:
+        logger.error('Failed model integrity check')
+        sys.exit(1)
 
     # process job definitions
     if args.job:

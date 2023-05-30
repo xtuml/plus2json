@@ -42,22 +42,24 @@ statement      : ( event_defn
 
 event_defn     : ( HIDE NEWLINE )?
                  ':' event_name
-                   ( branch_count
-                   | merge_count
-                   | loop_count
-                   | invariant
-                   | critical
-                   )*
+                 event_tag*
                  ( ';' | '<' | '>' | ']' )
                  ( NEWLINE ( break | detach ) )?
                ;
+
+event_tag      : branch_count
+                 | merge_count
+                 | loop_count
+                 | invariant
+                 | critical
+	       ;
 
 event_name     : identifier ( '(' number ')' )?
                ;
 
 branch_count   : ',' BCNT
-                 ( ',' SRC ( '=' sname=identifier ( '(' socc=number ')' )? )? )?
-                 ( ',' USER ( '=' uname=identifier ( '(' uocc=number ')' )? )? )?
+                 ( ',' SRC ( '=' sevt=event_name )? )?
+                 ( ',' USER ( '=' uevt=event_name )? )?
                  ',' NAME '=' bcname=identifier
                ;
 
@@ -74,8 +76,8 @@ loop_count     : ',' LCNT
                ;
 
 invariant      : ',' ( IINV | EINV )
-                 ( ',' SRC ( '=' sname=identifier ( '(' socc=number ')' )? )? )?
-                 ( ',' USER ( '=' uname=identifier ( '(' uocc=number ')' )? )? )?
+                 ( ',' SRC ( '=' sevt=event_name )? )?
+                 ( ',' USER ( '=' uevt=event_name )? )?
                  ',' NAME '=' invname=identifier
                ;
 

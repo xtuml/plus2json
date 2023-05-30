@@ -28,7 +28,7 @@ within plus is
     relationship R13 is 'Audit Event Definition' conditionally starts one 'Sequence Definition',
                         'Sequence Definition' unconditionally relates to many 'Audit Event Definition';
 
-    relationship R14 is 'Event Data Definition' unconditionally relates to one 'Job Definition',
+    relationship R14 is 'Event Data Definition' conditionally relates to one 'Job Definition',
                         'Job Definition' conditionally sources many 'Event Data Definition';
 
     relationship R15 is 'Audit Event Definition' conditionally ends one 'Sequence Definition',
@@ -36,6 +36,9 @@ within plus is
 
     relationship R16 is 'Constraint Definition' unconditionally constrains one 'Event Succession',
                         'Event Succession' conditionally relates to one 'Constraint Definition';
+
+    relationship R17 is 'Event Data Definition' conditionally relates to one 'Job Definition',
+                        'Job Definition' conditionally defines_external many 'Event Data Definition';
 
   end package;
 

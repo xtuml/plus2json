@@ -2,7 +2,7 @@
 
 within plus::population is
 
-  //! A Fragment represents a logical group of audit events in the context of PUML.
+  //! A Fragment represents a logical group of audit events in the context of PLUS.
   //! Fragments follow each other in sequence and can be contained in other fragments
   //! as part of more complex constructs.
   @key_letters("Fragment");
