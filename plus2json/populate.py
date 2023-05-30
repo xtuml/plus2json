@@ -1,21 +1,10 @@
-"""
-
-Provide a listener to the PLUS parser and tree walker.
-
-"""
-
-import antlr4
-import json
-import sys
 import xtuml
-from plus2jsonListener import plus2jsonListener
 from plus2jsonParser import plus2jsonParser
 import plus2jsonVisitor
 
 from enum import IntEnum, auto
 from uuid import uuid4
-
-from xtuml import relate, unrelate, relate_using, unrelate_using, navigate_one as one, navigate_many as many, navigate_any as any
+from xtuml import relate, relate_using, navigate_one as one, navigate_many as many, navigate_any as any
 
 
 def flatten(lst):
@@ -30,9 +19,9 @@ class ConstraintType(IntEnum):
 
 class PlusPopulator(plus2jsonVisitor.plus2jsonVisitor):
 
-    def __init__(self):
+    def __init__(self, metamodel):
         super(PlusPopulator, self).__init__()
-        self.m = xtuml.load_metamodel('plus_schema.sql')
+        self.m = metamodel
         self.current_job = None
         self.current_sequence = None
         self.current_fragment = None
