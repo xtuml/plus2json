@@ -2,7 +2,10 @@ import argparse
 import antlr4
 import json
 import logging
+import os
+import os.path
 import sys
+import tempfile
 import xtuml
 
 import plus_job_defn_print3  # TODO
@@ -10,9 +13,10 @@ import plus_job_defn_json2  # TODO
 
 from plus2jsonLexer import plus2jsonLexer
 from plus2jsonParser import plus2jsonParser
-from populate import PlusPopulator
+from populate import PlusPopulator, PlusErrorListener
+from antlr4.error.Errors import CancellationException
 
-logger = logging.getLogger('plus2json')
+logger = logging.getLogger(__name__)
 
 
 def main():
@@ -36,10 +40,17 @@ def main():
 
     # process each input .puml file
     for filename in args.filenames:
-        lexer = plus2jsonLexer(antlr4.FileStream(filename))
-        tokens = antlr4.CommonTokenStream(lexer)
-        parser = plus2jsonParser(tokens)
-        tree = parser.plusdefn()
+        try:
+            error_listener = PlusErrorListener(filename)
+            lexer = plus2jsonLexer(antlr4.FileStream(filename))
+            lexer.addErrorListener(error_listener)
+            tokens = antlr4.CommonTokenStream(lexer)
+            parser = plus2jsonParser(tokens)
+            parser.addErrorListener(error_listener)
+            tree = parser.plusdefn()
+        except CancellationException:
+            logger.error(f'Failed to parse {os.path.basename(filename)}.')
+            continue
         populator = PlusPopulator(metamodel)
         populator.visit(tree)
 
@@ -53,10 +64,24 @@ def main():
         for job in metamodel.select_many('JobDefn'):
             if args.pretty_print:
                 plus_job_defn_print3.JobDefn_pretty_print(job)
+            output = json.dumps(plus_job_defn_json2.JobDefn_json(job), indent=4, separators=(',', ': '))
+            if args.outdir:
+                write_output_file(output, args.outdir, f'{job.Name}.json')
             else:
-                j = plus_job_defn_json2.JobDefn_json(job)
-                print(json.dumps(j, indent=4, separators=(',', ': ')))
+                print(output)
+
+
+# atomically write output to a file
+def write_output_file(output, outdir, filename):
+    os.makedirs(outdir, exist_ok=True)
+    outfile = os.path.join(outdir, filename)
+    with tempfile.NamedTemporaryFile(mode='w', dir=os.getcwd(), delete=False) as f:
+        f.write(output)
+        f.flush()
+        tmpfilename = f.name
+    os.replace(tmpfilename, outfile)
 
 
 if __name__ == '__main__':
+    logging.basicConfig(stream=sys.stderr, level=logging.INFO)
     main()

@@ -1,10 +1,18 @@
 import xtuml
-from plus2jsonParser import plus2jsonParser
 import plus2jsonVisitor
+import logging
+import os.path
 
+from plus2jsonParser import plus2jsonParser
 from enum import IntEnum, auto
 from uuid import uuid3, UUID
 from xtuml import relate, relate_using, navigate_one as one, navigate_many as many, navigate_any as any
+
+from antlr4.error.ErrorListener import ErrorListener
+from antlr4.error.Errors import CancellationException
+
+
+logger = logging.getLogger(__name__)
 
 
 def flatten(lst):
@@ -29,6 +37,17 @@ class EventDataType(IntEnum):
     LCNT = auto()
     BCNT = auto()
     MCNT = auto()
+
+
+class PlusErrorListener(ErrorListener):
+
+    def __init__(self, filename=None):
+        super(PlusErrorListener, self).__init__()
+        self.filename = filename
+
+    def syntaxError(self, recognizer, offendingSymbol, line, column, msg, e):
+        logger.error(f'{os.path.basename(self.filename)}[{line}:{column}]:  {msg}')
+        raise CancellationException(msg)
 
 
 class PlusPopulator(plus2jsonVisitor.plus2jsonVisitor):
