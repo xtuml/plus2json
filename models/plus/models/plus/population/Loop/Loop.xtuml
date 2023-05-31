@@ -3,7 +3,7 @@
 within plus::population is
 
   @key_letters("Loop");
-  @class_num(4);
+  @class_num(53);
   class Loop is
 
   end class;

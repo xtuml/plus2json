@@ -10,5 +10,8 @@ shapes :
   shape : population
     render : package "plus::population"
     bounds : x : 4413.0 y : 3084.0 width : 200.0 height : 150.0
+  shape : runtime
+    render : package "plus::runtime"
+    bounds : x : 4633.0 y : 3084.0 width : 200.0 height : 150.0
 
 connectors :

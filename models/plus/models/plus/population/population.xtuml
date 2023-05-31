@@ -2,17 +2,13 @@
 
 within plus is
 
+  @start_numbering(51);
   package population is
     class Fork;
     class Fragment;
     class Loop;
     class Tine;
-    class 'Unresolved Audit Event Definition';
     class 'Audit Event Definition' is plus::definition::'Audit Event Definition';
-    class 'Event Data Definition' is plus::definition::'Event Data Definition';
-    relationship R50 is 'Event Data Definition' conditionally used_by_future many 'Unresolved Audit Event Definition',
-                        'Unresolved Audit Event Definition' conditionally relates to many 'Event Data Definition';
-
     relationship R51 is Fragment conditionally relates to one Tine,
                         Tine unconditionally has_first one Fragment;
 

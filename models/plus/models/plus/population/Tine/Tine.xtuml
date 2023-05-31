@@ -3,7 +3,7 @@
 within plus::population is
 
   @key_letters("Tine");
-  @class_num(2);
+  @class_num(54);
   class Tine is
 
     IsTerminal: boolean;

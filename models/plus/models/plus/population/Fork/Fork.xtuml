@@ -6,7 +6,7 @@ within plus::population is
   //! maps to an XOR, AND, or IOR condition in the protocol verifier each fork two one
   //! or more branches which contain more Fragments
   @key_letters("Fork");
-  @class_num(3);
+  @class_num(51);
   class Fork is
 
     Type: ConstraintType;

@@ -1,0 +1,28 @@
+// BP 7.1.6 content: Package syschar: 3 persistence-version: 7.1.6
+
+within plus is
+
+  @start_numbering(101);
+  package runtime is
+    class 'Audit Event';
+    class Job;
+    class 'Audit Event Definition' is plus::definition::'Audit Event Definition';
+    class 'Job Definition' is plus::definition::'Job Definition';
+    relationship R101 is 'Job Definition' conditionally relates to many Job,
+                         Job unconditionally instance_of one 'Job Definition';
+
+    relationship R102 is 'Audit Event' unconditionally relates to one Job,
+                         Job unconditionally consists_of many 'Audit Event';
+
+    relationship R103 is 'Audit Event Definition' conditionally relates to many 'Audit Event',
+                         'Audit Event' unconditionally instance_of one 'Audit Event Definition';
+
+    relationship R104 is 'Audit Event' conditionally follows one 'Audit Event',
+                         'Audit Event' conditionally precedes one 'Audit Event';
+
+    relationship R105 is 'Audit Event' conditionally relates to one Job,
+                         Job unconditionally has_first one 'Audit Event';
+
+  end package;
+
+end;
