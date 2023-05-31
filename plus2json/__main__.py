@@ -1,10 +1,12 @@
 import argparse
 import antlr4
+import json
 import logging
 import sys
 import xtuml
 
 import plus_job_defn_print3  # TODO
+import plus_job_defn_json2  # TODO
 
 from plus2jsonLexer import plus2jsonLexer
 from plus2jsonParser import plus2jsonParser
@@ -51,6 +53,9 @@ def main():
         for job in metamodel.select_many('JobDefn'):
             if args.pretty_print:
                 plus_job_defn_print3.JobDefn_pretty_print(job)
+            else:
+                j = plus_job_defn_json2.JobDefn_json(job)
+                print(json.dumps(j, indent=4, separators=(',', ': ')))
 
 
 if __name__ == '__main__':
