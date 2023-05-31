@@ -3,12 +3,16 @@ from plus2jsonParser import plus2jsonParser
 import plus2jsonVisitor
 
 from enum import IntEnum, auto
-from uuid import uuid4
+from uuid import uuid3, UUID
 from xtuml import relate, relate_using, navigate_one as one, navigate_many as many, navigate_any as any
 
 
 def flatten(lst):
     return [item for sublist in lst for item in sublist]
+
+
+def generate_id(*args):
+    return uuid3(UUID(int=0), ''.join([str(arg) for arg in args]))
 
 
 # TODO move this somewhere else
@@ -42,13 +46,13 @@ class PlusPopulator(plus2jsonVisitor.plus2jsonVisitor):
         return nextResult or aggregate  # do not overwrite with None
 
     def visitJob_defn(self, ctx: plus2jsonParser.Job_defnContext):
-        # process external invariant definitions
+        # create a new job
+        job = self.m.new('JobDefn', Name=self.visit(ctx.job_name()))
+        self.current_job = job
+
+        # process external invariant declarations
         for extern in ctx.extern():
             self.visit(extern)
-
-        # create a new job
-        job = self.m.new('JobDefn', Name=ctx.job_name().getText().strip('"'))
-        self.current_job = job
 
         # process all sequences
         for seq in ctx.sequence_defn():
@@ -57,13 +61,19 @@ class PlusPopulator(plus2jsonVisitor.plus2jsonVisitor):
         self.current_job = None
         return job
 
+    def visitExtern(self, ctx: plus2jsonParser.ExternContext):
+        inv = self.m.new('EvtDataDefn', Name=self.visit(ctx.invname), Type=EventDataType.EINV, SourceJobDefnName=self.visit(ctx.jobdefn))
+        relate(inv, self.current_job, 17)
+        return inv
+
     def visitSequence_defn(self, ctx: plus2jsonParser.Sequence_defnContext):
         # create a new sequence
-        seq = self.m.new('SeqDefn', Name=ctx.sequence_name().getText().strip('"'))
+        seq = self.m.new('SeqDefn', Name=self.visit(ctx.sequence_name()))
         relate(seq, self.current_job, 1)
         self.current_sequence = seq
 
         # process all statements
+        self.current_fragment = None
         for smt in ctx.statement():
             # process the statement
             frag = self.visit(smt)
@@ -126,11 +136,20 @@ class PlusPopulator(plus2jsonVisitor.plus2jsonVisitor):
         return frag
 
     def visitEvent_defn(self, ctx: plus2jsonParser.Event_defnContext):
-        # create a new audit event definition and corresponding fragment
-        frag = self.m.new('Fragment')
         name, occurrence = self.visit(ctx.event_name())
-        evt = self.m.new('AuditEventDefn', Name=name, OccurrenceId=occurrence, IsBreak=(ctx.break_() is not None))
-        relate(frag, evt, 56)
+
+        # if a positive occurrence ID is not provided, choose a default
+        if occurrence < 1:
+            occurrence = len(many(self.current_job).SeqDefn[1].AuditEventDefn[2](lambda sel: sel.Name == name))
+
+        # search for audit events created via forward reference
+        evt = self.m.select_any('AuditEventDefn', lambda sel: sel.Name == name and sel.OccurrenceId == occurrence and hasattr(sel, 'JobDefnNameCached') and sel.JobDefnNameCached == self.current_job.Name)
+        frag = one(evt).Fragment[56]()
+        if not evt:
+            # create a new audit event definition and corresponding fragment
+            evt = self.m.new('AuditEventDefn', Name=name, OccurrenceId=occurrence, IsBreak=(ctx.break_() is not None))
+            frag = self.m.new('Fragment')
+            relate(frag, evt, 56)
 
         # check if this is the termination of a tine
         if self.current_tine and ctx.detach():
@@ -148,51 +167,72 @@ class PlusPopulator(plus2jsonVisitor.plus2jsonVisitor):
         return frag
 
     def visitEvent_name(self, ctx: plus2jsonParser.Event_nameContext):
-        name = ctx.identifier().getText()
+        name = self.visit(ctx.identifier())
         if ctx.number():
-            occurrence = int(ctx.number().getText())
+            occurrence = self.visit(ctx.number())
         else:
-            # if a number is not provided, generate a default
-            occurrence = len(many(self.current_job).SeqDefn[1].AuditEventDefn[2](lambda sel: sel.Name == name))
+            occurrence = 0
         return name, occurrence
 
+    def visitEvent_ref(self, ctx: plus2jsonParser.Event_refContext):
+        name, occurrence = self.visit(ctx.event_name())
+        evt = one(self.current_job).SeqDefn[1].AuditEventDefn[2](lambda sel: sel.Name == name and sel.OccurrenceId == occurrence)
+        if not evt:
+            evt = self.m.new('AuditEventDefn', Name=name, OccurrenceId=occurrence, JobDefnNameCached=self.current_job.Name)
+            frag = self.m.new('Fragment')
+            relate(frag, evt, 56)
+        return evt
+
+    def processDynamicControl(self, ctx, name, type):
+        # find or create dynamic control
+        dc = one(self.current_job).EvtDataDefn[14](lambda sel: sel.Name == name)
+        if not dc:
+            dc = self.m.new('EvtDataDefn', Name=name, Type=type, SourceJobDefnName=self.current_job.Name)
+            relate(dc, self.current_job, 14)
+
+        # link the source event
+        if ctx.sevt:
+            relate(self.visit(ctx.sevt), dc, 11)
+        else:
+            relate(self.current_event, dc, 11)
+
+        # link the user event
+        if ctx.uevt:
+            relate(self.visit(ctx.uevt), dc, 12)
+
+        return dc
+
+    def visitBranch_count(self, ctx: plus2jsonParser.Branch_countContext):
+        return self.processDynamicControl(ctx, self.visit(ctx.bcname), EventDataType.BCNT)
+
+    def visitMerge_count(self, ctx: plus2jsonParser.Merge_countContext):
+        return self.processDynamicControl(ctx, self.visit(ctx.mcname), EventDataType.MCNT)
+
+    def visitLoop_count(self, ctx: plus2jsonParser.Loop_countContext):
+        return self.processDynamicControl(ctx, self.visit(ctx.lcname), EventDataType.LCNT)
+
     def visitInvariant(self, ctx: plus2jsonParser.InvariantContext):
-        # process intra-job invariants
-        if ctx.IINV():
+        name = self.visit(ctx.invname)
 
-            # find or create invariant definition
-            name = ctx.invname.getText()
-            inv = one(self.current_job).EvtDataDefn[14](lambda sel: sel.Name == name)
-            if not inv:
-                inv = self.m.new('EvtDataDefn', Name=name, Type=EventDataType.IINV, SourceJobDefnName=self.current_job.Name)
-                relate(inv, self.current_job, 14)
+        # find or create invariant definition
+        inv = one(self.current_job).EvtDataDefn[14](lambda sel: sel.Name == name) or one(self.current_job).EvtDataDefn[17](lambda sel: sel.Name == name)
+        if not inv:
+            inv = self.m.new('EvtDataDefn', Name=name, Type=(EventDataType.IINV if ctx.IINV() else EventDataType.EINV), SourceJobDefnName=self.current_job.Name)
+            relate(inv, self.current_job, 14)
 
-            # link the source event
-            if ctx.sevt:
-                src_evt = one(self.current_job).SeqDefn[1].AuditEventDefn[2](lambda sel: (sel.Name, sel.OccurenceId) == self.visit(ctx.sevt))
-                if not src_evt:
-                    pass  # TODO create forward reference
-            elif ctx.SRC() or (not ctx.SRC() and not ctx.USER()):
-                src_evt = self.current_event
-            else:
-                src_evt = None
-            if src_evt:
-                relate(src_evt, inv, 11)
+        # link the source event
+        if ctx.sevt:
+            relate(self.visit(ctx.sevt), inv, 11)
+        elif ctx.SRC() or (not ctx.SRC() and not ctx.USER()):
+            relate(self.current_event, inv, 11)
 
-            # get the user event
-            if ctx.uevt:
-                user_evt = one(self.current_job).SeqDefn[1].AuditEventDefn[2](lambda sel: (sel.Name, sel.OccurenceId) == self.visit(ctx.uevt))
-                if not user_evt:
-                    pass  # TODO create forward reference
-            elif ctx.USER():
-                user_evt = self.current_event
-            else:
-                user_evt = None
-            if user_evt:
-                relate(user_evt, inv, 12)
+        # link the user event
+        if ctx.uevt:
+            relate(self.visit(ctx.uevt), inv, 12)
+        elif ctx.USER():
+            relate(self.current_event, inv, 12)
 
-        else:  # EINV
-            pass  # TODO
+        return inv
 
     def processFork(self, type, tines):
         # cache the current fragment
@@ -213,7 +253,8 @@ class PlusPopulator(plus2jsonVisitor.plus2jsonVisitor):
         for prev_evt in prev_evts:
             for next_evt in next_evts:
                 evt_succ = self.m.new('EvtSucc')
-                relate(evt_succ, self.m.new('ConstDefn', Id=str(uuid4()), Type=fork.Type), 16)
+                id_str = str(generate_id(prev_evt.Name, prev_evt.OccurrenceId, prev_evt.JobDefnName, next_evt.Name, next_evt.OccurrenceId, next_evt.JobDefnName))
+                relate(evt_succ, self.m.new('ConstDefn', Id=id_str, Type=fork.Type), 16)
                 relate_using(prev_evt, next_evt, evt_succ, 3, 'precedes')
 
         self.current_fragment = None
@@ -294,3 +335,9 @@ class PlusPopulator(plus2jsonVisitor.plus2jsonVisitor):
 
     def visitSplit_again(self, ctx: plus2jsonParser.Split_againContext):
         return self.processTine(ctx)
+
+    def visitIdentifier(self, ctx: plus2jsonParser.IdentifierContext):
+        return ctx.getText().strip('"')
+
+    def visitNumber(self, ctx: plus2jsonParser.NumberContext):
+        return int(ctx.getText())

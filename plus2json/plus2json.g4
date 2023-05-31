@@ -57,27 +57,30 @@ event_tag      : branch_count
 event_name     : identifier ( '(' number ')' )?
                ;
 
+event_ref      : event_name
+               ;
+
 branch_count   : ',' BCNT
-                 ( ',' SRC ( '=' sevt=event_name )? )?
-                 ( ',' USER ( '=' uevt=event_name )? )?
+                 ( ',' SRC ( '=' sevt=event_ref )? )?
+                 ( ',' USER ( '=' uevt=event_ref )? )?
                  ',' NAME '=' bcname=identifier
                ;
 
 merge_count    : ',' MCNT
-                 ( ',' SRC ( '=' sname=identifier ( '(' socc=number ')' )? )? )?
-                 ( ',' USER ( '=' uname=identifier ( '(' uocc=number ')' )? )? )?
+                 ( ',' SRC ( '=' sevt=event_ref )? )?
+                 ( ',' USER ( '=' uevt=event_ref )? )?
                  ',' NAME '=' mcname=identifier
                ;
 
 loop_count     : ',' LCNT
-                 ( ',' SRC ( '=' sname=identifier ( '(' socc=number ')' )? )? )?
-                 ( ',' USER ( '=' uname=identifier ( '(' uocc=number ')' )? )? )?
+                 ( ',' SRC ( '=' sevt=event_ref )? )?
+                 ( ',' USER ( '=' uevt=event_ref )? )?
                  ',' NAME '=' lcname=identifier
                ;
 
 invariant      : ',' ( IINV | EINV )
-                 ( ',' SRC ( '=' sevt=event_name )? )?
-                 ( ',' USER ( '=' uevt=event_name )? )?
+                 ( ',' SRC ( '=' sevt=event_ref )? )?
+                 ( ',' USER ( '=' uevt=event_ref )? )?
                  ',' NAME '=' invname=identifier
                ;
 

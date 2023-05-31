@@ -14,17 +14,17 @@ within plus::definition is
 
     OccurrenceId: integer;
 
-    IsBreak: boolean;
+    @ref_mode("referred_to");
+    @use_referred_to_prefix(root_name="JobDefnName");
+    JobDefnName: referential (R2.'Sequence Definition'.JobDefnName, R13.'Sequence Definition'.JobDefnName, R15.'Sequence Definition'.JobDefnName) string;
 
     @ref_mode("referred_to");
     @use_prefix(prefix="Sequence", root_name="Name");
     SequenceName: referential (R2.'Sequence Definition'.Name, R13.'Sequence Definition'.Name, R15.'Sequence Definition'.Name) string;
 
-    @ref_mode("referred_to");
-    @use_referred_to_prefix(root_name="JobDefnName");
-    JobDefnName: referential (R2.'Sequence Definition'.JobDefnName, R13.'Sequence Definition'.JobDefnName, R15.'Sequence Definition'.JobDefnName) string;
+    IsBreak: boolean;
 
-    preferred identifier is (Name, OccurrenceId);
+    preferred identifier is (Name, OccurrenceId, JobDefnName);
 
   end class;
 

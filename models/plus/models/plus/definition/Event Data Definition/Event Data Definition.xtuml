@@ -14,9 +14,13 @@ within plus::definition is
 
     Type: EventDataType;
 
+    @ref_mode("referred_to");
+    @use_prefix(prefix="JobDefn", root_name="Name");
+    JobDefnName: referential (R14.'Job Definition'.Name, R17.'Job Definition'.Name) string;
+
     SourceJobDefnName: string;
 
-    preferred identifier is (Name, SourceJobDefnName);
+    preferred identifier is (Name, JobDefnName);
 
   end class;
 

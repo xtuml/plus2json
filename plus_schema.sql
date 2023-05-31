@@ -1,11 +1,11 @@
 CREATE TABLE AuditEventDefn (
     Name STRING,
     OccurrenceId INTEGER,
-    IsBreak BOOLEAN,
+    JobDefnName STRING,
     SequenceName STRING,
-    JobDefnName STRING
+    IsBreak BOOLEAN
 );
-CREATE UNIQUE INDEX I1 ON AuditEventDefn (Name, OccurrenceId);
+CREATE UNIQUE INDEX I1 ON AuditEventDefn (Name, OccurrenceId, JobDefnName);
 CREATE TABLE ConstDefn (
     Id STRING,
     Type INTEGER
@@ -13,9 +13,10 @@ CREATE TABLE ConstDefn (
 CREATE TABLE EvtDataDefn (
     Name STRING,
     Type INTEGER,
+    JobDefnName STRING,
     SourceJobDefnName STRING
 );
-CREATE UNIQUE INDEX I1 ON EvtDataDefn (Name, SourceJobDefnName);
+CREATE UNIQUE INDEX I1 ON EvtDataDefn (Name, JobDefnName);
 CREATE TABLE EvtSucc (
     
 );
@@ -47,12 +48,12 @@ CREATE TABLE UnrsvdAEDefn (
 CREATE ROP REF_ID R1 FROM M SeqDefn (JobDefnName) TO 1 JobDefn (Name);
 CREATE ROP REF_ID R11 FROM 1C AuditEventDefn () TO MC EvtDataDefn ();
 CREATE ROP REF_ID R12 FROM MC AuditEventDefn () TO MC EvtDataDefn ();
-CREATE ROP REF_ID R13 FROM M AuditEventDefn (SequenceName, JobDefnName) TO 1C SeqDefn (Name, JobDefnName);
-CREATE ROP REF_ID R14 FROM MC EvtDataDefn () TO 1C JobDefn ();
-CREATE ROP REF_ID R15 FROM M AuditEventDefn (SequenceName, JobDefnName) TO 1C SeqDefn (Name, JobDefnName);
+CREATE ROP REF_ID R13 FROM M AuditEventDefn (JobDefnName, SequenceName) TO 1C SeqDefn (JobDefnName, Name);
+CREATE ROP REF_ID R14 FROM MC EvtDataDefn (JobDefnName) TO 1C JobDefn (Name);
+CREATE ROP REF_ID R15 FROM M AuditEventDefn (JobDefnName, SequenceName) TO 1C SeqDefn (JobDefnName, Name);
 CREATE ROP REF_ID R16 FROM 1C ConstDefn () TO 1 EvtSucc ();
-CREATE ROP REF_ID R17 FROM MC EvtDataDefn () TO 1C JobDefn ();
-CREATE ROP REF_ID R2 FROM M AuditEventDefn (SequenceName, JobDefnName) TO 1 SeqDefn (Name, JobDefnName);
+CREATE ROP REF_ID R17 FROM MC EvtDataDefn (JobDefnName) TO 1C JobDefn (Name);
+CREATE ROP REF_ID R2 FROM M AuditEventDefn (JobDefnName, SequenceName) TO 1 SeqDefn (JobDefnName, Name);
 CREATE ROP REF_ID R3 FROM MC EvtSucc () PHRASE 'follows' TO 1 AuditEventDefn () PHRASE 'precedes';
 CREATE ROP REF_ID R3 FROM MC EvtSucc () PHRASE 'precedes' TO 1 AuditEventDefn () PHRASE 'follows';
 CREATE ROP REF_ID R50 FROM MC EvtDataDefn () TO MC UnrsvdAEDefn ();
