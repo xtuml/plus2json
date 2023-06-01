@@ -1,4 +1,4 @@
-grammar plus2json;
+grammar Plus;
 
 plusdefn       : NEWLINE* umlblock+
                ;

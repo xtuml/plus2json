@@ -9,12 +9,12 @@ import tempfile
 import uuid
 import xtuml
 
-import plus_job_defn_print3  # TODO
-import plus_job_defn_json2  # TODO
-import play  # TODO
+from pretty_print import JobDefn_pretty_print
+from definition import JobDefn_json
+from play import JobDefn_play, Job_pretty_print, Job_json
 
-from plus2jsonLexer import plus2jsonLexer
-from plus2jsonParser import plus2jsonParser
+from PlusLexer import PlusLexer
+from PlusParser import PlusParser
 from populate import PlusPopulator, PlusErrorListener
 from antlr4.error.Errors import CancellationException
 
@@ -47,10 +47,10 @@ def main():
         for filename in args.filenames:
             try:
                 error_listener = PlusErrorListener(filename)
-                lexer = plus2jsonLexer(antlr4.FileStream(filename))
+                lexer = PlusLexer(antlr4.FileStream(filename))
                 lexer.addErrorListener(error_listener)
                 tokens = antlr4.CommonTokenStream(lexer)
-                parser = plus2jsonParser(tokens)
+                parser = PlusParser(tokens)
                 parser.addErrorListener(error_listener)
                 tree = parser.plusdefn()
             except CancellationException:
@@ -78,9 +78,9 @@ def process_job_definitions(metamodel=None, pretty_print=False, outdir=None, **k
     # output each job definition
     for job_defn in metamodel.select_many('JobDefn'):
         if pretty_print:
-            plus_job_defn_print3.JobDefn_pretty_print(job_defn)
+            JobDefn_pretty_print(job_defn)
         else:
-            output = json.dumps(plus_job_defn_json2.JobDefn_json(job_defn), indent=4, separators=(',', ': '))
+            output = json.dumps(JobDefn_json(job_defn), indent=4, separators=(',', ': '))
             if outdir:
                 write_output_file(output, outdir, f'{job_defn.Name}.json')
             else:
@@ -98,11 +98,11 @@ def play_job_definitions(metamodel=xtuml.MetaModel(), pretty_print=False, intege
 
     # play each job definition
     for job_defn in metamodel.select_many('JobDefn'):
-        job = play.JobDefn_play(job_defn)
+        job = JobDefn_play(job_defn)
         if pretty_print:
-            play.Job_pretty_print(job)
+            Job_pretty_print(job)
         else:
-            output = json.dumps(play.Job_json(job), indent=4, separators=(',', ': '))
+            output = json.dumps(Job_json(job), indent=4, separators=(',', ': '))
             if outdir:
                 write_output_file(output, outdir, f'{job.Id}.json')
             else:

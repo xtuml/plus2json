@@ -1,9 +1,9 @@
 import xtuml
-import plus2jsonVisitor
+import PlusVisitor
 import logging
 import os.path
 
-from plus2jsonParser import plus2jsonParser
+from PlusParser import PlusParser
 from enum import IntEnum, auto
 from uuid import uuid3, UUID
 from xtuml import relate, relate_using, navigate_one as one, navigate_many as many, navigate_any as any
@@ -50,7 +50,7 @@ class PlusErrorListener(ErrorListener):
         raise CancellationException(msg)
 
 
-class PlusPopulator(plus2jsonVisitor.plus2jsonVisitor):
+class PlusPopulator(PlusVisitor.PlusVisitor):
 
     def __init__(self, metamodel):
         super(PlusPopulator, self).__init__()
@@ -64,7 +64,7 @@ class PlusPopulator(plus2jsonVisitor.plus2jsonVisitor):
     def aggregateResult(self, aggregate, nextResult):
         return nextResult or aggregate  # do not overwrite with None
 
-    def visitJob_defn(self, ctx: plus2jsonParser.Job_defnContext):
+    def visitJob_defn(self, ctx: PlusParser.Job_defnContext):
         # create a new job
         job = self.m.new('JobDefn', Name=self.visit(ctx.job_name()))
         self.current_job = job
@@ -80,12 +80,12 @@ class PlusPopulator(plus2jsonVisitor.plus2jsonVisitor):
         self.current_job = None
         return job
 
-    def visitExtern(self, ctx: plus2jsonParser.ExternContext):
+    def visitExtern(self, ctx: PlusParser.ExternContext):
         inv = self.m.new('EvtDataDefn', Name=self.visit(ctx.invname), Type=EventDataType.EINV, SourceJobDefnName=self.visit(ctx.jobdefn))
         relate(inv, self.current_job, 17)
         return inv
 
-    def visitSequence_defn(self, ctx: plus2jsonParser.Sequence_defnContext):
+    def visitSequence_defn(self, ctx: PlusParser.Sequence_defnContext):
         # create a new sequence
         seq = self.m.new('SeqDefn', Name=self.visit(ctx.sequence_name()))
         relate(seq, self.current_job, 1)
@@ -142,7 +142,7 @@ class PlusPopulator(plus2jsonVisitor.plus2jsonVisitor):
             case 'AuditEventDefn':
                 return [sub]
 
-    def visitStatement(self, ctx: plus2jsonParser.StatementContext):
+    def visitStatement(self, ctx: PlusParser.StatementContext):
         # visit the subtype
         frag = self.visitChildren(ctx)
 
@@ -155,7 +155,7 @@ class PlusPopulator(plus2jsonVisitor.plus2jsonVisitor):
 
         return frag
 
-    def visitEvent_defn(self, ctx: plus2jsonParser.Event_defnContext):
+    def visitEvent_defn(self, ctx: PlusParser.Event_defnContext):
         name, occurrence = self.visit(ctx.event_name())
 
         # if a positive occurrence ID is not provided, choose a default
@@ -186,7 +186,7 @@ class PlusPopulator(plus2jsonVisitor.plus2jsonVisitor):
 
         return frag
 
-    def visitEvent_name(self, ctx: plus2jsonParser.Event_nameContext):
+    def visitEvent_name(self, ctx: PlusParser.Event_nameContext):
         name = self.visit(ctx.identifier())
         if ctx.number():
             occurrence = self.visit(ctx.number())
@@ -194,7 +194,7 @@ class PlusPopulator(plus2jsonVisitor.plus2jsonVisitor):
             occurrence = 0
         return name, occurrence
 
-    def visitEvent_ref(self, ctx: plus2jsonParser.Event_refContext):
+    def visitEvent_ref(self, ctx: PlusParser.Event_refContext):
         name, occurrence = self.visit(ctx.event_name())
         evt = one(self.current_job).SeqDefn[1].AuditEventDefn[2](lambda sel: sel.Name == name and sel.OccurrenceId == occurrence)
         if not evt:
@@ -222,16 +222,16 @@ class PlusPopulator(plus2jsonVisitor.plus2jsonVisitor):
 
         return dc
 
-    def visitBranch_count(self, ctx: plus2jsonParser.Branch_countContext):
+    def visitBranch_count(self, ctx: PlusParser.Branch_countContext):
         return self.processDynamicControl(ctx, self.visit(ctx.bcname), EventDataType.BCNT)
 
-    def visitMerge_count(self, ctx: plus2jsonParser.Merge_countContext):
+    def visitMerge_count(self, ctx: PlusParser.Merge_countContext):
         return self.processDynamicControl(ctx, self.visit(ctx.mcname), EventDataType.MCNT)
 
-    def visitLoop_count(self, ctx: plus2jsonParser.Loop_countContext):
+    def visitLoop_count(self, ctx: PlusParser.Loop_countContext):
         return self.processDynamicControl(ctx, self.visit(ctx.lcname), EventDataType.LCNT)
 
-    def visitInvariant(self, ctx: plus2jsonParser.InvariantContext):
+    def visitInvariant(self, ctx: PlusParser.InvariantContext):
         name = self.visit(ctx.invname)
 
         # find or create invariant definition
@@ -306,22 +306,22 @@ class PlusPopulator(plus2jsonVisitor.plus2jsonVisitor):
         relate(frag, tine, 52)
         return tine
 
-    def visitIf(self, ctx: plus2jsonParser.IfContext):
+    def visitIf(self, ctx: PlusParser.IfContext):
         return self.processFork(ConstraintType.XOR, [ctx] + ctx.elseif() + [ctx.else_()])
 
-    def visitElseif(self, ctx: plus2jsonParser.ElseifContext):
+    def visitElseif(self, ctx: PlusParser.ElseifContext):
         return self.processTine(ctx)
 
-    def visitElse(self, ctx: plus2jsonParser.ElseContext):
+    def visitElse(self, ctx: PlusParser.ElseContext):
         return self.processTine(ctx)
 
-    def visitSwitch(self, ctx: plus2jsonParser.SwitchContext):
+    def visitSwitch(self, ctx: PlusParser.SwitchContext):
         return self.processFork(ConstraintType.XOR, ctx.case())
 
-    def visitCase(self, ctx: plus2jsonParser.CaseContext):
+    def visitCase(self, ctx: PlusParser.CaseContext):
         return self.processTine(ctx)
 
-    def visitLoop(self, ctx: plus2jsonParser.LoopContext):
+    def visitLoop(self, ctx: PlusParser.LoopContext):
         # cache the current fragment
         pre_loop_frag = self.current_fragment
 
@@ -344,20 +344,20 @@ class PlusPopulator(plus2jsonVisitor.plus2jsonVisitor):
 
         return frag
 
-    def visitFork(self, ctx: plus2jsonParser.ForkContext):
+    def visitFork(self, ctx: PlusParser.ForkContext):
         return self.processFork(ConstraintType.AND, [ctx] + ctx.fork_again())
 
-    def visitFork_again(self, ctx: plus2jsonParser.Fork_againContext):
+    def visitFork_again(self, ctx: PlusParser.Fork_againContext):
         return self.processTine(ctx)
 
-    def visitSplit(self, ctx: plus2jsonParser.SplitContext):
+    def visitSplit(self, ctx: PlusParser.SplitContext):
         return self.processFork(ConstraintType.IOR, [ctx] + ctx.split_again())
 
-    def visitSplit_again(self, ctx: plus2jsonParser.Split_againContext):
+    def visitSplit_again(self, ctx: PlusParser.Split_againContext):
         return self.processTine(ctx)
 
-    def visitIdentifier(self, ctx: plus2jsonParser.IdentifierContext):
+    def visitIdentifier(self, ctx: PlusParser.IdentifierContext):
         return ctx.getText().strip('"')
 
-    def visitNumber(self, ctx: plus2jsonParser.NumberContext):
+    def visitNumber(self, ctx: PlusParser.NumberContext):
         return int(ctx.getText())
