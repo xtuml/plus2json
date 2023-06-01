@@ -181,12 +181,12 @@ def AuditEvent_json(self):
 
 
 def EventData_pretty_print(self):
-    logger.info(f'  data: {one(self).EvtDataDefn[108]().Name}={self.Value}')
+    logger.info(f'  data: {self.Name}={self.Value}')
 
 
 def EventData_json(self):
     val = int(self.Value) if one(self).EvtDataDefn[108]().Type in (EventDataType.BCNT, EventDataType.MCNT, EventDataType.LCNT) else self.Value
-    return {one(self).EvtDataDefn[108]().Name: val}
+    return {self.Name: val}
 
 
 def EventData_persist(self, filename='p2jInvariantStore'):  # TODO filename

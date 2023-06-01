@@ -19,7 +19,7 @@ shapes :
       fill_color : #c0c0c0
   shape : EventData
     render : class "plus::runtime::Event Data"
-    bounds : x : 4176.0 y : 3432.0 width : 144.0 height : 108.0
+    bounds : x : 4152.0 y : 3432.0 width : 168.0 height : 145.0
   shape : EventDataDefinition
     render : imported_class "plus::runtime::Event Data Definition"
     bounds : x : 4176.0 y : 3240.0 width : 180.0 height : 109.0

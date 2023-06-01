@@ -2,6 +2,7 @@ CREATE TABLE AuditEvent (
     Id UNIQUE_ID,
     TimeStamp REAL
 );
+CREATE UNIQUE INDEX I1 ON AuditEvent (Id);
 CREATE TABLE AuditEventDefn (
     Name STRING,
     OccurrenceId INTEGER,
@@ -15,11 +16,15 @@ CREATE TABLE ConstDefn (
     Type INTEGER
 );
 CREATE TABLE EventData (
+    EvtId UNIQUE_ID,
+    Name STRING,
     Value STRING,
     IsSource BOOLEAN,
     Creation REAL,
-    Expiration REAL
+    Expiration REAL,
+    JobDefnName STRING
 );
+CREATE UNIQUE INDEX I1 ON EventData (EvtId, Name);
 CREATE TABLE EvtDataDefn (
     Name STRING,
     Type INTEGER,
@@ -39,6 +44,7 @@ CREATE TABLE Fragment (
 CREATE TABLE Job (
     Id UNIQUE_ID
 );
+CREATE UNIQUE INDEX I1 ON Job (Id);
 CREATE TABLE JobDefn (
     Name STRING
 );
@@ -61,8 +67,8 @@ CREATE ROP REF_ID R103 FROM 1 AuditEventDefn () TO MC AuditEvent ();
 CREATE ROP REF_ID R104 FROM 1C AuditEvent () PHRASE 'follows' TO 1C AuditEvent () PHRASE 'precedes';
 CREATE ROP REF_ID R105 FROM 1 AuditEvent () TO 1C Job ();
 CREATE ROP REF_ID R106 FROM MC AuditEvent () PHRASE 'must_follow' TO MC AuditEvent () PHRASE 'must_precede';
-CREATE ROP REF_ID R107 FROM 1 AuditEvent () TO MC EventData ();
-CREATE ROP REF_ID R108 FROM 1 EvtDataDefn () TO MC EventData ();
+CREATE ROP REF_ID R107 FROM MC EventData (EvtId) TO 1 AuditEvent (Id);
+CREATE ROP REF_ID R108 FROM MC EventData (JobDefnName, Name) TO 1 EvtDataDefn (JobDefnName, Name);
 CREATE ROP REF_ID R11 FROM 1C AuditEventDefn () TO MC EvtDataDefn ();
 CREATE ROP REF_ID R12 FROM MC AuditEventDefn () TO MC EvtDataDefn ();
 CREATE ROP REF_ID R13 FROM M AuditEventDefn (JobDefnName, SequenceName) TO 1C SeqDefn (JobDefnName, Name);

@@ -102,14 +102,21 @@ def play_job_definitions(metamodel, args):
         metamodel.id_generator = type('PlusUUIDGenerator', (xtuml.IdGenerator,), {'readfunc': lambda self: uuid.uuid4()})()
 
     # play each job definition
-    for job_defn in metamodel.select_many('JobDefn'):
-        job = JobDefn_play(job_defn)
+    jobs = map(JobDefn_play, metamodel.select_many('JobDefn'))
+
+    # assure model consistency
+    if xtuml.check_association_integrity(metamodel) + xtuml.check_uniqueness_constraint(metamodel) > 0:
+        logger.error('Failed model integrity check')
+        sys.exit(1)
+
+    # render each runtime job
+    for job in jobs:
         if args.pretty_print:
             Job_pretty_print(job)
         else:
             output = json.dumps(Job_json(job), indent=4, separators=(',', ': '))
             if args.outdir:
-                write_output_file(output, args.outdir, f'{job_defn.Name.replace(" ", "_")}_{job.Id}.json')
+                write_output_file(output, args.outdir, f'{xtuml.navigate_one(job).JobDefn[101]().Name.replace(" ", "_")}_{job.Id}.json')
             else:
                 print(output)
 

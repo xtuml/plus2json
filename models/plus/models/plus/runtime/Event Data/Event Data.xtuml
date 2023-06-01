@@ -6,6 +6,13 @@ within plus::runtime is
   @class_num(103);
   class 'Event Data' is
 
+    @ref_mode("referred_to");
+    @use_prefix(prefix="Evt", root_name="Id");
+    EvtId: referential (R107.'Audit Event'.Id) integer;
+
+    @ref_mode("referred_to");
+    Name: referential (R108.'Event Data Definition'.Name) string;
+
     Value: string;
 
     IsSource: boolean;
@@ -13,6 +20,12 @@ within plus::runtime is
     Creation: TimeStamp;
 
     Expiration: TimeStamp;
+
+    @ref_mode("referred_to");
+    @use_referred_to_prefix(root_name="JobDefnName");
+    JobDefnName: referential (R108.'Event Data Definition'.JobDefnName) string;
+
+    preferred identifier is (EvtId, Name);
 
   end class;
 

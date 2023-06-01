@@ -10,6 +10,8 @@ within plus::runtime is
 
     TimeStamp: TimeStamp;
 
+    preferred identifier is (Id);
+
   end class;
 
 end;

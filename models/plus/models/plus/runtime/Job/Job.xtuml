@@ -8,6 +8,8 @@ within plus::runtime is
 
     unique Id: integer;
 
+    preferred identifier is (Id);
+
   end class;
 
 end;
