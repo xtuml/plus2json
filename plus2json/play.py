@@ -156,13 +156,13 @@ def Fork_play(self, job, prev_evts=[]):
 def Loop_play(self, job, prev_evts=[]):
     # there will be exactly one loop count user in the tine of the loop
     lcnts = many(self).Tine[55].Fragment[59].AuditEventDefn[56].EvtDataDefn[12](lambda sel: sel.Type == EventDataType.LCNT)
-    if len(lcnts) != 1:
-        logger.warning(f'Loop does not have exactly one loop count data definition: {len(lcnts)}')
+    if len(lcnts) > 1:
+        logger.warning(f'Loop has more than one loop count data definition: {len(lcnts)}')
         return []
     inv = any(lcnts).EventData[108](lambda sel: sel.IsSource)
 
     # play the loop the number of times
-    for i in range(int(inv.Value)):
+    for i in range(int(inv.Value) if inv else 1):
         evts = Tine_play(one(self).Tine[55](), job, prev_evts)
         prev_evts = evts
     return evts
@@ -212,7 +212,8 @@ def AuditEvent_json(self):
     j['jobName'] = one(self).job[102].JobDefn[101]().Name
     j['eventType'] = one(self).AuditEventDefn[103]().Name
     j['eventId'] = id_to_str(self.Id)
-    j['timestamp'] = datetime.utcfromtimestamp(self.TimeStamp).isoformat()
+    j['timestamp'] = datetime.utcfromtimestamp(self.TimeStamp).isoformat() + 'Z'
+    j['applicationName'] = 'default_application_name'  # backwards compatibility
     prev_evts = many(self).AuditEvent[106, 'must_follow']()
     if len(prev_evts) > 0:
         j['previousEventIds'] = list(map(lambda e: id_to_str(e.Id), prev_evts))
@@ -232,7 +233,7 @@ def EventData_json(self):
 
 def EventData_persist(self, filename='p2jInvariantStore'):  # TODO filename
     evt_data_defn = one(self).EvtDataDefn[108]()
-    row = (evt_data_defn.Name, self.Value, datetime.utcfromtimestamp(self.Creation).isoformat(), datetime.utcfromtimestamp(self.Expiration).isoformat(), evt_data_defn.SourceJobDefnName, '', '')
+    row = (evt_data_defn.Name, self.Value, datetime.utcfromtimestamp(self.Creation).isoformat() + 'Z', datetime.utcfromtimestamp(self.Expiration).isoformat() + 'Z', evt_data_defn.SourceJobDefnName, '', '')
     try:
         with open(filename, 'a') as f:
             writer = csv.writer(f)
@@ -250,8 +251,8 @@ def EventData_load(self, filename='p2jInvariantStore'):  # TODO filename
             for row in reader:
                 if row[0] == evt_data_defn.Name and row[4] == evt_data_defn.SourceJobDefnName:
                     self.Value = row[1]
-                    self.Creation = datetime.fromisoformat(row[2]).timestamp()
-                    self.Expiration = datetime.fromisoformat(row[3]).timestamp()
+                    self.Creation = datetime.fromisoformat(row[2][:-1]).timestamp()
+                    self.Expiration = datetime.fromisoformat(row[3][:-1]).timestamp()
                     return True
             logger.warning(f'Did not find invariant value for "{evt_data_defn.Name}" in store')
             return False
