@@ -50,9 +50,16 @@ def Fragment_play(self, job, prev_evts=[]):
     # play the next fragment or return to caller with reference to the last events
     next_frag = one(self).Fragment[57, 'precedes']()
     if next_frag:
-        return Fragment_play(next_frag, job, evts)
-    else:
-        return evts
+        # TODO get the branch count
+        # this is a very limited implementation that will fail if the fragment is a loop or fork
+        # this also does not support merge -- it will go to the end of the current tine or sequence
+        prev_evts = evts
+        evts = []
+        bcnt = any(any(self).AuditEventDefn[56].EvtDataDefn[12](lambda sel: sel.Type == EventDataType.BCNT)).EventData[108](lambda sel: sel.IsSource)
+        for i in range(int(bcnt.Value) if bcnt else 1):
+            evts.extend(Fragment_play(next_frag, job, prev_evts))
+
+    return evts
 
 
 def AuditEventDefn_play(self, job, prev_evts):
