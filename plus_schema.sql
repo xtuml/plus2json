@@ -1,6 +1,6 @@
 CREATE TABLE AuditEvent (
     Id UNIQUE_ID,
-    TimeStamp INTEGER
+    TimeStamp REAL
 );
 CREATE TABLE AuditEventDefn (
     Name STRING,
@@ -16,7 +16,9 @@ CREATE TABLE ConstDefn (
 );
 CREATE TABLE EventData (
     Value STRING,
-    IsSource BOOLEAN
+    IsSource BOOLEAN,
+    Creation REAL,
+    Expiration REAL
 );
 CREATE TABLE EvtDataDefn (
     Name STRING,
@@ -63,12 +65,13 @@ CREATE ROP REF_ID R107 FROM 1 AuditEvent () TO MC EventData ();
 CREATE ROP REF_ID R108 FROM 1 EvtDataDefn () TO MC EventData ();
 CREATE ROP REF_ID R11 FROM 1C AuditEventDefn () TO MC EvtDataDefn ();
 CREATE ROP REF_ID R12 FROM MC AuditEventDefn () TO MC EvtDataDefn ();
-CREATE ROP REF_ID R13 FROM M AuditEventDefn (SequenceName, JobDefnName) TO 1C SeqDefn (Name, JobDefnName);
+CREATE ROP REF_ID R13 FROM M AuditEventDefn (JobDefnName, SequenceName) TO 1C SeqDefn (JobDefnName, Name);
 CREATE ROP REF_ID R14 FROM MC EvtDataDefn (JobDefnName) TO 1C JobDefn (Name);
-CREATE ROP REF_ID R15 FROM M AuditEventDefn (SequenceName, JobDefnName) TO 1C SeqDefn (Name, JobDefnName);
+CREATE ROP REF_ID R15 FROM M AuditEventDefn (JobDefnName, SequenceName) TO 1C SeqDefn (JobDefnName, Name);
 CREATE ROP REF_ID R16 FROM 1C ConstDefn () TO 1 EvtSucc ();
 CREATE ROP REF_ID R17 FROM MC EvtDataDefn (JobDefnName) TO 1C JobDefn (Name);
-CREATE ROP REF_ID R2 FROM M AuditEventDefn (SequenceName, JobDefnName) TO 1 SeqDefn (Name, JobDefnName);
+CREATE ROP REF_ID R18 FROM MC EvtDataDefn () PHRASE 'corresponds_to' TO 1C EvtDataDefn () PHRASE 'referenced_by';
+CREATE ROP REF_ID R2 FROM M AuditEventDefn (JobDefnName, SequenceName) TO 1 SeqDefn (JobDefnName, Name);
 CREATE ROP REF_ID R3 FROM MC EvtSucc () PHRASE 'follows' TO 1 AuditEventDefn () PHRASE 'precedes';
 CREATE ROP REF_ID R3 FROM MC EvtSucc () PHRASE 'precedes' TO 1 AuditEventDefn () PHRASE 'follows';
 CREATE ROP REF_ID R51 FROM 1 Fragment () TO 1C Tine ();

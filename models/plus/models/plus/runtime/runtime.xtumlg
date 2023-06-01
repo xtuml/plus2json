@@ -7,18 +7,24 @@ shapes :
   shape : JobDefinition
     render : imported_class "plus::runtime::Job Definition"
     bounds : x : 4800.0 y : 3228.0 width : 204.0 height : 85.0
+    styles :
+      fill_color : #c0c0c0
   shape : AuditEvent
     render : class "plus::runtime::Audit Event"
     bounds : x : 4428.0 y : 3456.0 width : 204.0 height : 121.0
   shape : AuditEventDefinition
     render : imported_class "plus::runtime::Audit Event Definition"
     bounds : x : 4800.0 y : 3372.0 width : 204.0 height : 144.0
+    styles :
+      fill_color : #c0c0c0
   shape : EventData
     render : class "plus::runtime::Event Data"
-    bounds : x : 4176.0 y : 3432.0 width : 144.0 height : 85.0
+    bounds : x : 4176.0 y : 3432.0 width : 144.0 height : 108.0
   shape : EventDataDefinition
     render : imported_class "plus::runtime::Event Data Definition"
     bounds : x : 4176.0 y : 3240.0 width : 180.0 height : 109.0
+    styles :
+      fill_color : #c0c0c0
 
 connectors :
   connector : R101
@@ -95,7 +101,7 @@ connectors :
         point : x : 4475.0 y : 3577.0
         shape : AuditEvent
       end :
-        point : x : 4428.0 y : 3563.0
+        point : x : 4475.0 y : 3627.0
         shape : AuditEvent
     texts :
       text :
@@ -142,7 +148,7 @@ connectors :
         point : x : 4632.0 y : 3551.0
         shape : AuditEvent
       end :
-        point : x : 4593.0 y : 3577.0
+        point : x : 4691.0 y : 3551.0
         shape : AuditEvent
     texts :
       text :

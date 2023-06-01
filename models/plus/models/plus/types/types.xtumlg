@@ -7,5 +7,8 @@ shapes :
   shape : ConstraintType
     render : enumeration_data_type "plus::types::ConstraintType"
     bounds : x : 467.0 y : 131.0 width : 200.0 height : 150.0
+  shape : TimeStamp
+    render : user_data_type "plus::types::TimeStamp"
+    bounds : x : 687.0 y : 131.0 width : 200.0 height : 150.0
 
 connectors :

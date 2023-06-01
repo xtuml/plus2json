@@ -8,7 +8,7 @@ within plus::runtime is
 
     unique Id: integer;
 
-    TimeStamp: timestamp;
+    TimeStamp: TimeStamp;
 
   end class;
 

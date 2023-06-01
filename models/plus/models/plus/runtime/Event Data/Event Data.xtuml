@@ -10,6 +10,10 @@ within plus::runtime is
 
     IsSource: boolean;
 
+    Creation: TimeStamp;
+
+    Expiration: TimeStamp;
+
   end class;
 
 end;

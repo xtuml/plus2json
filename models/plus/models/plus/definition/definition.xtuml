@@ -40,6 +40,9 @@ within plus is
     relationship R17 is 'Event Data Definition' conditionally relates to one 'Job Definition',
                         'Job Definition' conditionally defines_external many 'Event Data Definition';
 
+    relationship R18 is 'Event Data Definition' conditionally corresponds_to one 'Event Data Definition',
+                        'Event Data Definition' conditionally referenced_by many 'Event Data Definition';
+
   end package;
 
 end;

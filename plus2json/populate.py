@@ -83,6 +83,12 @@ class PlusPopulator(PlusVisitor.PlusVisitor):
     def visitExtern(self, ctx: PlusParser.ExternContext):
         inv = self.m.new('EvtDataDefn', Name=self.visit(ctx.invname), Type=EventDataType.EINV, SourceJobDefnName=self.visit(ctx.jobdefn))
         relate(inv, self.current_job, 17)
+
+        # check if the source invariant definition is already in place
+        source_inv = any(self.m.select_any('JobDefn', lambda sel: sel.Name == inv.SourceJobDefnName)).EvtDataDefn[14](lambda sel: sel.Name == inv.Name)
+        if source_inv:
+            relate(inv, source_inv, 18, 'corresponds_to')
+
         return inv
 
     def visitSequence_defn(self, ctx: PlusParser.Sequence_defnContext):
@@ -245,6 +251,11 @@ class PlusPopulator(PlusVisitor.PlusVisitor):
             relate(self.visit(ctx.sevt), inv, 11)
         elif ctx.SRC() or (not ctx.SRC() and not ctx.USER()):
             relate(self.current_event, inv, 11)
+            # for external invariants, see if there are externs that need to be linked
+            if inv.Type == EventDataType.EINV:
+                extern_invs = many(self.m.select_many('JobDefn')).EvtDataDefn[17](lambda sel: sel.Name == inv.Name and sel.SourceJobDefnName == self.current_job.Name and not one(sel).EvtDataDefn[18, 'corresponds_to']())
+                for extern_inv in extern_invs:
+                    relate(extern_inv, inv, 18, 'corresponds_to')
 
         # link the user event
         if ctx.uevt:

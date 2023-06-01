@@ -1,7 +1,9 @@
 import xtuml
 import time
 import logging
-import datetime
+import csv
+
+from datetime import datetime, timedelta
 
 from xtuml import relate, navigate_many as many, navigate_one as one, navigate_any as any
 from uuid import UUID
@@ -56,7 +58,7 @@ def AuditEventDefn_play(self, job, prev_evts):
     m = self.__metaclass__.metamodel
 
     # create an instance of the audit event and link it to the job
-    evt = m.new('AuditEvent', TimeStamp=int(time.time() * 1000))
+    evt = m.new('AuditEvent', TimeStamp=time.time())
     relate(evt, self, 103)
     relate(evt, job, 102)
     if not one(job).AuditEvent[105]():
@@ -88,21 +90,35 @@ def EvtDataDefn_play(self, is_source=True):
 
     if is_source:
         if self.Type in (EventDataType.EINV, EventDataType.IINV):
-            evt_data = m.new('EventData', Value=str(next(m.id_generator)), IsSource=True)
+            evt_data = m.new('EventData', Value=str(next(m.id_generator)), Creation=time.time(), Expiration=(time.time() + timedelta(days=30).total_seconds()), IsSource=True)
             relate(evt_data, self, 108)
             if self.Type == EventDataType.EINV:
-                pass  # TODO persist the extra-job invariant
+                EventData_persist(evt_data)
         else:
             pass  # TODO dynamic controls
 
     else:
         if self.Type in (EventDataType.EINV, EventDataType.IINV):
-            src_evt_data = any(self).EventData[108](lambda sel: sel.IsSource)
-            if not src_evt_data:
-                pass  # TODO warn
-            evt_data = m.new('EventData', Value=src_evt_data.Value, IsSource=False)
+            # create a new dataum
+            evt_data = m.new('EventData', IsSource=False)
             relate(evt_data, self, 108)
-            # TODO consider EINV
+
+            # try to get the value from the source
+            if self.Type == EventDataType.EINV:
+                src_evt_data = any(self).EvtDataDefn[18, 'corresponds_to'].EventData[108](lambda sel: sel.IsSource)
+            else:
+                src_evt_data = any(self).EventData[108](lambda sel: sel.IsSource)
+
+            # update the event data from the source
+            if src_evt_data:
+                evt_data.Value = src_evt_data.Value
+                evt_data.Creation = src_evt_data.Creation
+                evt_data.Expiration = src_evt_data.Expiration
+            elif self.Type == EventDataType.EINV:
+                # try to load from store
+                EventData_load(evt_data)
+            else:
+                logger.warning(f'Unable to find exiting invariant value for invariant "{self.Name}"')
         else:
             pass  # TODO dynamic controls
 
@@ -155,8 +171,10 @@ def AuditEvent_json(self):
     j['jobName'] = one(self).job[102].JobDefn[101]().Name
     j['eventType'] = one(self).AuditEventDefn[103]().Name
     j['eventId'] = id_to_str(self.Id)
-    j['timestamp'] = datetime.datetime.utcfromtimestamp(self.TimeStamp / 1000).isoformat()
-    j['previousEventIds'] = list(map(lambda e: id_to_str(e.Id), many(self).AuditEvent[106, 'must_follow']()))
+    j['timestamp'] = datetime.utcfromtimestamp(self.TimeStamp).isoformat()
+    prev_evts = many(self).AuditEvent[106, 'must_follow']()
+    if len(prev_evts) > 0:
+        j['previousEventIds'] = list(map(lambda e: id_to_str(e.Id), prev_evts))
     for evt_data in many(self).EventData[107]():
         j.update(EventData_json(evt_data))
     return j
@@ -169,3 +187,34 @@ def EventData_pretty_print(self):
 def EventData_json(self):
     val = int(self.Value) if one(self).EvtDataDefn[108]().Type in (EventDataType.BCNT, EventDataType.MCNT, EventDataType.LCNT) else self.Value
     return {one(self).EvtDataDefn[108]().Name: val}
+
+
+def EventData_persist(self, filename='p2jInvariantStore'):  # TODO filename
+    evt_data_defn = one(self).EvtDataDefn[108]()
+    row = (evt_data_defn.Name, self.Value, datetime.utcfromtimestamp(self.Creation).isoformat(), datetime.utcfromtimestamp(self.Expiration).isoformat(), evt_data_defn.SourceJobDefnName, '', '')
+    try:
+        with open(filename, 'a') as f:
+            writer = csv.writer(f)
+            writer.writerow(row)
+    except IOError:
+        logger.warning(f'Could not write to invariant store: {filename}')
+        logger.debug('', exc_info=True)
+
+
+def EventData_load(self, filename='p2jInvariantStore'):  # TODO filename
+    evt_data_defn = one(self).EvtDataDefn[108]()
+    try:
+        with open(filename) as f:
+            reader = csv.reader(f)
+            for row in reader:
+                if row[0] == evt_data_defn.Name and row[4] == evt_data_defn.SourceJobDefnName:
+                    self.Value = row[1]
+                    self.Creation = datetime.fromisoformat(row[2]).timestamp()
+                    self.Expiration = datetime.fromisoformat(row[3]).timestamp()
+                    return True
+            logger.warning(f'Did not find invariant value for "{evt_data_defn.Name}" in store')
+            return False
+
+    except IOError:
+        logger.warning(f'Unable to load invariant file: {filename}')
+        logger.debug('', exc_info=True)

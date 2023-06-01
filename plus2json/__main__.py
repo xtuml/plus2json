@@ -28,6 +28,7 @@ def main():
     parser.add_argument('--pretty-print', action='store_true', help='Print human readable debug output')
     parser.add_argument('-o', '--outdir', metavar='dir', help='Path to output directory')
     parser.add_argument('-v', '--version', action='version', version='v0.x')
+    parser.add_argument('--debug', action='store_true', help='Enable debug logging')
     parser.add_argument('filenames', nargs='*', help='Input .puml files')
     parser2 = argparse.ArgumentParser()
     subparsers = parser2.add_subparsers(help='TODO test subcommand help', required=True)
@@ -35,8 +36,13 @@ def main():
     job_parser.set_defaults(func=process_job_definitions)
     play_parser = subparsers.add_parser('play', help='Generate runtime event data for a job', parents=[parser])
     play_parser.add_argument('--integer-ids', action='store_true', help='Use deterministic integer IDs')
+    play_parser.add_argument('--persist-einv', action='store_true', help='Persist external invariants in a file store')
+    play_parser.add_argument('--inv-store', help='Location to persist external invariant values', default='p2jInvariantStore')
     play_parser.set_defaults(func=play_job_definitions)
     args = parser2.parse_args()
+
+    # configure logging
+    logging.basicConfig(stream=sys.stderr, level=(logging.DEBUG if args.debug else logging.INFO))
 
     if len(args.filenames) > 0:
 
@@ -65,33 +71,32 @@ def main():
             sys.exit(1)
 
         # call the subcommand
-        args.metamodel = metamodel
-        args.func(**vars(args))
+        args.func(metamodel, args)
 
     else:
         logger.warning('No files to process')
 
 
 # process job definitions
-def process_job_definitions(metamodel=None, pretty_print=False, outdir=None, **kwargs):
+def process_job_definitions(metamodel, args):
 
     # output each job definition
     for job_defn in metamodel.select_many('JobDefn'):
-        if pretty_print:
+        if args.pretty_print:
             JobDefn_pretty_print(job_defn)
         else:
             output = json.dumps(JobDefn_json(job_defn), indent=4, separators=(',', ': '))
-            if outdir:
-                write_output_file(output, outdir, f'{job_defn.Name}.json')
+            if args.outdir:
+                write_output_file(output, args.outdir, f'{job_defn.Name}.json')
             else:
                 print(output)
 
 
 # process runtime play
-def play_job_definitions(metamodel=xtuml.MetaModel(), pretty_print=False, integer_ids=False, outdir=None, **kwargs):
+def play_job_definitions(metamodel, args):
 
     # configure the unique ID generator
-    if integer_ids or pretty_print:
+    if args.integer_ids or args.pretty_print:
         metamodel.id_generator = xtuml.IntegerGenerator()
     else:
         metamodel.id_generator = type('PlusUUIDGenerator', (xtuml.IdGenerator,), {'readfunc': lambda self: uuid.uuid4()})()
@@ -99,12 +104,12 @@ def play_job_definitions(metamodel=xtuml.MetaModel(), pretty_print=False, intege
     # play each job definition
     for job_defn in metamodel.select_many('JobDefn'):
         job = JobDefn_play(job_defn)
-        if pretty_print:
+        if args.pretty_print:
             Job_pretty_print(job)
         else:
             output = json.dumps(Job_json(job), indent=4, separators=(',', ': '))
-            if outdir:
-                write_output_file(output, outdir, f'{job.Id}.json')
+            if args.outdir:
+                write_output_file(output, args.outdir, f'{job_defn.Name.replace(" ", "_")}_{job.Id}.json')
             else:
                 print(output)
 
@@ -121,5 +126,4 @@ def write_output_file(output, outdir, filename):
 
 
 if __name__ == '__main__':
-    logging.basicConfig(stream=sys.stderr, level=logging.INFO)
     main()

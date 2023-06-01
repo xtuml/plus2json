@@ -227,3 +227,32 @@ connectors :
         bounds : x : 4298.0 y : 3727.0 width : 0.0 height : 0.0 where : middle
       text :
         bounds : x : 4316.0 y : 3761.0 width : 0.0 height : 0.0 where : end
+  connector : R18
+    render : association "plus::definition::R18"
+    polyline :
+      segment :
+        start : x : 4632.0 y : 3707.0
+        end :   x : 4682.0 y : 3707.0
+      segment :
+        start : x : 4682.0 y : 3707.0
+        end :   x : 4682.0 y : 3830.0
+      segment :
+        start : x : 4682.0 y : 3830.0
+        end :   x : 4533.0 y : 3830.0
+      segment :
+        start : x : 4533.0 y : 3830.0
+        end :   x : 4533.0 y : 3780.0
+    anchors :
+      start :
+        point : x : 4632.0 y : 3707.0
+        shape : EventDataDefinition
+      end :
+        point : x : 4533.0 y : 3780.0
+        shape : EventDataDefinition
+    texts :
+      text :
+        bounds : x : 4656.0 y : 3680.0 width : 0.0 height : 0.0 where : start
+      text :
+        bounds : x : 4644.0 y : 3800.0 width : 0.0 height : 0.0 where : middle
+      text :
+        bounds : x : 4539.0 y : 3800.0 width : 0.0 height : 0.0 where : end

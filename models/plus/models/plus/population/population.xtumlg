@@ -179,7 +179,7 @@ connectors :
         point : x : 4404.0 y : 3504.0
         shape : Fragment
       end :
-        point : x : 4367.0 y : 3444.0
+        point : x : 4453.0 y : 3504.0
         shape : Fragment
     texts :
       text :

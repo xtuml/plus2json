@@ -17,6 +17,8 @@ within plus is
       MCNT
     );
 
+    type TimeStamp is real;
+
   end package;
 
 end;
