@@ -9,6 +9,7 @@ from xtuml import relate, navigate_many as many, navigate_one as one, navigate_a
 from uuid import UUID
 
 from populate import EventDataType  # TODO
+from populate import ConstraintType  # TODO
 
 logger = logging.getLogger(__name__)
 
@@ -57,6 +58,9 @@ def Fragment_play(self, job, prev_evts=[]):
 def AuditEventDefn_play(self, job, prev_evts):
     m = self.__metaclass__.metamodel
 
+    # get the last event in the job
+    last_evt = any(job).AuditEvent[102](lambda sel: not one(sel).AuditEvent[104, 'precedes']())
+
     # create an instance of the audit event and link it to the job
     evt = m.new('AuditEvent', TimeStamp=time.time())
     relate(evt, self, 103)
@@ -64,9 +68,9 @@ def AuditEventDefn_play(self, job, prev_evts):
     if not one(job).AuditEvent[105]():
         relate(evt, job, 105)
 
-    # link the event in sequence
-    if len(prev_evts) > 0:
-        relate(prev_evts[-1], evt, 104, 'precedes')
+    # link the event in order
+    if last_evt:
+        relate(last_evt, evt, 104, 'precedes')
 
     # link the required previous events
     for prev_evt in prev_evts:
@@ -96,7 +100,7 @@ def EvtDataDefn_play(self, is_source=True):
             if self.Type == EventDataType.EINV:
                 EventData_persist(evt_data)
         else:
-            # use the magic number 4
+            # use the magic number 4 for all dynamic controls
             evt_data = m.new('EventData', Value=str(4), Creation=time.time(), Expiration=(time.time() + timedelta(days=30).total_seconds()), IsSource=True)
             relate(evt_data, self, 108)
 
@@ -126,8 +130,20 @@ def EvtDataDefn_play(self, is_source=True):
     return evt_data
 
 
-def Fork_play(self, job):
-    pass
+def Fork_play(self, job, prev_evts=[]):
+    if self.Type == ConstraintType.XOR:
+        # TODO arbitrarily choose the first tine
+        return Tine_play(any(self).Tine[54](), job, prev_evts)
+
+    elif self.Type == ConstraintType.AND:
+        # play all tines
+        evts = []
+        for tine in many(self).Tine[54]():
+            evts.extend(Tine_play(tine, job, prev_evts))
+        return evts
+
+    else:
+        return []  # TODO support IOR forks
 
 
 def Loop_play(self, job, prev_evts=[]):
@@ -140,9 +156,15 @@ def Loop_play(self, job, prev_evts=[]):
 
     # play the loop the number of times
     for i in range(int(inv.Value)):
-        evts = Fragment_play(one(self).Tine[55].Fragment[51](), job, prev_evts)
+        evts = Tine_play(one(self).Tine[55](), job, prev_evts)
         prev_evts = evts
     return evts
+
+
+def Tine_play(self, job, prev_evts=[]):
+    # play starting with the first fragment
+    evts = Fragment_play(one(self).Fragment[51](), job, prev_evts)
+    return evts if not self.IsTerminal else []
 
 
 def Job_pretty_print(self):
