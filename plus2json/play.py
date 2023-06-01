@@ -78,7 +78,7 @@ def AuditEventDefn_play(self, job, prev_evts):
         relate(evt_data, evt, 107)
 
     # create event data for user events
-    for evt_data_defn in many(self).EvtDataDefn[12]():
+    for evt_data_defn in many(self).EvtDataDefn[12](lambda sel: sel.Type in (EventDataType.EINV, EventDataType.IINV)):
         evt_data = EvtDataDefn_play(evt_data_defn, False)
         relate(evt_data, evt, 107)
 
@@ -87,6 +87,7 @@ def AuditEventDefn_play(self, job, prev_evts):
 
 def EvtDataDefn_play(self, is_source=True):
     m = self.__metaclass__.metamodel
+    evt_data = None
 
     if is_source:
         if self.Type in (EventDataType.EINV, EventDataType.IINV):
@@ -95,7 +96,9 @@ def EvtDataDefn_play(self, is_source=True):
             if self.Type == EventDataType.EINV:
                 EventData_persist(evt_data)
         else:
-            pass  # TODO dynamic controls
+            # use the magic number 4
+            evt_data = m.new('EventData', Value=str(4), Creation=time.time(), Expiration=(time.time() + timedelta(days=30).total_seconds()), IsSource=True)
+            relate(evt_data, self, 108)
 
     else:
         if self.Type in (EventDataType.EINV, EventDataType.IINV):
@@ -119,8 +122,6 @@ def EvtDataDefn_play(self, is_source=True):
                 EventData_load(evt_data)
             else:
                 logger.warning(f'Unable to find exiting invariant value for invariant "{self.Name}"')
-        else:
-            pass  # TODO dynamic controls
 
     return evt_data
 
@@ -129,8 +130,19 @@ def Fork_play(self, job):
     pass
 
 
-def Loop_play(self, job):
-    pass
+def Loop_play(self, job, prev_evts=[]):
+    # there will be exactly one loop count user in the tine of the loop
+    lcnts = many(self).Tine[55].Fragment[59].AuditEventDefn[56].EvtDataDefn[12](lambda sel: sel.Type == EventDataType.LCNT)
+    if len(lcnts) != 1:
+        logger.warning(f'Loop does not have exactly one loop count data definition: {len(lcnts)}')
+        return []
+    inv = any(lcnts).EventData[108](lambda sel: sel.IsSource)
+
+    # play the loop the number of times
+    for i in range(int(inv.Value)):
+        evts = Fragment_play(one(self).Tine[55].Fragment[51](), job, prev_evts)
+        prev_evts = evts
+    return evts
 
 
 def Job_pretty_print(self):

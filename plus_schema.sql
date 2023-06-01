@@ -89,3 +89,4 @@ CREATE ROP REF_ID R56 FROM 1C Fork () TO 1 Fragment ();
 CREATE ROP REF_ID R56 FROM 1C Loop () TO 1 Fragment ();
 CREATE ROP REF_ID R57 FROM 1C Fragment () PHRASE 'follows' TO 1C Fragment () PHRASE 'precedes';
 CREATE ROP REF_ID R58 FROM 1C SeqDefn () TO 1 Fragment ();
+CREATE ROP REF_ID R59 FROM M Fragment () TO 1C Tine ();

@@ -30,6 +30,9 @@ within plus is
     relationship R58 is 'Sequence Definition' unconditionally has_first one Fragment,
                         Fragment conditionally relates to one 'Sequence Definition';
 
+    relationship R59 is Fragment conditionally relates to one Tine,
+                        Tine unconditionally is_made_of many Fragment;
+
   end package;
 
 end;

@@ -148,19 +148,6 @@ class PlusPopulator(PlusVisitor.PlusVisitor):
             case 'AuditEventDefn':
                 return [sub]
 
-    def visitStatement(self, ctx: PlusParser.StatementContext):
-        # visit the subtype
-        frag = self.visitChildren(ctx)
-
-        # link all event successions
-        prev_evts = self.get_last_events(self.current_fragment) if self.current_fragment else []
-        next_evts = self.get_first_events(frag)
-        for prev_evt in prev_evts:
-            for next_evt in next_evts:
-                relate_using(prev_evt, next_evt, self.m.new('EvtSucc'), 3, 'precedes')
-
-        return frag
-
     def visitEvent_defn(self, ctx: PlusParser.Event_defnContext):
         name, occurrence = self.visit(ctx.event_name())
 
@@ -189,6 +176,13 @@ class PlusPopulator(PlusVisitor.PlusVisitor):
         for tag in ctx.event_tag():
             self.visit(tag)
         self.current_event = None
+
+        # link all event successions
+        prev_evts = self.get_last_events(self.current_fragment) if self.current_fragment else []
+        next_evts = self.get_first_events(frag)
+        for prev_evt in prev_evts:
+            for next_evt in next_evts:
+                relate_using(prev_evt, next_evt, self.m.new('EvtSucc'), 3, 'precedes')
 
         return frag
 
@@ -288,7 +282,7 @@ class PlusPopulator(PlusVisitor.PlusVisitor):
                 relate(evt_succ, self.m.new('ConstDefn', Id=id_str, Type=fork.Type), 16)
                 relate_using(prev_evt, next_evt, evt_succ, 3, 'precedes')
 
-        self.current_fragment = None
+        self.current_fragment = pre_fork_frag
         return frag
 
     def processTine(self, ctx):
@@ -299,6 +293,7 @@ class PlusPopulator(PlusVisitor.PlusVisitor):
         for smt in ctx.statement():
             # process the statement
             frag = self.visit(smt)
+            relate(frag, tine, 59)
 
             # link the first fragment
             if not one(tine).Fragment[51]():
@@ -351,8 +346,7 @@ class PlusPopulator(PlusVisitor.PlusVisitor):
             for next_evt in next_evts:
                 relate_using(prev_evt, next_evt, self.m.new('EvtSucc'), 3, 'precedes')
 
-        self.current_fragment = None
-
+        self.current_fragment = pre_loop_frag
         return frag
 
     def visitFork(self, ctx: PlusParser.ForkContext):

@@ -25,20 +25,20 @@ connectors :
     render : association "plus::population::R51"
     polyline :
       segment :
-        start : x : 4236.0 y : 3486.0
-        end :   x : 4105.0 y : 3486.0
+        start : x : 4236.0 y : 3502.0
+        end :   x : 4105.0 y : 3502.0
     anchors :
       start :
-        point : x : 4236.0 y : 3486.0
+        point : x : 4236.0 y : 3502.0
         shape : Fragment
       end :
-        point : x : 4105.0 y : 3486.0
+        point : x : 4105.0 y : 3502.0
         shape : Tine
     texts :
       text :
-        bounds : x : 4182.0 y : 3486.0 width : 0.0 height : 0.0 where : start
+        bounds : x : 4182.0 y : 3502.0 width : 0.0 height : 0.0 where : start
       text :
-        bounds : x : 4156.0 y : 3460.0 width : 0.0 height : 0.0 where : middle
+        bounds : x : 4156.0 y : 3476.0 width : 0.0 height : 0.0 where : middle
   connector : R52
     render : association "plus::population::R52"
     polyline :
@@ -206,3 +206,21 @@ connectors :
         bounds : x : 4212.0 y : 3396.0 width : 0.0 height : 0.0 where : middle
       text :
         bounds : x : 4261.0 y : 3415.0 width : 0.0 height : 0.0 where : end
+  connector : R59
+    render : association "plus::population::R59"
+    polyline :
+      segment :
+        start : x : 4105.0 y : 3455.0
+        end :   x : 4236.0 y : 3455.0
+    anchors :
+      start :
+        point : x : 4105.0 y : 3455.0
+        shape : Tine
+      end :
+        point : x : 4236.0 y : 3455.0
+        shape : Fragment
+    texts :
+      text :
+        bounds : x : 4159.0 y : 3417.0 width : 0.0 height : 0.0 where : middle
+      text :
+        bounds : x : 4167.0 y : 3454.0 width : 0.0 height : 0.0 where : end
