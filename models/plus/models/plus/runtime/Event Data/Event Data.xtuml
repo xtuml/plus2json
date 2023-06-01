@@ -2,11 +2,13 @@
 
 within plus::runtime is
 
-  @key_letters("Job");
-  @class_num(101);
-  class Job is
+  @key_letters("EventData");
+  @class_num(103);
+  class 'Event Data' is
 
-    unique Id: integer;
+    Value: string;
+
+    IsSource: boolean;
 
   end class;
 

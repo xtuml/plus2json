@@ -6,7 +6,7 @@ within plus::runtime is
   @class_num(102);
   class 'Audit Event' is
 
-    Id: UUID;
+    unique Id: integer;
 
     TimeStamp: timestamp;
 

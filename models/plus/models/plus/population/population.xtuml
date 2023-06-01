@@ -9,6 +9,7 @@ within plus is
     class Loop;
     class Tine;
     class 'Audit Event Definition' is plus::definition::'Audit Event Definition';
+    class 'Sequence Definition' is plus::definition::'Sequence Definition';
     relationship R51 is Fragment conditionally relates to one Tine,
                         Tine unconditionally has_first one Fragment;
 
@@ -25,6 +26,9 @@ within plus is
 
     relationship R57 is Fragment conditionally follows one Fragment,
                         Fragment conditionally precedes one Fragment;
+
+    relationship R58 is 'Sequence Definition' unconditionally has_first one Fragment,
+                        Fragment conditionally relates to one 'Sequence Definition';
 
   end package;
 

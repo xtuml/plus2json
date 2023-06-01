@@ -17,8 +17,6 @@ within plus is
       MCNT
     );
 
-    type UUID is string;
-
   end package;
 
 end;

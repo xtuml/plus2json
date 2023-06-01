@@ -99,6 +99,7 @@ class PlusPopulator(plus2jsonVisitor.plus2jsonVisitor):
 
             # set the start event(s)
             if not any(self.current_sequence).AuditEventDefn[13]():
+                relate(frag, self.current_sequence, 58)
                 for start_evt in self.get_first_events(frag):
                     relate(start_evt, self.current_sequence, 13)
 

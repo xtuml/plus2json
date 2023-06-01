@@ -12,7 +12,13 @@ shapes :
     bounds : x : 4428.0 y : 3456.0 width : 204.0 height : 121.0
   shape : AuditEventDefinition
     render : imported_class "plus::runtime::Audit Event Definition"
-    bounds : x : 4800.0 y : 3456.0 width : 204.0 height : 144.0
+    bounds : x : 4800.0 y : 3372.0 width : 204.0 height : 144.0
+  shape : EventData
+    render : class "plus::runtime::Event Data"
+    bounds : x : 4176.0 y : 3432.0 width : 144.0 height : 85.0
+  shape : EventDataDefinition
+    render : imported_class "plus::runtime::Event Data Definition"
+    bounds : x : 4176.0 y : 3240.0 width : 180.0 height : 109.0
 
 connectors :
   connector : R101
@@ -55,49 +61,49 @@ connectors :
     render : association "plus::runtime::R103"
     polyline :
       segment :
-        start : x : 4632.0 y : 3528.0
-        end :   x : 4800.0 y : 3528.0
+        start : x : 4632.0 y : 3479.0
+        end :   x : 4800.0 y : 3479.0
     anchors :
       start :
-        point : x : 4632.0 y : 3528.0
+        point : x : 4632.0 y : 3479.0
         shape : AuditEvent
       end :
-        point : x : 4800.0 y : 3528.0
+        point : x : 4800.0 y : 3479.0
         shape : AuditEventDefinition
     texts :
       text :
-        bounds : x : 4703.0 y : 3490.0 width : 0.0 height : 0.0 where : middle
+        bounds : x : 4703.0 y : 3441.0 width : 0.0 height : 0.0 where : middle
       text :
-        bounds : x : 4723.0 y : 3536.0 width : 0.0 height : 0.0 where : end
+        bounds : x : 4728.0 y : 3482.0 width : 0.0 height : 0.0 where : end
   connector : R104
     render : association "plus::runtime::R104"
     polyline :
       segment :
-        start : x : 4536.0 y : 3577.0
-        end :   x : 4536.0 y : 3627.0
+        start : x : 4475.0 y : 3577.0
+        end :   x : 4475.0 y : 3627.0
       segment :
-        start : x : 4536.0 y : 3627.0
+        start : x : 4475.0 y : 3627.0
         end :   x : 4379.0 y : 3627.0
       segment :
         start : x : 4379.0 y : 3627.0
-        end :   x : 4379.0 y : 3516.0
+        end :   x : 4379.0 y : 3563.0
       segment :
-        start : x : 4379.0 y : 3516.0
-        end :   x : 4428.0 y : 3516.0
+        start : x : 4379.0 y : 3563.0
+        end :   x : 4428.0 y : 3563.0
     anchors :
       start :
-        point : x : 4536.0 y : 3577.0
+        point : x : 4475.0 y : 3577.0
         shape : AuditEvent
       end :
-        point : x : 4428.0 y : 3516.0
+        point : x : 4428.0 y : 3563.0
         shape : AuditEvent
     texts :
       text :
-        bounds : x : 4546.0 y : 3587.0 width : 0.0 height : 0.0 where : start
+        bounds : x : 4485.0 y : 3587.0 width : 0.0 height : 0.0 where : start
       text :
-        bounds : x : 4445.0 y : 3589.0 width : 0.0 height : 0.0 where : middle
+        bounds : x : 4384.0 y : 3599.0 width : 0.0 height : 0.0 where : middle
       text :
-        bounds : x : 4324.0 y : 3487.0 width : 0.0 height : 0.0 where : end
+        bounds : x : 4324.0 y : 3534.0 width : 0.0 height : 0.0 where : end
   connector : R105
     render : association "plus::runtime::R105"
     polyline :
@@ -116,3 +122,68 @@ connectors :
         bounds : x : 4544.0 y : 3378.0 width : 0.0 height : 0.0 where : middle
       text :
         bounds : x : 4601.0 y : 3430.0 width : 0.0 height : 0.0 where : end
+  connector : R106
+    render : association "plus::runtime::R106"
+    polyline :
+      segment :
+        start : x : 4632.0 y : 3551.0
+        end :   x : 4691.0 y : 3551.0
+      segment :
+        start : x : 4691.0 y : 3551.0
+        end :   x : 4691.0 y : 3611.0
+      segment :
+        start : x : 4691.0 y : 3611.0
+        end :   x : 4593.0 y : 3611.0
+      segment :
+        start : x : 4593.0 y : 3611.0
+        end :   x : 4593.0 y : 3577.0
+    anchors :
+      start :
+        point : x : 4632.0 y : 3551.0
+        shape : AuditEvent
+      end :
+        point : x : 4593.0 y : 3577.0
+        shape : AuditEvent
+    texts :
+      text :
+        bounds : x : 4650.0 y : 3527.0 width : 0.0 height : 0.0 where : start
+      text :
+        bounds : x : 4657.0 y : 3588.0 width : 0.0 height : 0.0 where : middle
+      text :
+        bounds : x : 4575.0 y : 3615.0 width : 0.0 height : 0.0 where : end
+  connector : R107
+    render : association "plus::runtime::R107"
+    polyline :
+      segment :
+        start : x : 4428.0 y : 3491.0
+        end :   x : 4320.0 y : 3491.0
+    anchors :
+      start :
+        point : x : 4428.0 y : 3491.0
+        shape : AuditEvent
+      end :
+        point : x : 4320.0 y : 3491.0
+        shape : EventData
+    texts :
+      text :
+        bounds : x : 4361.0 y : 3453.0 width : 0.0 height : 0.0 where : middle
+      text :
+        bounds : x : 4320.0 y : 3490.0 width : 0.0 height : 0.0 where : end
+  connector : R108
+    render : association "plus::runtime::R108"
+    polyline :
+      segment :
+        start : x : 4235.0 y : 3432.0
+        end :   x : 4235.0 y : 3349.0
+    anchors :
+      start :
+        point : x : 4235.0 y : 3432.0
+        shape : EventData
+      end :
+        point : x : 4235.0 y : 3349.0
+        shape : EventDataDefinition
+    texts :
+      text :
+        bounds : x : 4188.0 y : 3381.0 width : 0.0 height : 0.0 where : middle
+      text :
+        bounds : x : 4245.0 y : 3359.0 width : 0.0 height : 0.0 where : end

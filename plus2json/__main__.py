@@ -6,10 +6,12 @@ import os
 import os.path
 import sys
 import tempfile
+import uuid
 import xtuml
 
 import plus_job_defn_print3  # TODO
 import plus_job_defn_json2  # TODO
+import play  # TODO
 
 from plus2jsonLexer import plus2jsonLexer
 from plus2jsonParser import plus2jsonParser
@@ -22,51 +24,87 @@ logger = logging.getLogger(__name__)
 def main():
 
     # parse command line
-    p = argparse.ArgumentParser(prog='plus2json', description='PlantUML processor')
-    p.add_argument('-j', '--job', action='store_true', help='Ouput PLUS job definition')
-    p.add_argument('-p', '--play', action='store_true', help='Generate runtime event data for a job')
-    p.add_argument('-o', '--outdir', metavar='dir', help='Path to output directory')
-    p.add_argument('--pretty-print', action='store_true', help='Print human readable debug output')
-    p.add_argument('-v', '--version', action='version', version='v0.x')
-    p.add_argument('filenames', nargs='+', help='Input .puml files')
-    args = p.parse_args()
+    parser = argparse.ArgumentParser(add_help=False)
+    parser.add_argument('--pretty-print', action='store_true', help='Print human readable debug output')
+    parser.add_argument('-o', '--outdir', metavar='dir', help='Path to output directory')
+    parser.add_argument('-v', '--version', action='version', version='v0.x')
+    parser.add_argument('filenames', nargs='*', help='Input .puml files')
+    parser2 = argparse.ArgumentParser()
+    subparsers = parser2.add_subparsers(help='TODO test subcommand help', required=True)
+    job_parser = subparsers.add_parser('job', help='Ouput PLUS job definition', parents=[parser])
+    job_parser.set_defaults(func=process_job_definitions)
+    play_parser = subparsers.add_parser('play', help='Generate runtime event data for a job', parents=[parser])
+    play_parser.add_argument('--integer-ids', action='store_true', help='Use deterministic integer IDs')
+    play_parser.set_defaults(func=play_job_definitions)
+    args = parser2.parse_args()
 
-    # do not allow -j and -p in the same command
-    if args.job and args.play:
-        p.error('Cannot process and play jobs in the same command')
+    if len(args.filenames) > 0:
 
-    # load the metamodel
-    metamodel = xtuml.load_metamodel('plus_schema.sql')
+        # load the metamodel
+        metamodel = xtuml.load_metamodel('plus_schema.sql')
 
-    # process each input .puml file
-    for filename in args.filenames:
-        try:
-            error_listener = PlusErrorListener(filename)
-            lexer = plus2jsonLexer(antlr4.FileStream(filename))
-            lexer.addErrorListener(error_listener)
-            tokens = antlr4.CommonTokenStream(lexer)
-            parser = plus2jsonParser(tokens)
-            parser.addErrorListener(error_listener)
-            tree = parser.plusdefn()
-        except CancellationException:
-            logger.error(f'Failed to parse {os.path.basename(filename)}.')
-            continue
-        populator = PlusPopulator(metamodel)
-        populator.visit(tree)
+        # process each input .puml file
+        for filename in args.filenames:
+            try:
+                error_listener = PlusErrorListener(filename)
+                lexer = plus2jsonLexer(antlr4.FileStream(filename))
+                lexer.addErrorListener(error_listener)
+                tokens = antlr4.CommonTokenStream(lexer)
+                parser = plus2jsonParser(tokens)
+                parser.addErrorListener(error_listener)
+                tree = parser.plusdefn()
+            except CancellationException:
+                logger.error(f'Failed to parse {os.path.basename(filename)}.')
+                continue
+            populator = PlusPopulator(metamodel)
+            populator.visit(tree)
 
-    # assure model consistency
-    if xtuml.check_association_integrity(metamodel) + xtuml.check_uniqueness_constraint(metamodel) > 0:
-        logger.error('Failed model integrity check')
-        sys.exit(1)
+        # assure model consistency
+        if xtuml.check_association_integrity(metamodel) + xtuml.check_uniqueness_constraint(metamodel) > 0:
+            logger.error('Failed model integrity check')
+            sys.exit(1)
 
-    # process job definitions
-    if args.job:
-        for job in metamodel.select_many('JobDefn'):
-            if args.pretty_print:
-                plus_job_defn_print3.JobDefn_pretty_print(job)
-            output = json.dumps(plus_job_defn_json2.JobDefn_json(job), indent=4, separators=(',', ': '))
-            if args.outdir:
-                write_output_file(output, args.outdir, f'{job.Name}.json')
+        # call the subcommand
+        args.metamodel = metamodel
+        args.func(**vars(args))
+
+    else:
+        logger.warning('No files to process')
+
+
+# process job definitions
+def process_job_definitions(metamodel=None, pretty_print=False, outdir=None, **kwargs):
+
+    # output each job definition
+    for job_defn in metamodel.select_many('JobDefn'):
+        if pretty_print:
+            plus_job_defn_print3.JobDefn_pretty_print(job_defn)
+        else:
+            output = json.dumps(plus_job_defn_json2.JobDefn_json(job_defn), indent=4, separators=(',', ': '))
+            if outdir:
+                write_output_file(output, outdir, f'{job_defn.Name}.json')
+            else:
+                print(output)
+
+
+# process runtime play
+def play_job_definitions(metamodel=xtuml.MetaModel(), pretty_print=False, integer_ids=False, outdir=None, **kwargs):
+
+    # configure the unique ID generator
+    if integer_ids or pretty_print:
+        metamodel.id_generator = xtuml.IntegerGenerator()
+    else:
+        metamodel.id_generator = type('PlusUUIDGenerator', (xtuml.IdGenerator,), {'readfunc': lambda self: uuid.uuid4()})()
+
+    # play each job definition
+    for job_defn in metamodel.select_many('JobDefn'):
+        job = play.JobDefn_play(job_defn)
+        if pretty_print:
+            play.Job_pretty_print(job)
+        else:
+            output = json.dumps(play.Job_json(job), indent=4, separators=(',', ': '))
+            if outdir:
+                write_output_file(output, outdir, f'{job.Id}.json')
             else:
                 print(output)
 
