@@ -7,7 +7,8 @@ Pretty print the PLUS job definition.
 import logging
 
 from xtuml import navigate_many as many, navigate_one as one, navigate_any as any
-from populate import EventDataType  # TODO
+
+from .populate import EventDataType  # TODO
 
 logger = logging.getLogger(__name__)
 

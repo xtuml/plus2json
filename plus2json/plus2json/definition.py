@@ -1,6 +1,7 @@
 from xtuml import navigate_many as many, navigate_one as one, navigate_any as any
-from populate import EventDataType  # TODO
-from populate import ConstraintType  # TODO
+
+from .populate import EventDataType  # TODO
+from .populate import ConstraintType  # TODO
 
 
 def JobDefn_json(self):

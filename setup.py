@@ -1,27 +1,15 @@
-#!/usr/bin/env python
+from setuptools import setup
 
-try:
-    from setuptools import setup
-except ImportError:
-    from distutils.core import setup
-
-from os import path
-this_directory = path.abspath(path.dirname(__file__))
-with open(path.join(this_directory, 'README.adoc')) as f:
-    long_description = f.read()
-
-setup(name='plusact',
-      version='0.0.1',
-      description='PLUS Activity PlantUML Parser/Processor',
-      long_description=long_description,
-      long_description_content_type='text/markdown',
-      author='Cortland Starrett',
-      author_email='cort@roxsoftware.com',
-      url='https://github.com/munin/doc/notes/MUN-152_activity_plus',
-      license='Apache 2.0',
-      download_url='https://github.com/xtuml/mc/releases/download/1.0.4/pymc3020-1.0.4.tar.gz',
-      keywords='xtuml bridgepoint protocol verifier',
-      packages=['plus2json'],
-      install_requires=['antlr4-python3-runtime'],
-      include_package_data=True,
-      zip_safe=True)
+if __name__ == '__main__':
+    setup(name='plus2json',
+          version='0.0.1',
+          description='PLUS Activity PlantUML Parser/Processor',
+          author='Cortland Starrett',
+          author_email='cort@roxsoftware.com',
+          url='https://github.com/xtuml/plus2json',
+          license='Apache 2.0',
+          keywords='xtuml bridgepoint protocol verifier',
+          packages=['plus2json', 'plus2json.plus', 'plus2json.schema'],
+          install_requires=['antlr4-python3-runtime==4.13.0', 'pyxtuml==2.3.1'],
+          include_package_data=True,
+          zip_safe=True)

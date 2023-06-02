@@ -8,8 +8,8 @@ from datetime import datetime, timedelta
 from xtuml import relate, navigate_many as many, navigate_one as one, navigate_any as any
 from uuid import UUID
 
-from populate import EventDataType  # TODO
-from populate import ConstraintType  # TODO
+from .populate import EventDataType  # TODO
+from .populate import ConstraintType  # TODO
 
 logger = logging.getLogger(__name__)
 

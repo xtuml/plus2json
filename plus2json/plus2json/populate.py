@@ -1,12 +1,12 @@
 import xtuml
-import PlusVisitor
 import logging
 import os.path
 
-from PlusParser import PlusParser
+from .plus import PlusParser, PlusVisitor
+
 from enum import IntEnum, auto
 from uuid import uuid3, UUID
-from xtuml import relate, relate_using, navigate_one as one, navigate_many as many, navigate_any as any
+from xtuml import relate, navigate_one as one, navigate_many as many, navigate_any as any
 
 from antlr4.error.ErrorListener import ErrorListener
 from antlr4.error.Errors import CancellationException
@@ -50,7 +50,7 @@ class PlusErrorListener(ErrorListener):
         raise CancellationException(msg)
 
 
-class PlusPopulator(PlusVisitor.PlusVisitor):
+class PlusPopulator(PlusVisitor):
 
     def __init__(self, metamodel):
         super(PlusPopulator, self).__init__()
@@ -182,7 +182,9 @@ class PlusPopulator(PlusVisitor.PlusVisitor):
         next_evts = self.get_first_events(frag)
         for prev_evt in prev_evts:
             for next_evt in next_evts:
-                relate_using(prev_evt, next_evt, self.m.new('EvtSucc'), 3, 'precedes')
+                evt_succ = self.m.new('EvtSucc')
+                relate(prev_evt, evt_succ, 3, 'precedes')
+                relate(evt_succ, next_evt, 3, 'precedes')
 
         return frag
 
@@ -280,7 +282,8 @@ class PlusPopulator(PlusVisitor.PlusVisitor):
                 evt_succ = self.m.new('EvtSucc')
                 id_str = str(generate_id(prev_evt.Name, prev_evt.OccurrenceId, prev_evt.JobDefnName, next_evt.Name, next_evt.OccurrenceId, next_evt.JobDefnName))
                 relate(evt_succ, self.m.new('ConstDefn', Id=id_str, Type=fork.Type), 16)
-                relate_using(prev_evt, next_evt, evt_succ, 3, 'precedes')
+                relate(prev_evt, evt_succ, 3, 'precedes')
+                relate(evt_succ, next_evt, 3, 'precedes')
 
         self.current_fragment = pre_fork_frag
         return frag
@@ -344,7 +347,9 @@ class PlusPopulator(PlusVisitor.PlusVisitor):
         next_evts = self.get_first_events(frag)
         for prev_evt in prev_evts:
             for next_evt in next_evts:
-                relate_using(prev_evt, next_evt, self.m.new('EvtSucc'), 3, 'precedes')
+                evt_succ = self.m.new('EvtSucc')
+                relate(prev_evt, evt_succ, 3, 'precedes')
+                relate(evt_succ, next_evt, 3, 'precedes')
 
         self.current_fragment = pre_loop_frag
         return frag

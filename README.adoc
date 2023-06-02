@@ -51,5 +51,5 @@ job definitions formatted as JSON.
 This is the structure of the job definition.  PLUS `.puml` files are
 parsed, and instances of these classes are created and linked.
 
-image::plus_job_defn.png[PLUS Job Definition]
+image::doc/plus_job_defn.png[PLUS Job Definition]
 
