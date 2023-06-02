@@ -5,6 +5,7 @@ plus2json/bin
 plus2json/bridgepoint
 plus2json/plus2json/plus/Plus*
 plus2json/plus2json/schema/plus_schema.sql
+plus2json/plus2json/version.json
 plus2json/ply*
 plus2json/pyxtuml*
 plus2json/xtuml

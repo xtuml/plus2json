@@ -1,10 +1,13 @@
 import antlr4_tool_runner
 import bridgepoint
+import json
 import os
 import subprocess
 import sys
 import xtuml
 import zipapp
+
+VERSION = '1.0.0'
 
 
 def gen_grammar():
@@ -39,6 +42,18 @@ def gen_schema():
     print('Done')
 
 
+def gen_version():
+    # create a version file
+    print('Write version file...')
+    args = ('git', 'rev-parse', '--short', 'HEAD')
+    p = subprocess.run(args, capture_output=True)
+    sha = p.stdout.decode('utf-8').strip()
+    version = {'version': VERSION, 'build_id': sha}
+    with open(os.path.join('plus2json', 'plus2json', 'version.json'), 'w') as f:
+        json.dump(version, f)
+    print('Done')
+
+
 def gen_zipapp():
     # install dependencies
     args = ('python', '-m', 'pip', 'install', '-r', 'requirements.txt', '--target', 'plus2json')
@@ -57,9 +72,12 @@ if __name__ == '__main__':
         gen_grammar()
     elif len(sys.argv) > 1 and sys.argv[1] == 'schema':
         gen_schema()
+    elif len(sys.argv) > 1 and sys.argv[1] == 'version':
+        gen_version()
     elif len(sys.argv) > 1 and sys.argv[1] == 'zipapp':
         gen_zipapp()
     else:
         gen_grammar()
         gen_schema()
+        gen_version()
         gen_zipapp()
