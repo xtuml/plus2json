@@ -35,7 +35,7 @@ job definitions formatted as JSON.
 
 === Interesting Files
 
- plus2json/plus2json.g4 - anltr4 grammar for PLUS
+ plus2json/plus2json.g4 - antlr4 grammar for PLUS
  plus2json/plus2son_run.py - source for the tree walker listener JSON generator
  plus2json/plus_job_defn.py - data model for the job definition
  plus2json/plus_job_defn_*.py - "mixin" classes to supply output routines
