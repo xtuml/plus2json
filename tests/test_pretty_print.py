@@ -1,16 +1,15 @@
 import doctest
-import os
+import logging
 import sys
-import tempfile
 
-from plus2json.plus2json import main as plus2json
+from plus2json import plus2json
 
 
 def test_pretty_print(input):
-    with tempfile.NamedTemporaryFile(mode='w', dir=os.getcwd()) as f:
-        f.write(input)
-        f.flush()
-        plus2json(['job', '--pretty-print', f.name], debug_stream=sys.stdout)
+    for handler in logging.root.handlers[:]:
+        logging.root.removeHandler(handler)
+    logging.basicConfig(stream=sys.stdout, level=logging.INFO, format='%(levelname)s: %(message)s')
+    plus2json.job(pretty_print=True, input=input, outdir=None)
 
 
 def t01_straight():
