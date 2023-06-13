@@ -10,6 +10,8 @@ if __name__ == '__main__':
           license='Apache 2.0',
           keywords='xtuml bridgepoint protocol verifier',
           packages=['plus2json', 'plus2json.plus', 'plus2json.schema'],
+          package_data={'plus2json': ['version.json'], 'plus2json.plus': ['*.interp', '*.tokens'], 'plus2json.schema': ['plus_schema.sql']},
           install_requires=['antlr4-python3-runtime==4.13.0', 'pyxtuml==2.3.1'],
+          test_suite='tests',
           include_package_data=True,
           zip_safe=True)

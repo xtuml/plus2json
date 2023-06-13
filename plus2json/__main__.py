@@ -1,4 +1,4 @@
-from plus2json import plus2json
+from .plus2json import main
 
 if __name__ == '__main__':
-    plus2json()
+    main()

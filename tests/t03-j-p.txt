@@ -1,8 +1,0 @@
-job defn: t03_split
-sequence: "sequence03"
-A(0) start                    
-B(0)                     A(0)iorfork1IOR     
-C(0)                     B(0)     
-D(0)                     A(0)iorfork1IOR     
-E(0)                     D(0)     
-F(0)       end           C(0),E(0)     

@@ -1,20 +1,20 @@
-import argparse
 import antlr4
+import argparse
 import json
 import logging
 import os
 import os.path
 import sys
 import tempfile
+import textwrap
 import uuid
 import xtuml
-import textwrap
 
-from .pretty_print import JobDefn_pretty_print
 from .definition import JobDefn_json
 from .play import JobDefn_play, Job_pretty_print, Job_json
-from .populate import PlusPopulator, PlusErrorListener
 from .plus import PlusLexer, PlusParser
+from .populate import PlusPopulator, PlusErrorListener
+from .pretty_print import JobDefn_pretty_print
 
 from antlr4.error.Errors import CancellationException
 from importlib.resources import files
@@ -22,10 +22,10 @@ from importlib.resources import files
 logger = logging.getLogger('plus2json')
 
 
-def plus2json():
+def main(argv=sys.argv[1:], debug_stream=None):
 
     # get version
-    version = json.loads(files('plus2json').joinpath('version.json').read_text())
+    version = json.loads(files(__package__).joinpath('version.json').read_text())
 
     # parse command line
     parent_parser = argparse.ArgumentParser(add_help=False)
@@ -33,7 +33,7 @@ def plus2json():
     global_options.add_argument('-v', '--version', action='version', version=f'plus2json v{version["version"]} ({version["build_id"]})')
     global_options.add_argument('-h', '--help', action='help', help='Show this help message and exit')
     global_options.add_argument('--debug', action='store_true', help='Enable debug logging')
-    global_options.add_argument('--pretty-print', action='store_true', help='Print human readable debug output')
+    global_options.add_argument('-p', '--pretty-print', action='store_true', help='Print human readable debug output')
     global_options.add_argument('-o', '--outdir', metavar='dir', help='Path to output directory')
 
     parser = argparse.ArgumentParser(prog='plus2json',
@@ -96,16 +96,18 @@ def plus2json():
         if group.title == 'Global Options':
             group.add_argument('filenames', nargs='*', help='Input .puml files')
 
-    args = parser.parse_args()
+    args = parser.parse_args(argv)
 
     # configure logging
-    logging.basicConfig(stream=sys.stderr, level=(logging.DEBUG if args.debug else logging.INFO), format='%(levelname)s: %(message)s')
+    for handler in logging.root.handlers[:]:
+        logging.root.removeHandler(handler)
+    logging.basicConfig(stream=(debug_stream or sys.stderr), level=(logging.DEBUG if args.debug else logging.INFO), format='%(levelname)s: %(message)s')
 
     if len(args.filenames) > 0:
 
         # load the metamodel
         loader = xtuml.ModelLoader()
-        loader.input(files('plus2json.schema').joinpath('plus_schema.sql').read_text())
+        loader.input(files(__package__).joinpath('schema').joinpath('plus_schema.sql').read_text())
         metamodel = loader.build_metamodel()
 
         # process each input .puml file

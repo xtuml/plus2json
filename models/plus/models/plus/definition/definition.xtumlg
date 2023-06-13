@@ -247,7 +247,7 @@ connectors :
         point : x : 4632.0 y : 3707.0
         shape : EventDataDefinition
       end :
-        point : x : 4533.0 y : 3780.0
+        point : x : 4682.0 y : 3707.0
         shape : EventDataDefinition
     texts :
       text :

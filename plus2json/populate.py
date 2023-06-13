@@ -182,9 +182,10 @@ class PlusPopulator(PlusVisitor):
         next_evts = self.get_first_events(frag)
         for prev_evt in prev_evts:
             for next_evt in next_evts:
-                evt_succ = self.m.new('EvtSucc')
-                relate(prev_evt, evt_succ, 3, 'precedes')
-                relate(evt_succ, next_evt, 3, 'precedes')
+                if not any(prev_evt).EvtSucc[3, 'precedes'](lambda sel: one(sel).AuditEventDefn[3, 'precedes']() == next_evt):
+                    evt_succ = self.m.new('EvtSucc')
+                    relate(prev_evt, evt_succ, 3, 'precedes')
+                    relate(evt_succ, next_evt, 3, 'precedes')
 
         return frag
 
@@ -275,15 +276,19 @@ class PlusPopulator(PlusVisitor):
             relate(fork, self.processTine(tine), 54)
 
         # link all event successions
+        const_defn = None
         prev_evts = self.get_last_events(pre_fork_frag) if pre_fork_frag else []
         next_evts = self.get_first_events(frag)
         for prev_evt in prev_evts:
             for next_evt in next_evts:
-                evt_succ = self.m.new('EvtSucc')
-                id_str = str(generate_id(prev_evt.Name, prev_evt.OccurrenceId, prev_evt.JobDefnName, next_evt.Name, next_evt.OccurrenceId, next_evt.JobDefnName))
-                relate(evt_succ, self.m.new('ConstDefn', Id=id_str, Type=fork.Type), 16)
-                relate(prev_evt, evt_succ, 3, 'precedes')
-                relate(evt_succ, next_evt, 3, 'precedes')
+                if not any(prev_evt).EvtSucc[3, 'precedes'](lambda sel: one(sel).AuditEventDefn[3, 'precedes']() == next_evt):
+                    evt_succ = self.m.new('EvtSucc')
+                    if not const_defn:
+                        id_str = str(generate_id(prev_evt.Name, prev_evt.OccurrenceId, prev_evt.JobDefnName, next_evt.Name, next_evt.OccurrenceId, next_evt.JobDefnName))
+                        const_defn = self.m.new('ConstDefn', Id=id_str, Type=fork.Type)
+                    relate(evt_succ, const_defn, 16)
+                    relate(prev_evt, evt_succ, 3, 'precedes')
+                    relate(evt_succ, next_evt, 3, 'precedes')
 
         self.current_fragment = pre_fork_frag
         return frag
@@ -347,9 +352,10 @@ class PlusPopulator(PlusVisitor):
         next_evts = self.get_first_events(frag)
         for prev_evt in prev_evts:
             for next_evt in next_evts:
-                evt_succ = self.m.new('EvtSucc')
-                relate(prev_evt, evt_succ, 3, 'precedes')
-                relate(evt_succ, next_evt, 3, 'precedes')
+                if not any(prev_evt).EvtSucc[3, 'precedes'](lambda sel: one(sel).AuditEventDefn[3, 'precedes']() == next_evt):
+                    evt_succ = self.m.new('EvtSucc')
+                    relate(prev_evt, evt_succ, 3, 'precedes')
+                    relate(evt_succ, next_evt, 3, 'precedes')
 
         self.current_fragment = pre_loop_frag
         return frag
