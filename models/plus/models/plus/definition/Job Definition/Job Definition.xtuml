@@ -1,0 +1,16 @@
+// BP 7.1.6 content: ModelClass syschar: 3 persistence-version: 7.1.6
+
+within plus::definition is
+
+  //! A Job Definition is the top-level containing element of a job definition.
+  @key_letters("JobDefn");
+  @class_num(1);
+  class 'Job Definition' is
+
+    Name: string;
+
+    preferred identifier is (Name);
+
+  end class;
+
+end;

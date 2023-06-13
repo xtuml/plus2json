@@ -1,0 +1,27 @@
+// BP 7.1.6 content: ModelClass syschar: 3 persistence-version: 7.1.6
+
+within plus::definition is
+
+  //! An Event Data Definition represents either a Dynamic Control (loop count, branch
+  //! count, merge count) or an invariant (interal or external). All event data
+  //! definitions are uniquely identified by name and source job definition and are
+  //! linked to exactly one source event and 0-many user events.
+  @key_letters("EvtDataDefn");
+  @class_num(5);
+  class 'Event Data Definition' is
+
+    Name: string;
+
+    Type: EventDataType;
+
+    @ref_mode("referred_to");
+    @use_prefix(prefix="JobDefn", root_name="Name");
+    JobDefnName: referential (R14.'Job Definition'.Name, R17.'Job Definition'.Name) string;
+
+    SourceJobDefnName: string;
+
+    preferred identifier is (Name, JobDefnName);
+
+  end class;
+
+end;

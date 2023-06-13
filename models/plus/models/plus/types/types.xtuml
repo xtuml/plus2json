@@ -3,7 +3,21 @@
 within plus is
 
   package types is
-    type UUID is string;
+    type ConstraintType is enum (
+      AND, 
+      XOR, 
+      IOR
+    );
+
+    type EventDataType is enum (
+      EINV, 
+      IINV, 
+      LCNT, 
+      BCNT, 
+      MCNT
+    );
+
+    type TimeStamp is real;
 
   end package;
 

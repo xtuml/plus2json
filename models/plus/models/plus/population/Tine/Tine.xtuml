@@ -1,0 +1,13 @@
+// BP 7.1.6 content: ModelClass syschar: 3 persistence-version: 7.1.6
+
+within plus::population is
+
+  @key_letters("Tine");
+  @class_num(54);
+  class Tine is
+
+    IsTerminal: boolean;
+
+  end class;
+
+end;

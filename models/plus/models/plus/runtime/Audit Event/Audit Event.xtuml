@@ -1,0 +1,17 @@
+// BP 7.1.6 content: ModelClass syschar: 3 persistence-version: 7.1.6
+
+within plus::runtime is
+
+  @key_letters("AuditEvent");
+  @class_num(102);
+  class 'Audit Event' is
+
+    unique Id: integer;
+
+    TimeStamp: TimeStamp;
+
+    preferred identifier is (Id);
+
+  end class;
+
+end;

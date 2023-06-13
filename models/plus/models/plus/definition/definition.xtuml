@@ -1,0 +1,48 @@
+// BP 7.1.6 content: Package syschar: 3 persistence-version: 7.1.6
+
+within plus is
+
+  package definition is
+    class 'Audit Event Definition';
+    class 'Constraint Definition';
+    class 'Event Data Definition';
+    class 'Event Succession';
+    class 'Job Definition';
+    class 'Sequence Definition';
+    relationship R1 is 'Job Definition' unconditionally defines many 'Sequence Definition',
+                       'Sequence Definition' unconditionally relates to one 'Job Definition';
+
+    relationship R2 is 'Audit Event Definition' unconditionally relates to one 'Sequence Definition',
+                       'Sequence Definition' unconditionally defines many 'Audit Event Definition';
+
+    relationship R3 is 'Audit Event Definition' conditionally follows many 'Audit Event Definition',
+                       'Audit Event Definition' conditionally precedes many 'Audit Event Definition'
+                       using one 'Event Succession';
+
+    relationship R11 is 'Audit Event Definition' conditionally sources many 'Event Data Definition',
+                        'Event Data Definition' conditionally relates to one 'Audit Event Definition';
+
+    relationship R12 is 'Audit Event Definition' conditionally uses many 'Event Data Definition',
+                        'Event Data Definition' conditionally relates to many 'Audit Event Definition';
+
+    relationship R13 is 'Audit Event Definition' conditionally starts one 'Sequence Definition',
+                        'Sequence Definition' unconditionally relates to many 'Audit Event Definition';
+
+    relationship R14 is 'Event Data Definition' conditionally relates to one 'Job Definition',
+                        'Job Definition' conditionally sources many 'Event Data Definition';
+
+    relationship R15 is 'Audit Event Definition' conditionally ends one 'Sequence Definition',
+                        'Sequence Definition' unconditionally relates to many 'Audit Event Definition';
+
+    relationship R16 is 'Constraint Definition' unconditionally constrains many 'Event Succession',
+                        'Event Succession' conditionally relates to one 'Constraint Definition';
+
+    relationship R17 is 'Event Data Definition' conditionally relates to one 'Job Definition',
+                        'Job Definition' conditionally defines_external many 'Event Data Definition';
+
+    relationship R18 is 'Event Data Definition' conditionally corresponds_to one 'Event Data Definition',
+                        'Event Data Definition' conditionally referenced_by many 'Event Data Definition';
+
+  end package;
+
+end;

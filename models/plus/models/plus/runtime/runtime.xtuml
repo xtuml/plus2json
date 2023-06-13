@@ -1,0 +1,43 @@
+// BP 7.1.6 content: Package syschar: 3 persistence-version: 7.1.6
+
+within plus is
+
+  @start_numbering(101);
+  package runtime is
+    class 'Audit Event';
+    class 'Event Data';
+    class Job;
+    class 'Audit Event Definition' is plus::definition::'Audit Event Definition';
+    class 'Event Data Definition' is plus::definition::'Event Data Definition';
+    class 'Job Definition' is plus::definition::'Job Definition';
+    relationship R101 is 'Job Definition' conditionally relates to many Job,
+                         Job unconditionally instance_of one 'Job Definition';
+
+    relationship R102 is 'Audit Event' unconditionally relates to one Job,
+                         Job unconditionally consists_of many 'Audit Event';
+
+    relationship R103 is 'Audit Event Definition' conditionally relates to many 'Audit Event',
+                         'Audit Event' unconditionally instance_of one 'Audit Event Definition';
+
+    //! This relationship represents the _actual_ order in which the events are
+    //! sequenced in the generation of this particular job.
+    relationship R104 is 'Audit Event' conditionally follows one 'Audit Event',
+                         'Audit Event' conditionally precedes one 'Audit Event';
+
+    relationship R105 is 'Audit Event' conditionally relates to one Job,
+                         Job unconditionally has_first one 'Audit Event';
+
+    //! This relationship represents the link to the events that must precede this event
+    //! according to the job definition
+    relationship R106 is 'Audit Event' conditionally must_follow many 'Audit Event',
+                         'Audit Event' conditionally must_precede many 'Audit Event';
+
+    relationship R107 is 'Audit Event' conditionally carries many 'Event Data',
+                         'Event Data' unconditionally relates to one 'Audit Event';
+
+    relationship R108 is 'Event Data Definition' conditionally relates to many 'Event Data',
+                         'Event Data' unconditionally instance_of one 'Event Data Definition';
+
+  end package;
+
+end;

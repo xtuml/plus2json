@@ -1,60 +1,87 @@
 = plus2json
 
-This repository holds engineering artifacts for a PLUS language processor
-which parses PLUS (based on PlantUML) and produces Protocol Verifier
-job definitions formatted as JSON.
+This repository holds engineering artifacts for a PLUS language processor which
+parses PLUS (based on PlantUML) and produces Protocol Verifier job definitions
+formatted as JSON.
 
-== Install
+== Build
 
- pip install plus2json
+plus2json requires some files to be generated (Antlr-based parser and schema
+gen). To generate the necessary files run:
+
+  python bundle.py dev
+
+NOTE: For this build to work, the `WORKSPACE` variable must be set to an
+Eclipse workspace containing the `plus` BridgePoint project. The `antlr4-tools`
+python package must also be installed.
+
+== Run
+
+To run plus2json in the repository, run:
+
+  python -m plus2json
+
+To print usage and help, run:
+
+  python -m plus2json -h
+
+== Test
+
+To run unit tests, run:
+
+  python -m unittest
 
 == Usage
 
-  python3 plus2json.pyz <PLUS PlantUML file> [options]
+----
+usage: python plus2json.pyz <command> [-v] [-h] [--debug] [--pretty-print] [-o dir]  [filenames ...]
 
-  With no options, plus2json will check the syntax of the input PlantUML file.
+plus2json is a utility for processing PLUS job definitions and producing JSON ouptut for congifuring and testing the protocol verifier.
 
-=== Options
+Commands:
+  --job                 Ouput PLUS job definition
+  --play                Generate runtime event data
 
- --help, -h               show this help message and exit
- --job, -j                output PLUS Job Definition (JSON)
- --play                   interpret the job and produce events
- --aeo_config             output AEOrdering config.json (JSON)
- --aesim_test             output AESimulator scenario dispatch JSON with --play
- --aesim_config           output AESimulator config JSON when combined with --play
- --print, -p              pretty print human readable output
+Global Options:
+  -v, --version         show program's version number and exit
+  -h, --help            Show this help message and exit
+  --debug               Enable debug logging
+  -p, --pretty-print    Print human readable debug output
+  -o dir, --outdir dir  Path to output directory
+  filenames             Input .puml files
 
-=== Examples
+Play Options:
+  --integer-ids         Use deterministic integer IDs
 
- python plus2json.pyz Tutorial_1.puml --job                # convert Tutorial_1.puml into JSON
- python plus2json.pyz myjobdefn.puml --play                # interpret the job producing event instances
- python plus2json.pyz myjobdefn.puml --play --aesim_config # produce a valid AESimulator sequence
- python -m plus2json Tutorial_1.puml --job -p              # show job in human readable view
- python plus2json.pyz j.puml --job | python -m json.tool   # format output JSON
- python ../plus2json/__main__.py Tutorial_1.puml --job -p        # run from the raw source code
+Examples:
+    # load Tutorial_1.puml and print a human readable version of the definition to the console
+    python plus2json.pyz job Tutorial_1.puml --pretty-print
 
-=== Interesting Files
+    # convert Tutorial_1.puml into JSON and output to the console
+    python plus2json.pyz job Tutorial_1.puml
 
- plus2json/plus2json.g4 - antlr4 grammar for PLUS
- plus2json/plus2son_run.py - source for the tree walker listener JSON generator
- plus2json/plus_job_defn.py - data model for the job definition
- plus2json/plus_job_defn_*.py - "mixin" classes to supply output routines
- plus2json/__main__.py
- bin/plus2json.pyz - Python 3 executable with dependencies included
+    # convert all .puml files in the 'puml' directory and write each to a JSON file in 'job_definitions'
+    python plus2json.pyz job -o job_definitions puml/*.puml
+    # load Tutorial_1.puml and print a human readable stream of events to the console
+    python plus2json.pyz play Tutorial_1.puml --pretty-print
+
+    # load Tutorial_1.puml and print a JSON stream of events to the console
+    python plus2json.pyz play Tutorial_1.puml
+
+    # load all .puml files in the 'puml' directory and write steam of events for each to a JSON file in 'job_definitions'
+    python plus2json.pyz play -o job_definitions puml/*.puml
+----
 
 === Package for release
 
- from plus2json folder:  antlr4 -Dlanguage=Python3 plus2json.g4
- python -m pip install -r requirements.txt --target plus2json
- python -m zipapp plus2json -p "/usr/bin/env python3" -o plus2json.pyz -c
- after learning how to publish:
- python setup.py sdist
- twine upload dist/*
+To package the `plus2json.pyz` bundle, run:
+
+  python bundle.py
 
 === Data Model
 
-This is the structure of the job definition.  PLUS `.puml` files are
-parsed, and instances of these classes are created and linked.
+This is the structure of the job definition. PLUS `.puml` files are parsed, and
+instances of these classes are created and linked.
 
-image::plus_job_defn.png[PLUS Job Definition]
+image::doc/plus_job_defn.png[PLUS Job Definition]
 

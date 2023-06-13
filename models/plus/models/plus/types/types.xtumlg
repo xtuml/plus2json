@@ -1,8 +1,14 @@
 render : "plus::types"
 
 shapes :
-  shape : UUID
-    render : user_data_type "plus::types::UUID"
-    bounds : x : 35.0 y : 131.0 width : 192.0 height : 61.0
+  shape : EventDataType
+    render : enumeration_data_type "plus::types::EventDataType"
+    bounds : x : 247.0 y : 131.0 width : 200.0 height : 150.0
+  shape : ConstraintType
+    render : enumeration_data_type "plus::types::ConstraintType"
+    bounds : x : 467.0 y : 131.0 width : 200.0 height : 150.0
+  shape : TimeStamp
+    render : user_data_type "plus::types::TimeStamp"
+    bounds : x : 687.0 y : 131.0 width : 200.0 height : 150.0
 
 connectors :

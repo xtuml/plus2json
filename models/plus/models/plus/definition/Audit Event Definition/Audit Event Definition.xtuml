@@ -1,0 +1,31 @@
+// BP 7.1.6 content: ModelClass syschar: 3 persistence-version: 7.1.6
+
+within plus::definition is
+
+  //! AuditEventDefn is a definition of an audit event.
+  //! There will be one instance of AuditEventDefn for each audit event
+  //! parsed from the .puml job definition file.
+  //! Each instance of AuditEventDefn is linked to a SequenceDefn.
+  @key_letters("AuditEventDefn");
+  @class_num(3);
+  class 'Audit Event Definition' is
+
+    Name: string;
+
+    OccurrenceId: integer;
+
+    @ref_mode("referred_to");
+    @use_referred_to_prefix(root_name="JobDefnName");
+    JobDefnName: referential (R2.'Sequence Definition'.JobDefnName, R13.'Sequence Definition'.JobDefnName, R15.'Sequence Definition'.JobDefnName) string;
+
+    @ref_mode("referred_to");
+    @use_prefix(prefix="Sequence", root_name="Name");
+    SequenceName: referential (R2.'Sequence Definition'.Name, R13.'Sequence Definition'.Name, R15.'Sequence Definition'.Name) string;
+
+    IsBreak: boolean;
+
+    preferred identifier is (Name, OccurrenceId, JobDefnName);
+
+  end class;
+
+end;

@@ -1,0 +1,15 @@
+// BP 7.1.6 content: ModelClass syschar: 3 persistence-version: 7.1.6
+
+within plus::runtime is
+
+  @key_letters("Job");
+  @class_num(101);
+  class Job is
+
+    unique Id: integer;
+
+    preferred identifier is (Id);
+
+  end class;
+
+end;

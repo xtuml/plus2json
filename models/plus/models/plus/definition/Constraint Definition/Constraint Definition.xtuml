@@ -1,0 +1,17 @@
+// BP 7.1.6 content: ModelClass syschar: 3 persistence-version: 7.1.6
+
+within plus::definition is
+
+  @key_letters("ConstDefn");
+  @class_num(6);
+  class 'Constraint Definition' is
+
+    Id: string;
+
+    Type: ConstraintType;
+
+    preferred identifier is (Id);
+
+  end class;
+
+end;

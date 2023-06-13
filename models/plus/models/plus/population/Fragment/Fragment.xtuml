@@ -1,0 +1,14 @@
+// BP 7.1.6 content: ModelClass syschar: 3 persistence-version: 7.1.6
+
+within plus::population is
+
+  //! A Fragment represents a logical group of audit events in the context of PLUS.
+  //! Fragments follow each other in sequence and can be contained in other fragments
+  //! as part of more complex constructs.
+  @key_letters("Fragment");
+  @class_num(52);
+  class Fragment is
+
+  end class;
+
+end;
