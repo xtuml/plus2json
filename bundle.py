@@ -14,7 +14,7 @@ def gen_grammar():
     # generate Plus
     print('Genearting Antlr Parser...')
     argv = sys.argv
-    sys.argv = ['', '-Dlanguage=Python3', '-no-listener', '-visitor', '-o', 'plus2json/plus', '-Xexact-output-dir', 'grammar/Plus.g4']
+    sys.argv = ['', '-v', '4.13.0', '-Dlanguage=Python3', '-no-listener', '-visitor', '-o', 'plus2json/plus', '-Xexact-output-dir', 'grammar/Plus.g4']
     antlr4_tool_runner.tool()
     sys.argv = argv
     print('Done')
