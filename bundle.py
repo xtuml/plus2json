@@ -80,10 +80,10 @@ if __name__ == '__main__':
                 gen_zipapp()
             case 'dev':
                 gen_grammar()
-                gen_schema()
+                #gen_schema()
                 gen_version()
     else:
         gen_grammar()
-        gen_schema()
+        #gen_schema()
         gen_version()
         gen_zipapp()
