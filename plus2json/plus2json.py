@@ -4,6 +4,7 @@ import json
 import logging
 import os
 import os.path
+import random
 import sys
 import tempfile
 import textwrap
@@ -11,13 +12,14 @@ import uuid
 import xtuml
 
 from .definition import JobDefn_json
-from .play import JobDefn_play, Job_pretty_print, Job_json
+from .play import JobDefn_play, Job_pretty_print, Job_json, Job_dispose
 from .plus import PlusLexer, PlusParser
 from .populate import PlusPopulator, PlusErrorListener
 from .pretty_print import JobDefn_pretty_print
 
 from antlr4.error.Errors import CancellationException
 from importlib.resources import files
+from itertools import cycle
 
 logger = logging.getLogger('plus2json')
 
@@ -70,6 +72,9 @@ def main():
     # play specific options
     play_options = parser.add_argument_group(title='Play Options')
     play_options.add_argument('--integer-ids', action='store_true', help='Use deterministic integer IDs')
+    play_options.add_argument('--num-events', type=int, default=0, help='The number of events to produce. If omitted, each job will be played one time.')
+    play_options.add_argument('--batch-size', type=int, default=500, help='The number of events per file. Default is 500. Only valid if "--num-events" is present.')
+    play_options.add_argument('--shuffle', action='store_true', help='Shuffle the events before writing to a file.')
     # play_options.add_argument('--persist-einv', action='store_true', help='Persist external invariants in a file store')
     # play_options.add_argument('--inv-store', metavar='store_file', help='Location to persist external invariant values', default='p2jInvariantStore')
 
@@ -194,22 +199,74 @@ class Plus2Json:
     # process runtime play
     def play_job_definitions(self, **kwargs):
 
-        # play each job definition
-        jobs = map(JobDefn_play, self.metamodel.select_many('JobDefn'))
+        job_defns = self.metamodel.select_many('JobDefn')
 
-        # assure model consistency
-        self.check_consistency()
+        # play all job definitions once
+        if kwargs['num_events'] == 0:
 
-        # render each runtime job
-        for job in jobs:
-            if kwargs['pretty_print']:
-                Job_pretty_print(job)
-            else:
-                output = json.dumps(Job_json(job), indent=4, separators=(',', ': '))
-                if self.outdir:
-                    self.write_output_file(output, f'{xtuml.navigate_one(job).JobDefn[101]().Name.replace(" ", "_")}_{job.Id}.json')
+            # play each job definition
+            jobs = map(JobDefn_play, job_defns)
+
+            # assure model consistency
+            self.check_consistency()
+
+            # render each runtime job
+            for job in jobs:
+                if kwargs['pretty_print']:
+                    Job_pretty_print(job)
                 else:
+                    # create events
+                    events = Job_json(job)
+
+                    # shuffle events
+                    if kwargs['shuffle']:
+                        random.shuffle(events)
+
+                    # dump to JSON
+                    output = json.dumps(events, indent=4, separators=(',', ': '))
+                    if self.outdir:
+                        self.write_output_file(output, f'{xtuml.navigate_one(job).JobDefn[101]().Name.replace(" ", "_")}_{job.Id}.json')
+                    else:
+                        print(output)
+
+                Job_dispose(job)
+
+        # play jobs in volume mode
+        else:
+
+            # create an infinite cycle iterator of job definitions
+            job_defn_iter = cycle(job_defns)
+
+            num_events_produced = 0
+            events = []
+
+            # keep generating until we produce 1.2M events
+            while num_events_produced < kwargs['num_events']:
+
+                # batches of 500 events per file
+                while len(events) < min(kwargs['batch_size'], kwargs['num_events'] - num_events_produced):
+                    job = JobDefn_play(next(job_defn_iter))
+                    events.extend(Job_json(job, dispose=True))
+
+                # shuffle the events
+                if kwargs['shuffle']:
+                    random.shuffle(events)
+
+                # write the file
+                output = json.dumps(events, indent=4, separators=(',', ': '))
+                if self.outdir:
+                    fn = f'{uuid.uuid4()}.json'
+                    self.write_output_file(output, fn)
+                else:
+                    fn = 'stdout'
                     print(output)
+
+                logger.info(f'File {fn} written with {len(events)} events')
+
+                num_events_produced += len(events)
+                events = []
+
+            logger.info(f'Total events produced: {num_events_produced}')
 
     # atomically write output to a file
     def write_output_file(self, output, filename):
