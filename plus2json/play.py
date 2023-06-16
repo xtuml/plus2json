@@ -5,7 +5,7 @@ import csv
 
 from datetime import datetime, timedelta
 
-from xtuml import relate, navigate_many as many, navigate_one as one, navigate_any as any
+from xtuml import relate, delete, navigate_many as many, navigate_one as one, navigate_any as any
 from uuid import UUID
 
 from .populate import EventDataType  # TODO
@@ -159,10 +159,10 @@ def Loop_play(self, job, prev_evts=[]):
     if len(lcnts) > 1:
         logger.warning(f'Loop has more than one loop count data definition: {len(lcnts)}')
         return []
-    inv = any(lcnts).EventData[108](lambda sel: sel.IsSource)
+    lcnt = any(lcnts).EventData[108](lambda sel: sel.IsSource)
 
     # play the loop the number of times
-    for i in range(int(inv.Value) if inv else 1):
+    for i in range(int(lcnt.Value) if lcnt else 1):
         evts = Tine_play(one(self).Tine[55](), job, prev_evts)
         prev_evts = evts
     return evts
@@ -185,12 +185,14 @@ def Job_pretty_print(self):
         evt = one(evt).AuditEvent[104, 'precedes']()
 
 
-def Job_json(self):
+def Job_json(self, dispose=False):
     j = []
     evt = one(self).AuditEvent[105]()
     while evt is not None:
         j.append(AuditEvent_json(evt))
         evt = one(evt).AuditEvent[104, 'precedes']()
+    if dispose:
+        Job_dispose(self)
     return j
 
 
@@ -260,3 +262,15 @@ def EventData_load(self, filename='p2jInvariantStore'):  # TODO filename
     except IOError:
         logger.warning(f'Unable to load invariant file: {filename}')
         logger.debug('', exc_info=True)
+
+
+def Job_dispose(self):
+    for evt in many(self).AuditEvent[102]():
+        AuditEvent_dispose(evt)
+    delete(self, disconnect=True)
+
+
+def AuditEvent_dispose(self):
+    for data in many(self).EventData[107]():
+        delete(data, disconnect=True)
+    delete(self, disconnect=True)
