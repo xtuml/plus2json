@@ -77,7 +77,7 @@ class PreviousAuditEventDefn_JSON:
         constraintid = "" if "" == self.ConstraintDefinitionId else ', "ConstraintDefinitionId": "' + self.ConstraintDefinitionId + '"'
         constraint = "" if "" == self.ConstraintValue else ', "ConstraintValue": "' + self.ConstraintValue + '"'
         # Omit the constraint when it is IOR.
-        if 'IOR' == constraint:
+        if 'IOR' == self.ConstraintValue:
             constraint = ""
             constraintid = ""
         return ( pdelim +
