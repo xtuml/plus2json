@@ -5,7 +5,7 @@ import csv
 
 from datetime import datetime, timedelta
 
-from xtuml import relate, delete, navigate_many as many, navigate_one as one, navigate_any as any
+from xtuml import relate, delete, order_by, navigate_many as many, navigate_one as one, navigate_any as any
 from uuid import UUID
 
 from .populate import EventDataType  # TODO
@@ -65,19 +65,10 @@ def Fragment_play(self, job, prev_evts=[]):
 def AuditEventDefn_play(self, job, prev_evts):
     m = self.__metaclass__.metamodel
 
-    # get the last event in the job
-    last_evt = any(job).AuditEvent[102](lambda sel: not one(sel).AuditEvent[104, 'precedes']())
-
     # create an instance of the audit event and link it to the job
-    evt = m.new('AuditEvent', TimeStamp=time.time())
+    evt = m.new('AuditEvent', TimeStamp=time.time(), SequenceNum=len(many(job).AuditEvent[102]()))
     relate(evt, self, 103)
     relate(evt, job, 102)
-    if not one(job).AuditEvent[105]():
-        relate(evt, job, 105)
-
-    # link the event in order
-    if last_evt:
-        relate(last_evt, evt, 104, 'precedes')
 
     # link the required previous events
     for prev_evt in prev_evts:
@@ -183,18 +174,14 @@ def Job_pretty_print(self):
     logger.info(f'job: {one(self).JobDefn[101]().Name}: {self.Id}')
 
     # print each event
-    evt = one(self).AuditEvent[105]()
-    while evt is not None:
+    for evt in many(self).AuditEvent[102](order_by('SequenceNum')):
         AuditEvent_pretty_print(evt)
-        evt = one(evt).AuditEvent[104, 'precedes']()
 
 
 def Job_json(self, dispose=False):
     j = []
-    evt = one(self).AuditEvent[105]()
-    while evt is not None:
+    for evt in many(self).AuditEvent[102](order_by('SequenceNum')):
         j.append(AuditEvent_json(evt))
-        evt = one(evt).AuditEvent[104, 'precedes']()
     if dispose:
         Job_dispose(self)
     return j

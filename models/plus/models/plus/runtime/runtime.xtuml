@@ -19,14 +19,6 @@ within plus is
     relationship R103 is 'Audit Event Definition' conditionally relates to many 'Audit Event',
                          'Audit Event' unconditionally instance_of one 'Audit Event Definition';
 
-    //! This relationship represents the _actual_ order in which the events are
-    //! sequenced in the generation of this particular job.
-    relationship R104 is 'Audit Event' conditionally follows one 'Audit Event',
-                         'Audit Event' conditionally precedes one 'Audit Event';
-
-    relationship R105 is 'Audit Event' conditionally relates to one Job,
-                         Job unconditionally has_first one 'Audit Event';
-
     //! This relationship represents the link to the events that must precede this event
     //! according to the job definition
     relationship R106 is 'Audit Event' conditionally must_follow many 'Audit Event',
