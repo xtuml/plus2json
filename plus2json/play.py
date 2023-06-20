@@ -149,8 +149,12 @@ def Fork_play(self, job, prev_evts=[]):
             evts.extend(Tine_play(tine, job, prev_evts))
         return evts
 
+    elif self.Type == ConstraintType.IOR:
+        # TODO arbitrarily choose the first tine
+        return Tine_play(any(self).Tine[54](), job, prev_evts)
+
     else:
-        return []  # TODO support IOR forks
+        return []
 
 
 def Loop_play(self, job, prev_evts=[]):
