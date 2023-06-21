@@ -107,11 +107,13 @@ def AuditEventDefn_play(self, job, branch_count, prev_evts):
 
 def EvtDataDefn_play(self, is_source=True):
     m = self.__metaclass__.metamodel
+    opts = m.select_any('_Options')
     evt_data = None
 
     if is_source:
+        source_value = opts.event_data[self.Name] if self.Name in opts.event_data else None
         if self.Type in (EventDataType.EINV, EventDataType.IINV):
-            evt_data = m.new('EventData', Value=str(next(m.id_generator)), Creation=time.time(), Expiration=(time.time() + timedelta(days=30).total_seconds()), IsSource=True)
+            evt_data = m.new('EventData', Value=source_value or str(next(m.id_generator)), Creation=time.time(), Expiration=(time.time() + timedelta(days=30).total_seconds()), IsSource=True)
             relate(evt_data, self, 108)
             if self.Type == EventDataType.EINV:
                 if not m.select_any('_Options').no_persist_einv:
@@ -120,7 +122,7 @@ def EvtDataDefn_play(self, is_source=True):
                     logger.warn('Not persisting external invariant value')
         else:
             # use the magic number 4 for all dynamic controls
-            evt_data = m.new('EventData', Value=str(4), Creation=time.time(), Expiration=(time.time() + timedelta(days=30).total_seconds()), IsSource=True)
+            evt_data = m.new('EventData', Value=source_value or str(4), Creation=time.time(), Expiration=(time.time() + timedelta(days=30).total_seconds()), IsSource=True)
             relate(evt_data, self, 108)
 
     else:
@@ -140,6 +142,10 @@ def EvtDataDefn_play(self, is_source=True):
                 evt_data.Value = src_evt_data.Value
                 evt_data.Creation = src_evt_data.Creation
                 evt_data.Expiration = src_evt_data.Expiration
+            elif self.Name in opts.event_data:
+                evt_data.Value = opts.event_data[self.Name]
+                evt_data.Creation = time.time()
+                evt_data.Expiration = (time.time() + timedelta(days=30).total_seconds())
             elif self.Type == EventDataType.EINV:
                 # try to load from store
                 EventData_load(evt_data)

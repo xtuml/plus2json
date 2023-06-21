@@ -76,6 +76,7 @@ def main():
     play_options.add_argument('--shuffle', action='store_true', help='Shuffle the events before writing to a file.')
     play_options.add_argument('--no-persist-einv', action='store_true', help='Do not persist external invariants in a file store')
     play_options.add_argument('--inv-store-file', metavar='filename', help='Location to persist external invariant values', default='p2jInvariantStore')
+    play_options.add_argument('--event-data', action='append', metavar='data', help='Key/value pairs for source event data values', default=[])
 
     # parse command line
     args = parser.parse_args()
@@ -159,7 +160,10 @@ class Plus2Json:
             self.metamodel.id_generator = type('PlusUUIDGenerator', (xtuml.IdGenerator,), {'readfunc': lambda self: uuid.uuid4()})()
 
         # create a global arguments class and singleton instance
-        self.metamodel.define_class('_Options', map(lambda item: (item[0], 'STRING'), opts.items())).new(**opts)
+        opts = self.metamodel.define_class('_Options', map(lambda item: (item[0], 'STRING'), opts.items())).new(**opts)
+
+        # process input event data
+        opts.event_data = dict((s.split('=') + [1])[:2] for s in opts.event_data)
 
         # process each .puml input stream
         for filename, stream in self.inputs:
