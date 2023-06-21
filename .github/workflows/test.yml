@@ -2,11 +2,11 @@ name: Test
 on:
 
   # run on PRs to main
-  pull_request:
+  # pull_request:
     # branches: [ main ]
 
   # run on push to main
-  push:
+  # push:
     # branches: [ main ]
 
   # run manually

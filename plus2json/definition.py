@@ -55,7 +55,7 @@ def EvtSucc_json(self):
     j['PreviousOccurrenceId'] = prev_evt.OccurrenceId
 
     const_defn = one(self).ConstDefn[16]()
-    if const_defn and const_defn.Type != ConstraintType.IOR:  # for some reason, we are skipping IOR -LPS
+    if const_defn:
         j['ConstraintDefinitionId'] = const_defn.Id
         j['ConstraintValue'] = const_defn.Type.name
 

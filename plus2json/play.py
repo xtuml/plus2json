@@ -5,11 +5,12 @@ import csv
 
 from datetime import datetime, timedelta
 
-from xtuml import relate, delete, navigate_many as many, navigate_one as one, navigate_any as any
+from xtuml import relate, delete, order_by, navigate_many as many, navigate_one as one, navigate_any as any
 from uuid import UUID
 
 from .populate import EventDataType  # TODO
 from .populate import ConstraintType  # TODO
+from .populate import flatten
 
 logger = logging.getLogger(__name__)
 
@@ -36,79 +37,92 @@ def SeqDefn_play(self, job):
     Fragment_play(one(self).Fragment[58](), job)
 
 
-def Fragment_play(self, job, prev_evts=[]):
+def Fragment_play(self, job, branch_count=1, prev_evts=[[]]):
+
+    # if this event is a merge count user, divide the branch count and previous events
+    # NOTE: This implementation does support nested branch/merge, however it
+    # expects the merges to happen exactly as the branches but in reverse order.
+    # If this assumption is violated, it may not work as expected.
+    mcnt = any(any(self).AuditEventDefn[56].EvtDataDefn[12](lambda sel: sel.Type == EventDataType.MCNT)).EventData[108](lambda sel: sel.IsSource)
+    if mcnt:
+        branch_count = int(branch_count / int(mcnt.Value))
+        prev_evts = [flatten(prev_evts[i * int(len(prev_evts) / branch_count):i * int(len(prev_evts) / branch_count) + int(len(prev_evts) / branch_count)]) for i in range(branch_count)]
+
+    # call 'play' on the subtype
     sub = xtuml.navigate_subtype(self, 56)
     # TODO this can be simplified once binding is implemented
     match sub.__metaclass__.kind:
         case 'AuditEventDefn':
-            evts = AuditEventDefn_play(sub, job, prev_evts)
+            evts = AuditEventDefn_play(sub, job, branch_count, prev_evts)
         case 'Fork':
-            evts = Fork_play(sub, job, prev_evts)
+            evts = Fork_play(sub, job, branch_count, prev_evts)
         case 'Loop':
-            evts = Loop_play(sub, job, prev_evts)
+            evts = Loop_play(sub, job, branch_count, prev_evts)
 
     # play the next fragment or return to caller with reference to the last events
     next_frag = one(self).Fragment[57, 'precedes']()
     if next_frag:
-        # TODO get the branch count
-        # this is a very limited implementation that will fail if the fragment is a loop or fork
-        # this also does not support merge -- it will go to the end of the current tine or sequence
-        prev_evts = evts
-        evts = []
+
+        # if this event is a branch count user, muliply the branch count and previoius events
         bcnt = any(any(self).AuditEventDefn[56].EvtDataDefn[12](lambda sel: sel.Type == EventDataType.BCNT)).EventData[108](lambda sel: sel.IsSource)
-        for i in range(int(bcnt.Value) if bcnt else 1):
-            evts.extend(Fragment_play(next_frag, job, prev_evts))
+        if bcnt:
+            branch_count *= int(bcnt.Value)
+            evts *= int(bcnt.Value)
+
+        # play the next fragment
+        evts = Fragment_play(next_frag, job, branch_count, evts)
 
     return evts
 
 
-def AuditEventDefn_play(self, job, prev_evts):
+def AuditEventDefn_play(self, job, branch_count, prev_evts):
     m = self.__metaclass__.metamodel
 
-    # get the last event in the job
-    last_evt = any(job).AuditEvent[102](lambda sel: not one(sel).AuditEvent[104, 'precedes']())
+    evts = []
+    for i in range(branch_count):
 
-    # create an instance of the audit event and link it to the job
-    evt = m.new('AuditEvent', TimeStamp=time.time())
-    relate(evt, self, 103)
-    relate(evt, job, 102)
-    if not one(job).AuditEvent[105]():
-        relate(evt, job, 105)
+        # create an instance of the audit event and link it to the job
+        evt = m.new('AuditEvent', TimeStamp=time.time(), SequenceNum=len(many(job).AuditEvent[102]()))
+        relate(evt, self, 103)
+        relate(evt, job, 102)
 
-    # link the event in order
-    if last_evt:
-        relate(last_evt, evt, 104, 'precedes')
+        # link the required previous events
+        for prev_evt in prev_evts[i]:
+            relate(prev_evt, evt, 106, 'must_precede')
 
-    # link the required previous events
-    for prev_evt in prev_evts:
-        relate(prev_evt, evt, 106, 'must_precede')
+        # create event data for source events
+        for evt_data_defn in many(self).EvtDataDefn[11]():
+            evt_data = EvtDataDefn_play(evt_data_defn)
+            relate(evt_data, evt, 107)
 
-    # create event data for source events
-    for evt_data_defn in many(self).EvtDataDefn[11]():
-        evt_data = EvtDataDefn_play(evt_data_defn)
-        relate(evt_data, evt, 107)
+        # create event data for user events
+        for evt_data_defn in many(self).EvtDataDefn[12](lambda sel: sel.Type in (EventDataType.EINV, EventDataType.IINV)):
+            evt_data = EvtDataDefn_play(evt_data_defn, False)
+            relate(evt_data, evt, 107)
 
-    # create event data for user events
-    for evt_data_defn in many(self).EvtDataDefn[12](lambda sel: sel.Type in (EventDataType.EINV, EventDataType.IINV)):
-        evt_data = EvtDataDefn_play(evt_data_defn, False)
-        relate(evt_data, evt, 107)
+        evts.append([evt])
 
-    return [evt]
+    return evts
 
 
 def EvtDataDefn_play(self, is_source=True):
     m = self.__metaclass__.metamodel
+    opts = m.select_any('_Options')
     evt_data = None
 
     if is_source:
+        source_value = opts.event_data[self.Name] if self.Name in opts.event_data else None
         if self.Type in (EventDataType.EINV, EventDataType.IINV):
-            evt_data = m.new('EventData', Value=str(next(m.id_generator)), Creation=time.time(), Expiration=(time.time() + timedelta(days=30).total_seconds()), IsSource=True)
+            evt_data = m.new('EventData', Value=source_value or str(next(m.id_generator)), Creation=time.time(), Expiration=(time.time() + timedelta(days=30).total_seconds()), IsSource=True)
             relate(evt_data, self, 108)
             if self.Type == EventDataType.EINV:
-                EventData_persist(evt_data)
+                if not m.select_any('_Options').no_persist_einv:
+                    EventData_persist(evt_data)
+                else:
+                    logger.warn('Not persisting external invariant value')
         else:
             # use the magic number 4 for all dynamic controls
-            evt_data = m.new('EventData', Value=str(4), Creation=time.time(), Expiration=(time.time() + timedelta(days=30).total_seconds()), IsSource=True)
+            evt_data = m.new('EventData', Value=source_value or str(4), Creation=time.time(), Expiration=(time.time() + timedelta(days=30).total_seconds()), IsSource=True)
             relate(evt_data, self, 108)
 
     else:
@@ -128,6 +142,10 @@ def EvtDataDefn_play(self, is_source=True):
                 evt_data.Value = src_evt_data.Value
                 evt_data.Creation = src_evt_data.Creation
                 evt_data.Expiration = src_evt_data.Expiration
+            elif self.Name in opts.event_data:
+                evt_data.Value = opts.event_data[self.Name]
+                evt_data.Creation = time.time()
+                evt_data.Expiration = (time.time() + timedelta(days=30).total_seconds())
             elif self.Type == EventDataType.EINV:
                 # try to load from store
                 EventData_load(evt_data)
@@ -137,23 +155,27 @@ def EvtDataDefn_play(self, is_source=True):
     return evt_data
 
 
-def Fork_play(self, job, prev_evts=[]):
+def Fork_play(self, job, branch_count, prev_evts):
     if self.Type == ConstraintType.XOR:
         # TODO arbitrarily choose the first tine
-        return Tine_play(any(self).Tine[54](), job, prev_evts)
+        return Tine_play(any(self).Tine[54](), job, branch_count, prev_evts)
 
     elif self.Type == ConstraintType.AND:
-        # play all tines
-        evts = []
+        # play all tines combining the previous event lists
+        evts = [[]] * branch_count
         for tine in many(self).Tine[54]():
-            evts.extend(Tine_play(tine, job, prev_evts))
+            evts = [a + b for a, b in zip(evts, Tine_play(tine, job, branch_count, prev_evts))]
         return evts
 
+    elif self.Type == ConstraintType.IOR:
+        # TODO arbitrarily choose the first tine
+        return Tine_play(any(self).Tine[54](), job, branch_count, prev_evts)
+
     else:
-        return []  # TODO support IOR forks
+        return [[]] * branch_count
 
 
-def Loop_play(self, job, prev_evts=[]):
+def Loop_play(self, job, branch_count, prev_evts):
     # there will be exactly one loop count user in the tine of the loop
     lcnts = many(self).Tine[55].Fragment[59].AuditEventDefn[56].EvtDataDefn[12](lambda sel: sel.Type == EventDataType.LCNT)
     if len(lcnts) > 1:
@@ -163,15 +185,15 @@ def Loop_play(self, job, prev_evts=[]):
 
     # play the loop the number of times
     for i in range(int(lcnt.Value) if lcnt else 1):
-        evts = Tine_play(one(self).Tine[55](), job, prev_evts)
+        evts = Tine_play(one(self).Tine[55](), job, branch_count, prev_evts)
         prev_evts = evts
     return evts
 
 
-def Tine_play(self, job, prev_evts=[]):
+def Tine_play(self, job, branch_count, prev_evts):
     # play starting with the first fragment
-    evts = Fragment_play(one(self).Fragment[51](), job, prev_evts)
-    return evts if not self.IsTerminal else []
+    evts = Fragment_play(one(self).Fragment[51](), job, branch_count, prev_evts)
+    return evts if not self.IsTerminal else [[]] * branch_count
 
 
 def Job_pretty_print(self):
@@ -179,18 +201,14 @@ def Job_pretty_print(self):
     logger.info(f'job: {one(self).JobDefn[101]().Name}: {self.Id}')
 
     # print each event
-    evt = one(self).AuditEvent[105]()
-    while evt is not None:
+    for evt in many(self).AuditEvent[102](order_by('SequenceNum')):
         AuditEvent_pretty_print(evt)
-        evt = one(evt).AuditEvent[104, 'precedes']()
 
 
 def Job_json(self, dispose=False):
     j = []
-    evt = one(self).AuditEvent[105]()
-    while evt is not None:
+    for evt in many(self).AuditEvent[102](order_by('SequenceNum')):
         j.append(AuditEvent_json(evt))
-        evt = one(evt).AuditEvent[104, 'precedes']()
     if dispose:
         Job_dispose(self)
     return j
@@ -199,7 +217,8 @@ def Job_json(self, dispose=False):
 def AuditEvent_pretty_print(self):
     evt_defn = one(self).AuditEventDefn[103]()
     prev_ids = ', '.join(map(lambda e: str(e.Id), many(self).AuditEvent[106, 'must_follow']()))
-    logger.info(f'evt: {evt_defn.Name}({evt_defn.OccurrenceId}): {self.Id} prev_ids: {prev_ids}')
+    uses = ', '.join(map(lambda ed: ed.Name, many(self).AuditEventDefn[103].EvtDataDefn[12]()))
+    logger.info(f'evt: {evt_defn.Name}({evt_defn.OccurrenceId}): {self.Id} prev_ids: {prev_ids}{" uses: " + uses if uses else ""}')
     for evt_data in many(self).EventData[107]():
         EventData_pretty_print(evt_data)
 
@@ -233,22 +252,26 @@ def EventData_json(self):
     return {self.Name: val}
 
 
-def EventData_persist(self, filename='p2jInvariantStore'):  # TODO filename
+def EventData_persist(self):
+    m = self.__metaclass__.metamodel
+    opts = m.select_any('_Options')
     evt_data_defn = one(self).EvtDataDefn[108]()
     row = (evt_data_defn.Name, self.Value, datetime.utcfromtimestamp(self.Creation).isoformat() + 'Z', datetime.utcfromtimestamp(self.Expiration).isoformat() + 'Z', evt_data_defn.SourceJobDefnName, '', '')
     try:
-        with open(filename, 'a') as f:
+        with open(opts.inv_store_file, 'a') as f:
             writer = csv.writer(f)
             writer.writerow(row)
     except IOError:
-        logger.warning(f'Could not write to invariant store: {filename}')
+        logger.warning(f'Could not write to invariant store: {opts.inv_store_file}')
         logger.debug('', exc_info=True)
 
 
-def EventData_load(self, filename='p2jInvariantStore'):  # TODO filename
+def EventData_load(self):  # TODO filename
+    m = self.__metaclass__.metamodel
+    opts = m.select_any('_Options')
     evt_data_defn = one(self).EvtDataDefn[108]()
     try:
-        with open(filename) as f:
+        with open(opts.inv_store_file) as f:
             reader = csv.reader(f)
             for row in reader:
                 if row[0] == evt_data_defn.Name and row[4] == evt_data_defn.SourceJobDefnName:
@@ -260,7 +283,7 @@ def EventData_load(self, filename='p2jInvariantStore'):  # TODO filename
             return False
 
     except IOError:
-        logger.warning(f'Unable to load invariant file: {filename}')
+        logger.warning(f'Unable to load invariant file: {opts.inv_store_file}')
         logger.debug('', exc_info=True)
 
 

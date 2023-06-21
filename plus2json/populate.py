@@ -283,10 +283,11 @@ class PlusPopulator(PlusVisitor):
             for next_evt in next_evts:
                 if not any(prev_evt).EvtSucc[3, 'precedes'](lambda sel: one(sel).AuditEventDefn[3, 'precedes']() == next_evt):
                     evt_succ = self.m.new('EvtSucc')
-                    if not const_defn:
-                        id_str = str(generate_id(prev_evt.Name, prev_evt.OccurrenceId, prev_evt.JobDefnName, next_evt.Name, next_evt.OccurrenceId, next_evt.JobDefnName))
-                        const_defn = self.m.new('ConstDefn', Id=id_str, Type=fork.Type)
-                    relate(evt_succ, const_defn, 16)
+                    if type != ConstraintType.IOR:
+                        if not const_defn:
+                            id_str = str(generate_id(prev_evt.Name, prev_evt.OccurrenceId, prev_evt.JobDefnName, next_evt.Name, next_evt.OccurrenceId, next_evt.JobDefnName))
+                            const_defn = self.m.new('ConstDefn', Id=id_str, Type=fork.Type)
+                        relate(evt_succ, const_defn, 16)
                     relate(prev_evt, evt_succ, 3, 'precedes')
                     relate(evt_succ, next_evt, 3, 'precedes')
 

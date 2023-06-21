@@ -32,7 +32,6 @@ def main():
     # configure command line
     parser = argparse.ArgumentParser(prog='plus2json',
                                      formatter_class=argparse.RawTextHelpFormatter,
-                                     usage='python plus2json.pyz <command> [-v] [-h] [--debug] [--pretty-print] [-o dir]  [filenames ...]',
                                      description='plus2json is a utility for processing PLUS job definitions and producing JSON ouptut for congifuring and testing the protocol verifier.',
                                      epilog=textwrap.dedent('''\
                                              Examples:
@@ -75,8 +74,9 @@ def main():
     play_options.add_argument('--num-events', type=int, default=0, help='The number of events to produce. If omitted, each job will be played one time.')
     play_options.add_argument('--batch-size', type=int, default=500, help='The number of events per file. Default is 500. Only valid if "--num-events" is present.')
     play_options.add_argument('--shuffle', action='store_true', help='Shuffle the events before writing to a file.')
-    # play_options.add_argument('--persist-einv', action='store_true', help='Persist external invariants in a file store')
-    # play_options.add_argument('--inv-store', metavar='store_file', help='Location to persist external invariant values', default='p2jInvariantStore')
+    play_options.add_argument('--no-persist-einv', action='store_true', help='Do not persist external invariants in a file store')
+    play_options.add_argument('--inv-store-file', metavar='filename', help='Location to persist external invariant values', default='p2jInvariantStore')
+    play_options.add_argument('--event-data', action='append', metavar='data', help='Key/value pairs for source event data values', default=[])
 
     # parse command line
     args = parser.parse_args()
@@ -98,55 +98,56 @@ def main():
 def check(**kwargs):
     p2j = Plus2Json(outdir=kwargs['outdir'])
     if 'filenames' in kwargs and len(kwargs['filenames']) > 0:
-        p2j.load_files(kwargs['filenames'])
+        p2j.filename_input(kwargs['filenames'])
     elif 'input' in kwargs:
-        p2j.load_string(kwargs['input'])
+        p2j.string_input(kwargs['input'])
     else:
-        p2j.load_stream(sys.stdin)
+        p2j.stream_input(sys.stdin)
+    p2j.load()
 
 
 def job(**kwargs):
     p2j = Plus2Json(outdir=kwargs['outdir'])
-    integer_ids = kwargs['pretty_print']
     if 'filenames' in kwargs and len(kwargs['filenames']) > 0:
-        p2j.load_files(kwargs['filenames'], integer_ids=integer_ids)
+        p2j.filename_input(kwargs['filenames'])
     elif 'input' in kwargs:
-        p2j.load_string(kwargs['input'], integer_ids=integer_ids)
+        p2j.string_input(kwargs['input'])
     else:
-        p2j.load_stream(sys.stdin, integer_ids=integer_ids)
-    p2j.process_job_definitions(**kwargs)
+        p2j.stream_input(sys.stdin)
+    p2j.load(integer_ids=kwargs['pretty_print'], opts=kwargs)
+    p2j.process_job_definitions()
 
 
 def play(**kwargs):
     p2j = Plus2Json(outdir=kwargs['outdir'])
-    integer_ids = (kwargs['integer_ids'] or kwargs['pretty_print'])
     if 'filenames' in kwargs and len(kwargs['filenames']) > 0:
-        p2j.load_files(kwargs['filenames'], integer_ids=integer_ids)
+        p2j.filename_input(kwargs['filenames'])
     elif 'input' in kwargs:
-        p2j.load_string(kwargs['input'], integer_ids=integer_ids)
+        p2j.string_input(kwargs['input'])
     else:
-        p2j.load_stream(sys.stdin, integer_ids=integer_ids)
-    p2j.play_job_definitions(**kwargs)
+        p2j.stream_input(sys.stdin)
+    p2j.load(integer_ids=(kwargs['integer_ids'] or kwargs['pretty_print']), opts=kwargs)
+    p2j.play_job_definitions()
 
 
 class Plus2Json:
 
     def __init__(self, outdir=None):
         self.outdir = outdir
+        self.inputs = []
 
-    def load_files(self, filenames, integer_ids=False):
-        inputs = map(lambda fn: (fn, antlr4.FileStream(fn)), filenames)
-        self.load(inputs, integer_ids)
+    def filename_input(self, filenames):
+        if isinstance(filenames, str):
+            filenames = [filenames]
+        self.inputs += map(lambda fn: (fn, antlr4.FileStream(fn)), filenames)
 
-    def load_stream(self, stream, integer_ids=False):
-        inputs = [('STDIN', antlr4.InputStream(stream.read()))]
-        self.load(inputs, integer_ids)
+    def stream_input(self, stream):
+        self.inputs += [('STDIN', antlr4.InputStream(stream.read()))]
 
-    def load_string(self, input, integer_ids=False):
-        inputs = [('INPUT', antlr4.InputStream(str(input)))]
-        self.load(inputs, integer_ids)
+    def string_input(self, input):
+        self.inputs += [('INPUT', antlr4.InputStream(str(input)))]
 
-    def load(self, inputs, integer_ids):
+    def load(self, integer_ids=False, opts={}):
         # load the metamodel
         loader = xtuml.ModelLoader()
         loader.input(files(__package__).joinpath('schema').joinpath('plus_schema.sql').read_text())
@@ -158,8 +159,14 @@ class Plus2Json:
         else:
             self.metamodel.id_generator = type('PlusUUIDGenerator', (xtuml.IdGenerator,), {'readfunc': lambda self: uuid.uuid4()})()
 
+        # create a global arguments class and singleton instance
+        opts = self.metamodel.define_class('_Options', map(lambda item: (item[0], 'STRING'), opts.items())).new(**opts)
+
+        # process input event data
+        opts.event_data = dict((s.split('=') + [1])[:2] for s in opts.event_data)
+
         # process each .puml input stream
-        for filename, stream in inputs:
+        for filename, stream in self.inputs:
             try:
                 error_listener = PlusErrorListener(filename)
                 lexer = PlusLexer(stream)
@@ -183,11 +190,12 @@ class Plus2Json:
             sys.exit(1)
 
     # process job definitions
-    def process_job_definitions(self, **kwargs):
+    def process_job_definitions(self):
+        opts = self.metamodel.select_any('_Options')
 
         # output each job definition
         for job_defn in self.metamodel.select_many('JobDefn'):
-            if kwargs['pretty_print']:
+            if opts.pretty_print:
                 JobDefn_pretty_print(job_defn)
             else:
                 output = json.dumps(JobDefn_json(job_defn), indent=4, separators=(',', ': '))
@@ -197,12 +205,13 @@ class Plus2Json:
                     print(output)
 
     # process runtime play
-    def play_job_definitions(self, **kwargs):
+    def play_job_definitions(self):
+        opts = self.metamodel.select_any('_Options')
 
         job_defns = self.metamodel.select_many('JobDefn')
 
         # play all job definitions once
-        if kwargs['num_events'] == 0:
+        if opts.num_events == 0:
 
             # play each job definition
             jobs = map(JobDefn_play, job_defns)
@@ -212,14 +221,14 @@ class Plus2Json:
 
             # render each runtime job
             for job in jobs:
-                if kwargs['pretty_print']:
+                if opts.pretty_print:
                     Job_pretty_print(job)
                 else:
                     # create events
                     events = Job_json(job)
 
                     # shuffle events
-                    if kwargs['shuffle']:
+                    if opts.shuffle:
                         random.shuffle(events)
 
                     # dump to JSON
@@ -241,15 +250,15 @@ class Plus2Json:
             events = []
 
             # keep generating until we produce 1.2M events
-            while num_events_produced < kwargs['num_events']:
+            while num_events_produced < opts.num_events:
 
                 # batches of 500 events per file
-                while len(events) < min(kwargs['batch_size'], kwargs['num_events'] - num_events_produced):
+                while len(events) < min(opts.batch_size, opts.num_events - num_events_produced):
                     job = JobDefn_play(next(job_defn_iter))
                     events.extend(Job_json(job, dispose=True))
 
                 # shuffle the events
-                if kwargs['shuffle']:
+                if opts.shuffle:
                     random.shuffle(events)
 
                 # write the file
