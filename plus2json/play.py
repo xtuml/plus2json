@@ -10,6 +10,7 @@ from uuid import UUID
 
 from .populate import EventDataType  # TODO
 from .populate import ConstraintType  # TODO
+from .populate import flatten
 
 logger = logging.getLogger(__name__)
 
@@ -36,55 +37,72 @@ def SeqDefn_play(self, job):
     Fragment_play(one(self).Fragment[58](), job)
 
 
-def Fragment_play(self, job, prev_evts=[]):
+def Fragment_play(self, job, branch_count=1, prev_evts=[[]]):
+
+    # if this event is a merge count user, divide the branch count and previous events
+    # NOTE: This implementation does support nested branch/merge, however it
+    # expects the merges to happen exactly as the branches but in reverse order.
+    # If this assumption is violated, it may not work as expected.
+    mcnt = any(any(self).AuditEventDefn[56].EvtDataDefn[12](lambda sel: sel.Type == EventDataType.MCNT)).EventData[108](lambda sel: sel.IsSource)
+    if mcnt:
+        branch_count = int(branch_count / int(mcnt.Value))
+        prev_evts = [flatten(prev_evts[i:i + int(len(prev_evts) / branch_count)]) for i in range(branch_count)]
+
+    # call 'play' on the subtype
     sub = xtuml.navigate_subtype(self, 56)
     # TODO this can be simplified once binding is implemented
     match sub.__metaclass__.kind:
         case 'AuditEventDefn':
-            evts = AuditEventDefn_play(sub, job, prev_evts)
+            evts = AuditEventDefn_play(sub, job, branch_count, prev_evts)
         case 'Fork':
-            evts = Fork_play(sub, job, prev_evts)
+            evts = Fork_play(sub, job, branch_count, prev_evts)
         case 'Loop':
-            evts = Loop_play(sub, job, prev_evts)
+            evts = Loop_play(sub, job, branch_count, prev_evts)
 
     # play the next fragment or return to caller with reference to the last events
     next_frag = one(self).Fragment[57, 'precedes']()
     if next_frag:
-        # TODO get the branch count
-        # this is a very limited implementation that will fail if the fragment is a loop or fork
-        # this also does not support merge -- it will go to the end of the current tine or sequence
-        prev_evts = evts
-        evts = []
+
+        # if this event is a branch count user, muliply the branch count and previoius events
         bcnt = any(any(self).AuditEventDefn[56].EvtDataDefn[12](lambda sel: sel.Type == EventDataType.BCNT)).EventData[108](lambda sel: sel.IsSource)
-        for i in range(int(bcnt.Value) if bcnt else 1):
-            evts.extend(Fragment_play(next_frag, job, prev_evts))
+        if bcnt:
+            branch_count *= int(bcnt.Value)
+            evts *= int(bcnt.Value)
+
+        # play the next fragment
+        evts = Fragment_play(next_frag, job, branch_count, evts)
 
     return evts
 
 
-def AuditEventDefn_play(self, job, prev_evts):
+def AuditEventDefn_play(self, job, branch_count, prev_evts):
     m = self.__metaclass__.metamodel
 
-    # create an instance of the audit event and link it to the job
-    evt = m.new('AuditEvent', TimeStamp=time.time(), SequenceNum=len(many(job).AuditEvent[102]()))
-    relate(evt, self, 103)
-    relate(evt, job, 102)
+    evts = []
+    for i in range(branch_count):
 
-    # link the required previous events
-    for prev_evt in prev_evts:
-        relate(prev_evt, evt, 106, 'must_precede')
+        # create an instance of the audit event and link it to the job
+        evt = m.new('AuditEvent', TimeStamp=time.time(), SequenceNum=len(many(job).AuditEvent[102]()))
+        relate(evt, self, 103)
+        relate(evt, job, 102)
 
-    # create event data for source events
-    for evt_data_defn in many(self).EvtDataDefn[11]():
-        evt_data = EvtDataDefn_play(evt_data_defn)
-        relate(evt_data, evt, 107)
+        # link the required previous events
+        for prev_evt in prev_evts[i]:
+            relate(prev_evt, evt, 106, 'must_precede')
 
-    # create event data for user events
-    for evt_data_defn in many(self).EvtDataDefn[12](lambda sel: sel.Type in (EventDataType.EINV, EventDataType.IINV)):
-        evt_data = EvtDataDefn_play(evt_data_defn, False)
-        relate(evt_data, evt, 107)
+        # create event data for source events
+        for evt_data_defn in many(self).EvtDataDefn[11]():
+            evt_data = EvtDataDefn_play(evt_data_defn)
+            relate(evt_data, evt, 107)
 
-    return [evt]
+        # create event data for user events
+        for evt_data_defn in many(self).EvtDataDefn[12](lambda sel: sel.Type in (EventDataType.EINV, EventDataType.IINV)):
+            evt_data = EvtDataDefn_play(evt_data_defn, False)
+            relate(evt_data, evt, 107)
+
+        evts.append([evt])
+
+    return evts
 
 
 def EvtDataDefn_play(self, is_source=True):
@@ -128,27 +146,27 @@ def EvtDataDefn_play(self, is_source=True):
     return evt_data
 
 
-def Fork_play(self, job, prev_evts=[]):
+def Fork_play(self, job, branch_count, prev_evts):
     if self.Type == ConstraintType.XOR:
         # TODO arbitrarily choose the first tine
-        return Tine_play(any(self).Tine[54](), job, prev_evts)
+        return Tine_play(any(self).Tine[54](), job, branch_count, prev_evts)
 
     elif self.Type == ConstraintType.AND:
-        # play all tines
-        evts = []
+        # play all tines combining the previous event lists
+        evts = [[]] * branch_count
         for tine in many(self).Tine[54]():
-            evts.extend(Tine_play(tine, job, prev_evts))
+            evts = [a + b for a, b in zip(evts, Tine_play(tine, job, branch_count, prev_evts))]
         return evts
 
     elif self.Type == ConstraintType.IOR:
         # TODO arbitrarily choose the first tine
-        return Tine_play(any(self).Tine[54](), job, prev_evts)
+        return Tine_play(any(self).Tine[54](), job, branch_count, prev_evts)
 
     else:
-        return []
+        return [[]] * branch_count
 
 
-def Loop_play(self, job, prev_evts=[]):
+def Loop_play(self, job, branch_count, prev_evts):
     # there will be exactly one loop count user in the tine of the loop
     lcnts = many(self).Tine[55].Fragment[59].AuditEventDefn[56].EvtDataDefn[12](lambda sel: sel.Type == EventDataType.LCNT)
     if len(lcnts) > 1:
@@ -158,15 +176,15 @@ def Loop_play(self, job, prev_evts=[]):
 
     # play the loop the number of times
     for i in range(int(lcnt.Value) if lcnt else 1):
-        evts = Tine_play(one(self).Tine[55](), job, prev_evts)
+        evts = Tine_play(one(self).Tine[55](), job, branch_count, prev_evts)
         prev_evts = evts
     return evts
 
 
-def Tine_play(self, job, prev_evts=[]):
+def Tine_play(self, job, branch_count, prev_evts):
     # play starting with the first fragment
-    evts = Fragment_play(one(self).Fragment[51](), job, prev_evts)
-    return evts if not self.IsTerminal else []
+    evts = Fragment_play(one(self).Fragment[51](), job, branch_count, prev_evts)
+    return evts if not self.IsTerminal else [[]] * branch_count
 
 
 def Job_pretty_print(self):
