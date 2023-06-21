@@ -46,7 +46,7 @@ def Fragment_play(self, job, branch_count=1, prev_evts=[[]]):
     mcnt = any(any(self).AuditEventDefn[56].EvtDataDefn[12](lambda sel: sel.Type == EventDataType.MCNT)).EventData[108](lambda sel: sel.IsSource)
     if mcnt:
         branch_count = int(branch_count / int(mcnt.Value))
-        prev_evts = [flatten(prev_evts[i:i + int(len(prev_evts) / branch_count)]) for i in range(branch_count)]
+        prev_evts = [flatten(prev_evts[i * int(len(prev_evts) / branch_count):i * int(len(prev_evts) / branch_count) + int(len(prev_evts) / branch_count)]) for i in range(branch_count)]
 
     # call 'play' on the subtype
     sub = xtuml.navigate_subtype(self, 56)
@@ -217,7 +217,8 @@ def Job_json(self, dispose=False):
 def AuditEvent_pretty_print(self):
     evt_defn = one(self).AuditEventDefn[103]()
     prev_ids = ', '.join(map(lambda e: str(e.Id), many(self).AuditEvent[106, 'must_follow']()))
-    logger.info(f'evt: {evt_defn.Name}({evt_defn.OccurrenceId}): {self.Id} prev_ids: {prev_ids}')
+    uses = ', '.join(map(lambda ed: ed.Name, many(self).AuditEventDefn[103].EvtDataDefn[12]()))
+    logger.info(f'evt: {evt_defn.Name}({evt_defn.OccurrenceId}): {self.Id} prev_ids: {prev_ids}{" uses: " + uses if uses else ""}')
     for evt_data in many(self).EventData[107]():
         EventData_pretty_print(evt_data)
 
