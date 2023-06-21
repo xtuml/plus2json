@@ -32,7 +32,6 @@ def main():
     # configure command line
     parser = argparse.ArgumentParser(prog='plus2json',
                                      formatter_class=argparse.RawTextHelpFormatter,
-                                     usage='python plus2json.pyz <command> [-v] [-h] [--debug] [--pretty-print] [-o dir]  [filenames ...]',
                                      description='plus2json is a utility for processing PLUS job definitions and producing JSON ouptut for congifuring and testing the protocol verifier.',
                                      epilog=textwrap.dedent('''\
                                              Examples:
@@ -75,8 +74,8 @@ def main():
     play_options.add_argument('--num-events', type=int, default=0, help='The number of events to produce. If omitted, each job will be played one time.')
     play_options.add_argument('--batch-size', type=int, default=500, help='The number of events per file. Default is 500. Only valid if "--num-events" is present.')
     play_options.add_argument('--shuffle', action='store_true', help='Shuffle the events before writing to a file.')
-    # play_options.add_argument('--persist-einv', action='store_true', help='Persist external invariants in a file store')
-    # play_options.add_argument('--inv-store', metavar='store_file', help='Location to persist external invariant values', default='p2jInvariantStore')
+    play_options.add_argument('--no-persist-einv', action='store_true', help='Do not persist external invariants in a file store')
+    play_options.add_argument('--inv-store-file', metavar='filename', help='Location to persist external invariant values', default='p2jInvariantStore')
 
     # parse command line
     args = parser.parse_args()

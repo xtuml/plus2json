@@ -114,7 +114,10 @@ def EvtDataDefn_play(self, is_source=True):
             evt_data = m.new('EventData', Value=str(next(m.id_generator)), Creation=time.time(), Expiration=(time.time() + timedelta(days=30).total_seconds()), IsSource=True)
             relate(evt_data, self, 108)
             if self.Type == EventDataType.EINV:
-                EventData_persist(evt_data)
+                if not m.select_any('_Options').no_persist_einv:
+                    EventData_persist(evt_data)
+                else:
+                    logger.warn('Not persisting external invariant value')
         else:
             # use the magic number 4 for all dynamic controls
             evt_data = m.new('EventData', Value=str(4), Creation=time.time(), Expiration=(time.time() + timedelta(days=30).total_seconds()), IsSource=True)
@@ -242,22 +245,26 @@ def EventData_json(self):
     return {self.Name: val}
 
 
-def EventData_persist(self, filename='p2jInvariantStore'):  # TODO filename
+def EventData_persist(self):
+    m = self.__metaclass__.metamodel
+    opts = m.select_any('_Options')
     evt_data_defn = one(self).EvtDataDefn[108]()
     row = (evt_data_defn.Name, self.Value, datetime.utcfromtimestamp(self.Creation).isoformat() + 'Z', datetime.utcfromtimestamp(self.Expiration).isoformat() + 'Z', evt_data_defn.SourceJobDefnName, '', '')
     try:
-        with open(filename, 'a') as f:
+        with open(opts.inv_store_file, 'a') as f:
             writer = csv.writer(f)
             writer.writerow(row)
     except IOError:
-        logger.warning(f'Could not write to invariant store: {filename}')
+        logger.warning(f'Could not write to invariant store: {opts.inv_store_file}')
         logger.debug('', exc_info=True)
 
 
-def EventData_load(self, filename='p2jInvariantStore'):  # TODO filename
+def EventData_load(self):  # TODO filename
+    m = self.__metaclass__.metamodel
+    opts = m.select_any('_Options')
     evt_data_defn = one(self).EvtDataDefn[108]()
     try:
-        with open(filename) as f:
+        with open(opts.inv_store_file) as f:
             reader = csv.reader(f)
             for row in reader:
                 if row[0] == evt_data_defn.Name and row[4] == evt_data_defn.SourceJobDefnName:
@@ -269,7 +276,7 @@ def EventData_load(self, filename='p2jInvariantStore'):  # TODO filename
             return False
 
     except IOError:
-        logger.warning(f'Unable to load invariant file: {filename}')
+        logger.warning(f'Unable to load invariant file: {opts.inv_store_file}')
         logger.debug('', exc_info=True)
 
 
