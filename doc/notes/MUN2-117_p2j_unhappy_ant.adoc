@@ -1,0 +1,146 @@
+= plus2json Unhappy Events
+
+xtUML Project Analysis Note
+
+== 1 Abstract
+
+This note documents enhancements to 'plus2json' to support unhappy path
+unsequenced audit event definition, JSON production and runtime play
+capability.
+
+== 2 Introduction and Background
+
+Supporting protocol verification of fully linked event sequences is the
+heart of the Protocol Verifier.  However, applications exist which can
+"fail" in expected ways violating the fully linked sequence of "happy
+path" events.  These expected failures need to be recognised and reported
+but not cause alarm conditions.
+
+The solution is to allow these "unhappy paths" to be detected and reported
+without alarm by defining jobs with unhappy events in a collection
+(package) along with the happy path sequences.  Various rules are applied
+by the Protocol Verifier when the unhappy unsequenced events are detected
+(which is beyond the scope of this analysis note).
+
+The 'plus2json' application must be extended to support the definition of
+unhappy events and for tagging happy path events as 'critical'.
+'plus2json' must enforce a syntax for this expression in a PLUS job
+definition.  'plus2json' must then output a job definition in a
+schema-compliant JSON format consumable by the Protocol Verifier.
+Additionally, 'plus2json' must be capable of emitting runtime unhappy
+unsequenced events for testing purposes.
+
+== 3 Requirements
+
+=== 3.1 Unhappy Path Expression
+
+. 'plus2json' shall support and enforce a syntax for unhappy path expression
+  in the PLUS language (PlantUML dialect).
+. A JSON schema shall be defined (updated) to express job definitions with
+  unhappy path events in a format consumable by the Protocol Verifier.
+
+=== 3.2 Job Definition JSON Production
+
+. The class model at the base of 'plus2json' shall be updated to reflect
+  rigorously an internal representation of unhappy path unsequenced events.
+. 'plus2json' shall convert the legally expressed PLUS into a JSON format
+  which is compliant to the pre-defined schema.
+
+=== 3.3 Runtime Event Production (--play)
+
+* 'plus2json' shall be able to interpret job definitions containing unhappy
+  path events and output them for testing purposes.
+
+== 4 Analysis
+
+=== 4.1 Definition versus Runtime Instance JSON
+
+It is noted that the Protocol Verifier job definition format does not
+affect applications which use the Protocol Verifier.  Therefore, the schema
+for the job definition JSON can be made as expressive as necessary to
+facilitate solid design functionality.
+
+It is also noted that the content of audit event instance streams is
+largely defined outside the Protocol Verifier.  This implies that the
+schema for runtime audit event instance data is closely tied to
+requirements flowing from users of the Protocol Verifier.
+
+It can be stated that unhappy unsequenced audit event instances will be of
+the same format as normal sequenced event instances.  From the surface,
+they will be indistinguishable from one another.  Unsequenced events will
+likely carry event linkages (previous event IDs) just like their sequenced
+siblings.  It is the task of the Protocol Verifier to distinguish sequenced
+and unsequenced event instances based upon their event names/types as
+prescribed in the job definition.
+
+Thus, the plan will be to update the Protocol Verifier job definition
+schema to be fully expressive while leaving the runtime event instance
+schema unmodified.  The job definition will treat unhappy path unsequenced
+audit event definitions as distinct from normal sequenced audit event
+definitions.
+
+=== 4.2 Package Name
+
+Unhappy path unsequenced audit event definitions are defined within
+packages rather than within sequences.  At present there is no functional
+significance to the name of the package containing unsequenced audit event
+definitions.  However, it seems prudent to pass this information
+downstream to the Protocol Verifier for the following reasons:
+
+* It is easy.
+* It is consistent with passing the name of the sequence as we do for
+  sequenced audit event definitions.
+* This information could become useful in the future.
+
+== 5 Work Required
+
+=== 5.1 Unhappy Path Expression
+
+It is noted that PLUS syntax for unhappy path event expression exists as a
+result of work accomplished in a previous stage.  However, this syntax has
+not been employed anywhere outside of 'plus2json' and may need adjustment.
+
+==== 5.1.1 Testing of Existing Syntax
+
+. Define a set of job definitions which include unhappy path events.
+  Include syntactically correct and incorrect job definitions.
+. Employ multiple and nested packages in these job definitions.
+. Process these job definitions with 'plus2json' to ensure they parse
+  correct syntax and give errors for incorrect syntax.
+
+==== 5.1.2 PV Job Definition JSON Schema
+
+. Update the Protocol Verifier job definition JSON schema to support
+  unhappy path unsequenced audit event definitions.
+. Update the Protocol Verifier job definition JSON schema to support
+  marking normal sequenced audit events with a new attribute indicating
+  that the audit event is considered "critical".
+
+=== 5.2 Job Definition JSON Production
+
+. Enhance the model of PLUS and associated population and runtime
+  subsystems to support unhappy unsequenced event definitions.
+. In the 'plus2json' application, supply methods on the tree-walker to
+  populate the model of PLUS.
+. Supply methods to emit job definitions as schema-compliant JSON.
+
+=== 5.3 Runtime Event Production (--play)
+
+. Enhance 'plus2json' to emit runtime event instances which include
+  unhappy unsequenced events using some reasonable strategy.
+
+== 6 Acceptance Test
+
+. `regression.sh` must continue to pass.
+. `run_benchmark.sh` must continue to function.
+. Test using the PVprime job definition.
+
+== 7 Document References
+
+. [[dr-1]] https://onefact.atlassian.net/browse/MUN2-117[MUN2-117 plus2json updates for unhappy paths]
+
+---
+
+This work is licensed under the Creative Commons CC0 License
+
+---
