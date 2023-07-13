@@ -92,6 +92,122 @@ downstream to the Protocol Verifier for the following reasons:
   sequenced audit event definitions.
 * This information could become useful in the future.
 
+=== 4.3 Example Job Definition
+
+:image:PV_3abbr.png[Protocol Verifier Job 3]
+
+----
+@startuml
+partition "Protocol Verifier Job 3" {
+  group "Protocol Verifier Sequence 3"
+    #green:PVJobStart;
+    :PVSequencingStart;
+    :PVEventProcessingComplete;
+    :PVConstraintCheckPassed;
+    #gold:PVJobSuccessful,CRITICAL;
+    #red:PVJobDeleted;  
+    detach
+  end group
+  package "Unhappy Events" {
+    :OrderingJobFails;
+    kill
+    :SequenceVerificationJobFails;
+    kill 
+  }
+}
+@enduml
+----
+
+----
+
+{
+    "JobDefinitionName": "Protocol Verifier Job 3",
+    "Events": [
+        {
+            "EventName": "PVJobStart",
+            "OccurrenceId": 0,
+            "SequenceName": "Protocol Verifier Sequence 3",
+            "Application": "default_application_name",
+            "SequenceStart": true
+        },
+        {
+            "EventName": "PVSequencingStart",
+            "OccurrenceId": 0,
+            "SequenceName": "Protocol Verifier Sequence 3",
+            "Application": "default_application_name",
+            "PreviousEvents": [
+                {
+                    "PreviousEventName": "PVJobStart",
+                    "PreviousOccurrenceId": 0
+                }
+            ]
+        },
+        {
+            "EventName": "PVEventProcessingComplete",
+            "OccurrenceId": 0,
+            "SequenceName": "Protocol Verifier Sequence 3",
+            "Application": "default_application_name",
+            "PreviousEvents": [
+                {
+                    "PreviousEventName": "PVSequencingStart",
+                    "PreviousOccurrenceId": 0
+                }
+            ]
+        },
+        {
+            "EventName": "PVConstraintCheckPassed",
+            "OccurrenceId": 0,
+            "SequenceName": "Protocol Verifier Sequence 3",
+            "Application": "default_application_name",
+            "PreviousEvents": [
+                {
+                    "PreviousEventName": "PVEventProcessingComplete",
+                    "PreviousOccurrenceId": 0
+                }
+            ]
+        },
+        {
+            "EventName": "PVJobSuccessful",
+            "OccurrenceId": 0,
+            "Critical" : true,
+            "SequenceName": "Protocol Verifier Sequence 3",
+            "Application": "default_application_name",
+            "PreviousEvents": [
+                {
+                    "PreviousEventName": "PVConstraintCheckPassed",
+                    "PreviousOccurrenceId": 0
+                }
+            ]
+        },
+        {
+            "EventName": "PVJobDeleted",
+            "OccurrenceId": 0,
+            "SequenceName": "Protocol Verifier Sequence 3",
+            "Application": "default_application_name",
+            "SequenceEnd": true,
+            "PreviousEvents": [
+                {
+                    "PreviousEventName": "PVJobSuccessful",
+                    "PreviousOccurrenceId": 0
+                }
+            ]
+        }
+    ],
+    "UnhappyEvents": [
+        {
+            "EventName": "OrderingJobFails",
+            "PackageName": "Unhappy Events",
+            "Application": "default_application_name"
+        },
+        {
+            "EventName": "SequenceVerificationJobFails",
+            "PackageName": "Unhappy Events",
+            "Application": "default_application_name"
+        }
+    ]
+}
+----
+
 == 5 Work Required
 
 === 5.1 Unhappy Path Expression

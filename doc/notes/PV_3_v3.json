@@ -1,0 +1,86 @@
+{
+    "JobDefinitionName": "Protocol Verifier Job 3",
+    "Events": [
+        {
+            "EventName": "PVJobStart",
+            "OccurrenceId": 0,
+            "SequenceName": "Protocol Verifier Sequence 3",
+            "Application": "default_application_name",
+            "SequenceStart": true
+        },
+        {
+            "EventName": "PVSequencingStart",
+            "OccurrenceId": 0,
+            "SequenceName": "Protocol Verifier Sequence 3",
+            "Application": "default_application_name",
+            "PreviousEvents": [
+                {
+                    "PreviousEventName": "PVJobStart",
+                    "PreviousOccurrenceId": 0
+                }
+            ]
+        },
+        {
+            "EventName": "PVEventProcessingComplete",
+            "OccurrenceId": 0,
+            "SequenceName": "Protocol Verifier Sequence 3",
+            "Application": "default_application_name",
+            "PreviousEvents": [
+                {
+                    "PreviousEventName": "PVSequencingStart",
+                    "PreviousOccurrenceId": 0
+                }
+            ]
+        },
+        {
+            "EventName": "PVConstraintCheckPassed",
+            "OccurrenceId": 0,
+            "SequenceName": "Protocol Verifier Sequence 3",
+            "Application": "default_application_name",
+            "PreviousEvents": [
+                {
+                    "PreviousEventName": "PVEventProcessingComplete",
+                    "PreviousOccurrenceId": 0
+                }
+            ]
+        },
+        {
+            "EventName": "PVJobSuccessful",
+            "OccurrenceId": 0,
+            "Critical" : true,
+            "SequenceName": "Protocol Verifier Sequence 3",
+            "Application": "default_application_name",
+            "PreviousEvents": [
+                {
+                    "PreviousEventName": "PVConstraintCheckPassed",
+                    "PreviousOccurrenceId": 0
+                }
+            ]
+        },
+        {
+            "EventName": "PVJobDeleted",
+            "OccurrenceId": 0,
+            "SequenceName": "Protocol Verifier Sequence 3",
+            "Application": "default_application_name",
+            "SequenceEnd": true,
+            "PreviousEvents": [
+                {
+                    "PreviousEventName": "PVJobSuccessful",
+                    "PreviousOccurrenceId": 0
+                }
+            ]
+        }
+    ],
+    "UnhappyEvents": [
+        {
+            "EventName": "OrderingJobFails",
+            "PackageName": "Unhappy Events",
+            "Application": "default_application_name"
+        },
+        {
+            "EventName": "SequenceVerificationJobFails",
+            "PackageName": "Unhappy Events",
+            "Application": "default_application_name"
+        }
+    ]
+}
