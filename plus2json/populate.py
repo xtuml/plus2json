@@ -267,6 +267,9 @@ class PlusPopulator(PlusVisitor):
 
         return inv
 
+    def visitCritical(self, ctx: PlusParser.CriticalContext):
+        self.current_event.isCritical = True
+
     def processFork(self, type, tines):
         # cache the current fragment
         pre_fork_frag = self.current_fragment

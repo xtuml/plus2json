@@ -28,6 +28,8 @@ def AuditEventDefn_json(self):
         j['SequenceEnd'] = True
     if self.IsBreak:
         j['IsBreak'] = True
+    if self.IsCritical:
+        j['IsCritical'] = True
 
     # dynamic controls
     dcs = many(self).EvtDataDefn[11](lambda sel: sel.Type in (EventDataType.BCNT, EventDataType.LCNT, EventDataType.MCNT))
