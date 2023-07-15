@@ -2,6 +2,11 @@
 
 within plus::definition is
 
+  //! A Package Definition is a container optionally supplied after all
+  //! sequences at the end of a Job Definition.  A Package Definition
+  //! may contain Unhappy Event Definitions or other Package Definitions.
+  //! The arrangement and nesting of Package Definitions is for
+  //! non-semantic organisational purposes.
   @key_letters("PkgDefn");
   @class_num(7);
   class 'Package Definition' is

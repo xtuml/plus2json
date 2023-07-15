@@ -2,6 +2,10 @@
 
 within plus::definition is
 
+  //! An Unhappy Event Definition is the specification of an Audit Event without
+  //! prescribing a position within a sequence.  It can logically be assumed to
+  //! be on an XOR branch following any audit event in any sequence within the
+  //! containing Job Definition.
   @key_letters("UnhappyEventDefn");
   @class_num(8);
   class 'Unhappy Event Definition' is
