@@ -9,11 +9,11 @@ partition "Protocol Verifier Job 3" {
     #red:PVJobDeleted;  
     detach
   end group
-package "Unhappy Events" {
-  :OrderingJobFails;
-  kill
-  :SequenceVerificationJobFails;
-  kill 
-}
+  package "Unhappy Events" {
+    :OrderingJobFails;
+    kill
+    :SequenceVerificationJobFails;
+    kill 
+  }
 }
 @enduml

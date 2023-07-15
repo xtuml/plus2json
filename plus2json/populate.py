@@ -57,6 +57,7 @@ class PlusPopulator(PlusVisitor):
         self.m = metamodel
         self.current_job = None
         self.current_sequence = None
+        self.current_package = [] # stack
         self.current_fragment = None
         self.current_tine = None
         self.current_event = None
@@ -76,6 +77,10 @@ class PlusPopulator(PlusVisitor):
         # process all sequences
         for seq in ctx.sequence_defn():
             self.visit(seq)
+
+        # process all packages
+        for pkg in ctx.package_defn():
+            self.visit(pkg)
 
         self.current_job = None
         return job
@@ -378,3 +383,29 @@ class PlusPopulator(PlusVisitor):
 
     def visitNumber(self, ctx: PlusParser.NumberContext):
         return int(ctx.getText())
+
+    def visitPackage_defn(self, ctx: PlusParser.Package_defnContext):
+        # create and relate a new package
+        pkg = self.m.new('PkgDefn', Name=self.visit(ctx.package_name()))
+        relate(pkg, self.current_job, 20)
+        # Stack the current (maybe nesting) package and pop it at the end.
+        self.current_package.append(pkg)
+
+        # process package members
+        self.current_fragment = None
+        for pkg_member in ctx.pkg_member():
+            self.visit(pkg_member)
+
+        self.current_package.pop()
+        return pkg
+
+    def visitUnhappy_event(self, ctx: PlusParser.Unhappy_eventContext):
+        # create and relate a new unhappy event definition and corresponding fragment
+        unhappy_event = self.m.new('UnhappyEventDefn', Name=self.visit(ctx.unhappy_name()))
+        relate(unhappy_event, self.current_package[-1], 21)
+
+        # create and relate a fragment to the unhappy event and top of stack package
+        frag = self.m.new('Fragment')
+        relate(frag, unhappy_event, 56)
+        relate(frag, self.current_package[-1], 53)
+
