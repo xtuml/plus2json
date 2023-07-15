@@ -267,6 +267,20 @@ not been employed anywhere outside of 'plus2json' and may need adjustment.
   populate the model of PLUS.
 . Supply methods to emit job definitions as schema-compliant JSON.
 
+Following are the model class diagrams with the changes highlighted in blue:
+
+==== 5.2.1 PLUS 'definition' Subsystem
+
+:image:definition.png[PLUS 'definition' subsystem]
+
+==== 5.2.2 PLUS 'population' Subsystem
+
+:image:population.png[PLUS 'population' subsystem]
+
+==== 5.2.3 PLUS 'runtime' Subsystem
+
+:image:runtime.png[PLUS 'runtime' subsystem]
+
 === 5.3 Runtime Event Production (--play)
 
 . Enhance 'plus2json' to emit runtime event instances which include
