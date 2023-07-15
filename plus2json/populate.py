@@ -400,7 +400,7 @@ class PlusPopulator(PlusVisitor):
         return pkg
 
     def visitUnhappy_event(self, ctx: PlusParser.Unhappy_eventContext):
-        # create and relate a new unhappy event definition and corresponding fragment
+        # create and relate a new unhappy event definition
         unhappy_event = self.m.new('UnhappyEventDefn', Name=self.visit(ctx.unhappy_name()))
         relate(unhappy_event, self.current_package[-1], 21)
 

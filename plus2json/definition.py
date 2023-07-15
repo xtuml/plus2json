@@ -8,6 +8,7 @@ def JobDefn_json(self):
     j = {}
     j['JobDefinitionName'] = self.Name
     j['Events'] = list(map(AuditEventDefn_json, many(self).SeqDefn[1].AuditEventDefn[2]()))
+    j['UnhappyEvents'] = list(map(UnhappyEventDefn_json, many(self).PkgDefn[20].UnhappyEventDefn[21]()))
     return j
 
 
@@ -93,5 +94,15 @@ def EvtDataDefn_json(self, is_source=True):
                 src_evt = one(self).AuditEventDefn[11]()
                 j['SourceEventType'] = src_evt.Name
                 j['SourceEventOccurrenceId'] = src_evt.OccurrenceId
+
+    return j
+
+def UnhappyEventDefn_json(self):
+    j = {}
+
+    # basic information
+    j['EventName'] = self.Name
+    j['PackageName'] = one(self).PkgDefn[21]().Name
+    j['Application'] = 'default_application_name'  # backward compatibility
 
     return j
