@@ -19,6 +19,12 @@ shapes :
   shape : ConstraintDefinition
     render : class "plus::definition::Constraint Definition"
     bounds : x : 4788.0 y : 3576.0 width : 168.0 height : 96.0
+  shape : PackageDefinition
+    render : class "plus::definition::Package Definition"
+    bounds : x : 4019.0 y : 3851.0 width : 193.0 height : 97.0
+  shape : UnhappyEventDefinition
+    render : class "plus::definition::Unhappy Event Definition"
+    bounds : x : 4415.0 y : 3851.0 width : 217.0 height : 97.0
 
 connectors :
   connector : R1
@@ -256,3 +262,39 @@ connectors :
         bounds : x : 4644.0 y : 3800.0 width : 0.0 height : 0.0 where : middle
       text :
         bounds : x : 4539.0 y : 3800.0 width : 0.0 height : 0.0 where : end
+  connector : R20
+    render : association "plus::definition::R20"
+    polyline :
+      segment :
+        start : x : 4103.0 y : 3769.0
+        end :   x : 4103.0 y : 3851.0
+    anchors :
+      start :
+        point : x : 4103.0 y : 3769.0
+        shape : JobDefinition
+      end :
+        point : x : 4103.0 y : 3851.0
+        shape : PackageDefinition
+    texts :
+      text :
+        bounds : x : 4057.0 y : 3804.0 width : 0.0 height : 0.0 where : middle
+      text :
+        bounds : x : 4113.0 y : 3828.0 width : 0.0 height : 0.0 where : end
+  connector : R21
+    render : association "plus::definition::R21"
+    polyline :
+      segment :
+        start : x : 4212.0 y : 3887.0
+        end :   x : 4415.0 y : 3887.0
+    anchors :
+      start :
+        point : x : 4212.0 y : 3887.0
+        shape : PackageDefinition
+      end :
+        point : x : 4415.0 y : 3887.0
+        shape : UnhappyEventDefinition
+    texts :
+      text :
+        bounds : x : 4303.0 y : 3849.0 width : 0.0 height : 0.0 where : middle
+      text :
+        bounds : x : 4354.0 y : 3892.0 width : 0.0 height : 0.0 where : end

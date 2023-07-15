@@ -8,7 +8,9 @@ within plus is
     class 'Event Data Definition';
     class 'Event Succession';
     class 'Job Definition';
+    class 'Package Definition';
     class 'Sequence Definition';
+    class 'Unhappy Event Definition';
     relationship R1 is 'Job Definition' unconditionally defines many 'Sequence Definition',
                        'Sequence Definition' unconditionally relates to one 'Job Definition';
 
@@ -42,6 +44,12 @@ within plus is
 
     relationship R18 is 'Event Data Definition' conditionally corresponds_to one 'Event Data Definition',
                         'Event Data Definition' conditionally referenced_by many 'Event Data Definition';
+
+    relationship R20 is 'Job Definition' conditionally defines many 'Package Definition',
+                        'Package Definition' unconditionally relates to one 'Job Definition';
+
+    relationship R21 is 'Package Definition' conditionally defines many 'Unhappy Event Definition',
+                        'Unhappy Event Definition' unconditionally relates to one 'Package Definition';
 
   end package;
 

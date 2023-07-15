@@ -1,0 +1,23 @@
+// BP 7.1.6 content: ModelClass syschar: 3 persistence-version: 7.1.6
+
+within plus::definition is
+
+  @key_letters("UnhappyEventDefn");
+  @class_num(8);
+  class 'Unhappy Event Definition' is
+
+    Name: string;
+
+    @ref_mode("referred_to");
+    @use_prefix(prefix="PkgDefn", root_name="Name");
+    PkgDefnName: referential (R21.'Package Definition'.Name) string;
+
+    @ref_mode("referred_to");
+    @use_prefix(prefix="JobDefn", root_name="JobDefnName");
+    JobDefnName: referential (R21.'Package Definition'.JobDefnName) string;
+
+    preferred identifier is (Name, PkgDefnName, JobDefnName);
+
+  end class;
+
+end;

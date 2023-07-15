@@ -1,0 +1,19 @@
+// BP 7.1.6 content: ModelClass syschar: 3 persistence-version: 7.1.6
+
+within plus::definition is
+
+  @key_letters("PkgDefn");
+  @class_num(7);
+  class 'Package Definition' is
+
+    Name: string;
+
+    @ref_mode("referred_to");
+    @use_prefix(prefix="JobDefn", root_name="Name");
+    JobDefnName: referential (R20.'Job Definition'.Name) string;
+
+    preferred identifier is (Name, JobDefnName);
+
+  end class;
+
+end;
