@@ -22,6 +22,9 @@ shapes :
   shape : UnhappyEventDefinition
     render : imported_class "plus::population::Unhappy Event Definition"
     bounds : x : 4476.0 y : 3444.0 width : 181.0 height : 121.0
+  shape : PackageDefinition
+    render : imported_class "plus::population::Package Definition"
+    bounds : x : 4331.0 y : 3263.0 width : 169.0 height : 96.0
 
 connectors :
   connector : R51
@@ -167,30 +170,30 @@ connectors :
     polyline :
       segment :
         start : x : 4404.0 y : 3504.0
-        end :   x : 4453.0 y : 3504.0
+        end :   x : 4454.0 y : 3504.0
       segment :
-        start : x : 4453.0 y : 3504.0
-        end :   x : 4453.0 y : 3395.0
+        start : x : 4454.0 y : 3504.0
+        end :   x : 4454.0 y : 3418.0
       segment :
-        start : x : 4453.0 y : 3395.0
-        end :   x : 4367.0 y : 3395.0
+        start : x : 4454.0 y : 3418.0
+        end :   x : 4390.0 y : 3418.0
       segment :
-        start : x : 4367.0 y : 3395.0
-        end :   x : 4367.0 y : 3444.0
+        start : x : 4390.0 y : 3418.0
+        end :   x : 4390.0 y : 3444.0
     anchors :
       start :
         point : x : 4404.0 y : 3504.0
         shape : Fragment
       end :
-        point : x : 4453.0 y : 3504.0
+        point : x : 4390.0 y : 3444.0
         shape : Fragment
     texts :
       text :
         bounds : x : 4414.0 y : 3514.0 width : 0.0 height : 0.0 where : start
       text :
-        bounds : x : 4407.0 y : 3444.0 width : 0.0 height : 0.0 where : middle
+        bounds : x : 4408.0 y : 3467.0 width : 0.0 height : 0.0 where : middle
       text :
-        bounds : x : 4375.0 y : 3413.0 width : 0.0 height : 0.0 where : end
+        bounds : x : 4391.0 y : 3417.0 width : 0.0 height : 0.0 where : end
   connector : R58
     render : association "plus::population::R58"
     polyline :
@@ -244,3 +247,21 @@ connectors :
         point : x : 4308.0 y : 3636.0
         connector : R56
     texts :
+  connector : R53
+    render : association "plus::population::R53"
+    polyline :
+      segment :
+        start : x : 4343.0 y : 3359.0
+        end :   x : 4343.0 y : 3444.0
+    anchors :
+      start :
+        point : x : 4343.0 y : 3359.0
+        shape : PackageDefinition
+      end :
+        point : x : 4343.0 y : 3444.0
+        shape : Fragment
+    texts :
+      text :
+        bounds : x : 4308.0 y : 3382.0 width : 0.0 height : 0.0 where : middle
+      text :
+        bounds : x : 4345.0 y : 3403.0 width : 0.0 height : 0.0 where : end
