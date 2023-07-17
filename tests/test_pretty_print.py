@@ -279,12 +279,12 @@ def t08_unhappy1():
         :C,CRITICAL;
         detach
       end group
-    }
-    package "unhappy events" {
-      :U;
-      kill
-      :V;
-      kill
+      package "unhappy events" {
+        :U;
+        kill
+        :V;
+        kill
+      }
     }
     @enduml
     '''
@@ -311,20 +311,20 @@ def t09_unhappy2():
         :C,CRITICAL;
         detach
       end group
-    }
-    package "unhappy events" {
-      :U;
-      kill
-      :V;
-      kill
-      package "nested unhappies" {
-        :W;
+      package "unhappy events" {
+        :U;
+        kill
+        :V;
+        kill
+        package "nested unhappies" {
+          :W;
+          kill
+        }
+      }
+      package "unhappy more" {
+        :X;
         kill
       }
-    }
-    package "unhappy more" {
-      :X;
-      kill
     }
     @enduml
     '''
