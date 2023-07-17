@@ -10,6 +10,7 @@ within plus::definition is
   @class_num(8);
   class 'Unhappy Event Definition' is
 
+    //! This name is unique within the job.  The package provides no semantic scoping.
     Name: string;
 
     @ref_mode("referred_to");
@@ -17,10 +18,10 @@ within plus::definition is
     PkgDefnName: referential (R21.'Package Definition'.Name) string;
 
     @ref_mode("referred_to");
-    @use_prefix(prefix="JobDefn", root_name="JobDefnName");
+    @use_prefix(prefix="JobDefn", root_name="Name");
     JobDefnName: referential (R21.'Package Definition'.JobDefnName) string;
 
-    preferred identifier is (Name, PkgDefnName, JobDefnName);
+    preferred identifier is (Name, JobDefnName);
 
   end class;
 

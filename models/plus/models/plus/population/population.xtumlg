@@ -185,7 +185,7 @@ connectors :
         point : x : 4404.0 y : 3504.0
         shape : Fragment
       end :
-        point : x : 4390.0 y : 3444.0
+        point : x : 4454.0 y : 3504.0
         shape : Fragment
     texts :
       text :
@@ -244,7 +244,7 @@ connectors :
         point : x : 4511.0 y : 3565.0
         shape : UnhappyEventDefinition
       end :
-        point : x : 4308.0 y : 3636.0
+        point : x : 4511.0 y : 3636.0
         connector : R56
     texts :
   connector : R53
