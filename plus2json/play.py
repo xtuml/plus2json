@@ -245,10 +245,10 @@ def AuditEvent_pretty_print(self):
     name_occurrence = ""
     evt_defn = one(self).AuditEventDefn[103]()
     if evt_defn:
-        name_occurrence = f'evt: {evt_defn.Name}({evt_defn.OccurrenceId}):'
+        name_occurrence = f'{evt_defn.Name}({evt_defn.OccurrenceId}):'
     else:
         uevt_defn = one(self).UnhappyEventDefn[109]()
-        name_occurrence = f'evt: {uevt_defn.Name}:'
+        name_occurrence = f'{uevt_defn.Name}:'
     prev_ids = ', '.join(map(lambda e: str(e.Id), many(self).AuditEvent[106, 'must_follow']()))
     uses = ', '.join(map(lambda ed: ed.Name, many(self).AuditEventDefn[103].EvtDataDefn[12]()))
     logger.info(f'evt: {name_occurrence}: {self.Id} prev_ids: {prev_ids}{" uses: " + uses if uses else ""}')
