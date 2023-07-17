@@ -9,7 +9,7 @@ def test_pretty_print(input):
     for handler in logging.root.handlers[:]:
         logging.root.removeHandler(handler)
     logging.basicConfig(stream=sys.stdout, level=logging.INFO, format='%(levelname)s: %(message)s')
-    plus2json.job(pretty_print=True, input=input, outdir=None)
+    plus2json.job(pretty_print=True, input=input, outdir=None, event_data=[])
 
 
 def t01_straight():
@@ -81,9 +81,9 @@ def t03_split():
     INFO: job defn: t03_split
     INFO: sequence: sequence03
     INFO: A(0) start
-    INFO: B(0)                     A(0) 2be5 IOR
+    INFO: B(0)                     A(0)
     INFO: C(0)                     B(0)
-    INFO: D(0)                     A(0) 2be5 IOR
+    INFO: D(0)                     A(0)
     INFO: E(0)                     D(0)
     INFO: F(0)       end           C(0),E(0)
     '''
