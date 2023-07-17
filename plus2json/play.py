@@ -80,7 +80,7 @@ def AuditEventDefn_play(self, job, branch_count, prev_evts):
     m = self.__metaclass__.metamodel
 
     evts = []
-    if self.isCritical and 0 == random.randint(0,1):
+    if self.IsCritical and 0 == random.randint(0,1):
         # critical and coin toss is tails
         # play an unhappy event instead of this critical event
         return UnhappyEventDefn_play(m.select_any('UnhappyEventDefn'), job, branch_count, prev_evts)

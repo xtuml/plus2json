@@ -266,8 +266,11 @@ def t08_unhappy1():
     INFO: job defn: t08_unhappy1
     INFO: sequence: sequence08
     INFO: A(0) start
-    INFO: B(0)                     A(0)
-    INFO: C(0)       end           B(0)
+    INFO: B(0)                              A(0)
+    INFO: C(0)       end       critical     B(0)
+    INFO: package: unhappy events
+    INFO: unhappy event: U
+    INFO: unhappy event: V
     '''
 
     input = '''
@@ -298,8 +301,15 @@ def t09_unhappy2():
     INFO: job defn: t09_unhappy2
     INFO: sequence: sequence09
     INFO: A(0) start
-    INFO: B(0)                     A(0)
-    INFO: C(0)       end           B(0)
+    INFO: B(0)                              A(0)
+    INFO: C(0)       end       critical     B(0)
+    INFO: package: unhappy events
+    INFO: unhappy event: U
+    INFO: unhappy event: V
+    INFO: package: nested unhappies
+    INFO: unhappy event: W
+    INFO: package: unhappy more
+    INFO: unhappy event: X
     '''
 
     input = '''
