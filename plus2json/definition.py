@@ -8,7 +8,8 @@ def JobDefn_json(self):
     j = {}
     j['JobDefinitionName'] = self.Name
     j['Events'] = list(map(AuditEventDefn_json, many(self).SeqDefn[1].AuditEventDefn[2]()))
-    j['UnhappyEvents'] = list(map(UnhappyEventDefn_json, many(self).PkgDefn[20].UnhappyEventDefn[21]()))
+    if any(self).PkgDefn[20]():
+        j['UnhappyEvents'] = list(map(UnhappyEventDefn_json, many(self).PkgDefn[20].UnhappyEventDefn[21]()))
     return j
 
 
