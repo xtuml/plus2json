@@ -2,6 +2,7 @@ import xtuml
 import time
 import logging
 import csv
+import random
 
 from datetime import datetime, timedelta
 
@@ -79,6 +80,11 @@ def AuditEventDefn_play(self, job, branch_count, prev_evts):
     m = self.__metaclass__.metamodel
 
     evts = []
+    if self.IsCritical and 0 == random.randint(0,1):
+        # critical and coin toss is tails
+        # play an unhappy event instead of this critical event
+        return UnhappyEventDefn_play(m.select_any('UnhappyEventDefn'), job, branch_count, prev_evts)
+
     for i in range(branch_count):
 
         # create an instance of the audit event and link it to the job
@@ -99,6 +105,27 @@ def AuditEventDefn_play(self, job, branch_count, prev_evts):
         for evt_data_defn in many(self).EvtDataDefn[12](lambda sel: sel.Type in (EventDataType.EINV, EventDataType.IINV)):
             evt_data = EvtDataDefn_play(evt_data_defn, False)
             relate(evt_data, evt, 107)
+
+        evts.append([evt])
+
+    return evts
+
+
+def UnhappyEventDefn_play(self, job, branch_count, prev_evts):
+    m = self.__metaclass__.metamodel
+
+    evts = []
+
+    for i in range(branch_count):
+
+        # create an instance of the audit event and link it to the job and unhappy event definition
+        evt = m.new('AuditEvent', TimeStamp=time.time(), SequenceNum=len(many(job).AuditEvent[102]()))
+        relate(evt, self, 109)
+        relate(evt, job, 102)
+
+        # link the required previous events
+        for prev_evt in prev_evts[i]:
+            relate(prev_evt, evt, 106, 'must_precede')
 
         evts.append([evt])
 
@@ -215,10 +242,16 @@ def Job_json(self, dispose=False):
 
 
 def AuditEvent_pretty_print(self):
+    name_occurrence = ""
     evt_defn = one(self).AuditEventDefn[103]()
+    if evt_defn:
+        name_occurrence = f'{evt_defn.Name}({evt_defn.OccurrenceId}):'
+    else:
+        uevt_defn = one(self).UnhappyEventDefn[109]()
+        name_occurrence = f'{uevt_defn.Name}:'
     prev_ids = ', '.join(map(lambda e: str(e.Id), many(self).AuditEvent[106, 'must_follow']()))
     uses = ', '.join(map(lambda ed: ed.Name, many(self).AuditEventDefn[103].EvtDataDefn[12]()))
-    logger.info(f'evt: {evt_defn.Name}({evt_defn.OccurrenceId}): {self.Id} prev_ids: {prev_ids}{" uses: " + uses if uses else ""}')
+    logger.info(f'evt: {name_occurrence}: {self.Id} prev_ids: {prev_ids}{" uses: " + uses if uses else ""}')
     for evt_data in many(self).EventData[107]():
         EventData_pretty_print(evt_data)
 

@@ -9,12 +9,17 @@ within plus is
     class Loop;
     class Tine;
     class 'Audit Event Definition' is plus::definition::'Audit Event Definition';
+    class 'Package Definition' is plus::definition::'Package Definition';
     class 'Sequence Definition' is plus::definition::'Sequence Definition';
+    class 'Unhappy Event Definition' is plus::definition::'Unhappy Event Definition';
     relationship R51 is Fragment conditionally relates to one Tine,
                         Tine unconditionally has_first one Fragment;
 
     relationship R52 is Fragment conditionally relates to one Tine,
                         Tine unconditionally has_last one Fragment;
+
+    relationship R53 is 'Package Definition' conditionally has many Fragment,
+                        Fragment conditionally relates to one 'Package Definition';
 
     relationship R54 is Fork unconditionally is_made_of many Tine,
                         Tine conditionally relates to one Fork;
@@ -22,7 +27,7 @@ within plus is
     relationship R55 is Loop unconditionally is_made_of one Tine,
                         Tine conditionally relates to one Loop;
 
-    relationship R56 is Fragment is_a ('Audit Event Definition', Fork, Loop);
+    relationship R56 is Fragment is_a ('Audit Event Definition', 'Unhappy Event Definition', Fork, Loop);
 
     relationship R57 is Fragment conditionally follows one Fragment,
                         Fragment conditionally precedes one Fragment;

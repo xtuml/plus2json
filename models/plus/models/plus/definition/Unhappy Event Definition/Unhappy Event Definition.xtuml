@@ -1,0 +1,28 @@
+// BP 7.1.6 content: ModelClass syschar: 3 persistence-version: 7.1.6
+
+within plus::definition is
+
+  //! An Unhappy Event Definition is the specification of an Audit Event without
+  //! prescribing a position within a sequence.  It can logically be assumed to
+  //! be on an XOR branch following any audit event in any sequence within the
+  //! containing Job Definition.
+  @key_letters("UnhappyEventDefn");
+  @class_num(8);
+  class 'Unhappy Event Definition' is
+
+    //! This name is unique within the job.  The package provides no semantic scoping.
+    Name: string;
+
+    @ref_mode("referred_to");
+    @use_prefix(prefix="PkgDefn", root_name="Name");
+    PkgDefnName: referential (R21.'Package Definition'.Name) string;
+
+    @ref_mode("referred_to");
+    @use_prefix(prefix="JobDefn", root_name="Name");
+    JobDefnName: referential (R21.'Package Definition'.JobDefnName) string;
+
+    preferred identifier is (Name, JobDefnName);
+
+  end class;
+
+end;

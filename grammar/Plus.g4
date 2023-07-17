@@ -5,8 +5,6 @@ plusdefn       : NEWLINE* umlblock+
 
 umlblock       : STARTUML ( '(' 'id' '=' identifier ')' )? NEWLINE
                  ( job_defn      // primary use case defining full job
-//               | sequence_defn // sequence to be referenced from elsewhere
-//               | statement+    // simple grouping of statements to be !included
                  )
                  ENDUML NEWLINE?
                ;
@@ -14,8 +12,8 @@ umlblock       : STARTUML ( '(' 'id' '=' identifier ')' )? NEWLINE
 job_defn       : PARTITION job_name '{' NEWLINE
                  extern*
                  sequence_defn+
+                 package_defn*
                  '}' NEWLINE
-                 ( PACKAGE package_name '{' NEWLINE unhappy_event* '}' NEWLINE )*
                ;
 
 job_name       : identifier
@@ -144,11 +142,17 @@ split          : SPLIT NEWLINE
 split_again    : SPLITAGAIN NEWLINE statement+
                ;
 
+package_defn   : PACKAGE package_name '{' NEWLINE pkg_member* '}' NEWLINE
+               ;
+
+pkg_member     : package_defn
+               | unhappy_event
+               ;
+
 package_name   : identifier
                ;
 
-unhappy_event  : PACKAGE package_name '{' NEWLINE unhappy_event* '}' NEWLINE
-               | ':' unhappy_name
+unhappy_event  : ':' unhappy_name
                  ( ';' | '<' | '>' | ']' )
                  NEWLINE KILL NEWLINE
                ;

@@ -25,6 +25,11 @@ shapes :
     bounds : x : 4176.0 y : 3108.0 width : 180.0 height : 109.0
     styles :
       fill_color : #c0c0c0
+  shape : UnhappyEventDefinition
+    render : imported_class "plus::runtime::Unhappy Event Definition"
+    bounds : x : 4740.0 y : 3516.0 width : 204.0 height : 121.0
+    styles :
+      fill_color : #c0c0c0
 
 connectors :
   connector : R101
@@ -98,7 +103,7 @@ connectors :
         point : x : 4584.0 y : 3577.0
         shape : AuditEvent
       end :
-        point : x : 4464.0 y : 3577.0
+        point : x : 4584.0 y : 3636.0
         shape : AuditEvent
     texts :
       text :
@@ -121,7 +126,7 @@ connectors :
         point : x : 4428.0 y : 3492.0
         shape : AuditEvent
       end :
-        point : x : 4312.0 y : 3445.0
+        point : x : 4312.0 y : 3492.0
         shape : EventData
     texts :
       text :
@@ -146,3 +151,21 @@ connectors :
         bounds : x : 4189.0 y : 3249.0 width : 0.0 height : 0.0 where : middle
       text :
         bounds : x : 4246.0 y : 3227.0 width : 0.0 height : 0.0 where : end
+  connector : R109
+    render : association "plus::runtime::R109"
+    polyline :
+      segment :
+        start : x : 4632.0 y : 3551.0
+        end :   x : 4740.0 y : 3552.0
+    anchors :
+      start :
+        point : x : 4632.0 y : 3551.0
+        shape : AuditEvent
+      end :
+        point : x : 4740.0 y : 3552.0
+        shape : UnhappyEventDefinition
+    texts :
+      text :
+        bounds : x : 4673.0 y : 3513.0 width : 0.0 height : 0.0 where : middle
+      text :
+        bounds : x : 4667.0 y : 3556.0 width : 0.0 height : 0.0 where : end

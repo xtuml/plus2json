@@ -22,6 +22,8 @@ def JobDefn_pretty_print(self):
     logger.info(f'job defn: {self.Name}')
     for seq in many(self).SeqDefn[1]():
         SeqDefn_pretty_print(seq)
+    for pkg in many(self).PkgDefn[20]():
+        PkgDefn_pretty_print(pkg)
 
 
 def SeqDefn_pretty_print(self):
@@ -34,6 +36,7 @@ def AuditEventDefn_pretty_print(self):
     ss = 'start' if one(self).SeqDefn[13]() else ''
     se = 'end' if one(self).SeqDefn[15]() else ''
     b = 'break' if self.IsBreak else '     '
+    c = 'critical' if self.IsCritical else '        '
     bcnt = ''
     lcnt = ''
     mcnt = ''
@@ -73,4 +76,12 @@ def AuditEventDefn_pretty_print(self):
     prev_aes = '    ' + ','.join(sorted(map(map_prev_ae, many(self).EvtSucc[3, 'follows']())))
     longest_name_length = max(map(lambda sel: len(sel.Name), self.__metaclass__.select_many()))
     name = f'{self.Name}({self.OccurrenceId})'
-    logger.info(f'{name:{longest_name_length+3}} {ss:{5}} {se:{3}} {b} {prev_aes} {bcnt} {mcnt} {lcnt} {einv} {iinv}')
+    logger.info(f'{name:{longest_name_length+3}} {ss:{5}} {se:{3}} {b} {c} {prev_aes} {bcnt} {mcnt} {lcnt} {einv} {iinv}')
+
+def PkgDefn_pretty_print(self):
+    logger.info(f'package: {self.Name}')
+    for ue in many(self).UnhappyEventDefn[21]():
+        UnhappyEventDefn_pretty_print(ue)
+
+def UnhappyEventDefn_pretty_print(self):
+    logger.info(f'unhappy event: {self.Name}')

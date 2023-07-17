@@ -1,0 +1,303 @@
+= plus2json Unhappy Events
+
+xtUML Project Analysis Note
+
+== 1 Abstract
+
+This note documents enhancements to 'plus2json' to support unhappy path
+audit event definition, JSON production and runtime play capability.
+
+== 2 Introduction and Background
+
+Supporting protocol verification of fully linked event sequences is the
+heart of the Protocol Verifier.  However, applications exist which can
+"fail" in expected ways violating the fully linked sequence of "happy
+path" events.  These expected failures need to be recognised and reported
+but not cause alarm conditions.
+
+=== 2.1 Unhappy Events
+
+The solution is to allow these "unhappy paths" to be detected and reported
+without alarm by defining jobs with unhappy events in a collection
+(package) along with the happy path sequences.  Various rules are applied
+by the Protocol Verifier when the unhappy events are detected
+(which is beyond the scope of this analysis note).
+
+=== 2.2 Critical Events
+
+A new designation of 'critical' has been added for normal path events.  A
+critical event is one that should not be received if an unhappy path event
+has been received in the same 'scope'.  'Scope' is defined in terms of
+directed graph ancestry.  Two events (normal or unhappy) are in the same
+scope if they share a common ancestor in the graph.
+
+If an event designated critical is received and has a common ancestor with
+an unhappy path event, then an alarm condition must be raised.
+
+=== 2.3 Functional Extension of 'plus2json' for Unhappy and Critical
+
+The 'plus2json' application must be extended to support the definition of
+unhappy events and for tagging happy path events as 'critical'.
+'plus2json' must enforce a syntax for this expression in a PLUS job
+definition.  'plus2json' must then output a job definition in a
+schema-compliant JSON format consumable by the Protocol Verifier.
+Additionally, 'plus2json' must be capable of emitting runtime unhappy
+events for testing purposes.
+
+== 3 Requirements
+
+=== 3.1 Unhappy Path Expression
+
+. 'plus2json' shall support and enforce a syntax for unhappy path expression
+  in the PLUS language (PlantUML dialect).
+. A JSON schema shall be defined (updated) to express job definitions with
+  unhappy path events in a format consumable by the Protocol Verifier.
+
+=== 3.2 Job Definition JSON Production
+
+. The class model at the base of 'plus2json' shall be updated to reflect
+  rigorously an internal representation of unhappy path events.
+. 'plus2json' shall convert the legally expressed PLUS into a JSON format
+  which is compliant to the pre-defined schema.
+
+=== 3.3 Runtime Event Production (--play)
+
+* 'plus2json' shall be able to interpret job definitions containing unhappy
+  path events and output them for testing purposes.
+
+== 4 Analysis
+
+=== 4.1 Definition versus Runtime Instance JSON
+
+It is noted that the Protocol Verifier job definition format does not
+affect applications which use the Protocol Verifier.  Therefore, the schema
+for the job definition JSON can be made as expressive as necessary to
+facilitate solid design functionality.  This is fully under Protocol
+Verifier control.
+
+The _definition_ of jobs is fully controlled by the Protocol Verifier, but
+the shape of the _instances_ of received audit events is controlled more
+by the users of the Protocol Verifier as will be noted in the next
+paragraph.
+
+It is also noted that the content of audit event instance streams is
+largely defined outside the Protocol Verifier.  This means that the
+primary content of runtime audit events is specified by the client and
+harvested from the monitored application, which is not
+controlled/specified by the Protocol Verifier.  This implies that the
+schema for runtime audit event instance data is closely tied to
+requirements flowing from users of the Protocol Verifier.
+
+It can be stated that unhappy path audit event _instances_ will be of
+the same format as normal sequenced event _instances_.  From the surface,
+they will be indistinguishable from one another.  Unhappy events will
+carry event linkages (previous event IDs) just like their normal path
+siblings.  It is the task of the Protocol Verifier to distinguish normal
+and unhappy event instances based upon their event names/types as
+prescribed in the job definition.
+
+Thus, the plan will be to update the Protocol Verifier job definition
+schema to be fully expressive while leaving the runtime event instance
+schema unmodified.  The job definition will treat unhappy path
+audit event definitions as distinct from normal sequenced audit event
+definitions.
+
+=== 4.2 Package Name
+
+Unhappy path audit event definitions are defined within packages rather
+than within sequences in the job definition.  At present there is no functional
+significance to the name of the package containing unhappy path audit event
+definitions.  However, it seems prudent to pass this information
+downstream to the Protocol Verifier for the following reasons:
+
+* It is easy.
+* It is consistent with passing the name of the sequence as we do for
+  sequenced audit event definitions.
+* This information could become useful in the future.
+
+Multiple packages and nested packages are supported by PLUS.  The package
+carries no semantic significance but is a nice feature for organisational
+clarity in the job definition.
+
+=== 4.3 Example Job Definition
+
+:image:PV_3abbr.png[Protocol Verifier Job 3]
+
+----
+@startuml
+partition "Protocol Verifier Job 3" {
+  group "Protocol Verifier Sequence 3"
+    #green:PVJobStart;
+    :PVSequencingStart;
+    :PVEventProcessingComplete;
+    :PVConstraintCheckPassed;
+    #gold:PVJobSuccessful,CRITICAL;
+    #red:PVJobDeleted;  
+    detach
+  end group
+  package "Unhappy Events" {
+    :OrderingJobFails;
+    kill
+    :SequenceVerificationJobFails;
+    kill 
+  }
+}
+@enduml
+----
+
+----
+
+{
+    "JobDefinitionName": "Protocol Verifier Job 3",
+    "Events": [
+        {
+            "EventName": "PVJobStart",
+            "OccurrenceId": 0,
+            "SequenceName": "Protocol Verifier Sequence 3",
+            "Application": "default_application_name",
+            "SequenceStart": true
+        },
+        {
+            "EventName": "PVSequencingStart",
+            "OccurrenceId": 0,
+            "SequenceName": "Protocol Verifier Sequence 3",
+            "Application": "default_application_name",
+            "PreviousEvents": [
+                {
+                    "PreviousEventName": "PVJobStart",
+                    "PreviousOccurrenceId": 0
+                }
+            ]
+        },
+        {
+            "EventName": "PVEventProcessingComplete",
+            "OccurrenceId": 0,
+            "SequenceName": "Protocol Verifier Sequence 3",
+            "Application": "default_application_name",
+            "PreviousEvents": [
+                {
+                    "PreviousEventName": "PVSequencingStart",
+                    "PreviousOccurrenceId": 0
+                }
+            ]
+        },
+        {
+            "EventName": "PVConstraintCheckPassed",
+            "OccurrenceId": 0,
+            "SequenceName": "Protocol Verifier Sequence 3",
+            "Application": "default_application_name",
+            "PreviousEvents": [
+                {
+                    "PreviousEventName": "PVEventProcessingComplete",
+                    "PreviousOccurrenceId": 0
+                }
+            ]
+        },
+        {
+            "EventName": "PVJobSuccessful",
+            "OccurrenceId": 0,
+            "Critical" : true,
+            "SequenceName": "Protocol Verifier Sequence 3",
+            "Application": "default_application_name",
+            "PreviousEvents": [
+                {
+                    "PreviousEventName": "PVConstraintCheckPassed",
+                    "PreviousOccurrenceId": 0
+                }
+            ]
+        },
+        {
+            "EventName": "PVJobDeleted",
+            "OccurrenceId": 0,
+            "SequenceName": "Protocol Verifier Sequence 3",
+            "Application": "default_application_name",
+            "SequenceEnd": true,
+            "PreviousEvents": [
+                {
+                    "PreviousEventName": "PVJobSuccessful",
+                    "PreviousOccurrenceId": 0
+                }
+            ]
+        }
+    ],
+    "UnhappyEvents": [
+        {
+            "EventName": "OrderingJobFails",
+            "PackageName": "Unhappy Events",
+            "Application": "default_application_name"
+        },
+        {
+            "EventName": "SequenceVerificationJobFails",
+            "PackageName": "Unhappy Events",
+            "Application": "default_application_name"
+        }
+    ]
+}
+----
+
+== 5 Work Required
+
+=== 5.1 Unhappy Path Expression
+
+It is noted that PLUS syntax for unhappy path event expression exists as a
+result of work accomplished in a previous stage.  However, this syntax has
+not been employed anywhere outside of 'plus2json' and may need adjustment.
+
+==== 5.1.1 Testing of Existing Syntax
+
+. Define a set of job definitions which include unhappy path events.
+  Include syntactically correct and incorrect job definitions.
+. Employ multiple and nested packages in these job definitions.
+. Process these job definitions with 'plus2json' to ensure they parse
+  correct syntax and give errors for incorrect syntax.
+
+==== 5.1.2 PV Job Definition JSON Schema
+
+. Update the Protocol Verifier job definition JSON schema to support
+  unhappy path audit event definitions.
+. Update the Protocol Verifier job definition JSON schema to support
+  marking normal sequenced audit events with a new attribute indicating
+  that the audit event is considered "critical".
+
+=== 5.2 Job Definition JSON Production
+
+. Enhance the model of PLUS and associated population and runtime
+  subsystems to support unhappy path event definitions.
+. In the 'plus2json' application, supply methods on the tree-walker to
+  populate the model of PLUS.
+. Supply methods to emit job definitions as schema-compliant JSON.
+
+Following are the model class diagrams with the changes highlighted in blue:
+
+==== 5.2.1 PLUS 'definition' Subsystem
+
+:image:definition.png[PLUS 'definition' subsystem]
+
+==== 5.2.2 PLUS 'population' Subsystem
+
+:image:population.png[PLUS 'population' subsystem]
+
+==== 5.2.3 PLUS 'runtime' Subsystem
+
+:image:runtime.png[PLUS 'runtime' subsystem]
+
+=== 5.3 Runtime Event Production (--play)
+
+. Enhance 'plus2json' to emit runtime event instances which include
+  unhappy path events using some reasonable strategy.
+
+== 6 Acceptance Test
+
+. `regression.sh` must continue to pass.
+. `run_benchmark.sh` must continue to function.
+. Test using the PVprime job definition.
+
+== 7 Document References
+
+. [[dr-1]] https://onefact.atlassian.net/browse/MUN2-117[MUN2-117 plus2json updates for unhappy paths]
+
+---
+
+This work is licensed under the Creative Commons CC0 License
+
+---
