@@ -39,6 +39,43 @@ class EventDataType(IntEnum):
     MCNT = auto()
 
 
+# TODO maybe the belongs in another module since it belongs to the data model
+class Fragment:
+
+    def get_first_events(self):
+        return xtuml.navigate_subtype(self, 56).get_first_events()
+
+    def get_last_events(self):
+        return xtuml.navigate_subtype(self, 56).get_last_events()
+
+
+class Fork:
+
+    def get_first_events(self):
+        return flatten(map(lambda f: f.get_last_events(), many(self).Tine[54].Fragment[51]()))
+
+    def get_last_events(self):
+        return flatten(map(lambda f: f.get_last_events(), many(many(self).Tine[54](lambda sel: not sel.IsTerminal)).Fragment[52]()))
+
+
+class Loop:
+
+    def get_first_events(self):
+        return flatten(map(lambda f: f.get_last_events(), many(self).Tine[55].Fragment[51]()))
+
+    def get_last_events(self):
+        return flatten(map(lambda f: f.get_last_events(), many(many(self).Tine[55](lambda sel: not sel.IsTerminal)).Fragment[52]()))
+
+
+class AuditEventDefn:
+
+    def get_first_events(self):
+        return [self]
+
+    def get_last_events(self):
+        return [self]
+
+
 class PlusErrorListener(ErrorListener):
 
     def __init__(self, filename=None):
@@ -55,9 +92,18 @@ class PlusPopulator(PlusVisitor):
     def __init__(self, metamodel):
         super(PlusPopulator, self).__init__()
         self.m = metamodel
+
+        # TODO
+        # add model operations if they don't already exist
+        if not hasattr(self.m.find_class('Fragment'), 'get_first_events'):
+            self.m.define_operations(Fragment)
+            self.m.define_operations(Fork)
+            self.m.define_operations(Loop)
+            self.m.define_operations(AuditEventDefn)
+
         self.current_job = None
         self.current_sequence = None
-        self.current_package = [] # stack
+        self.current_package = []  # stack
         self.current_fragment = None
         self.current_tine = None
         self.current_event = None
@@ -111,7 +157,7 @@ class PlusPopulator(PlusVisitor):
             # set the start event(s)
             if not any(self.current_sequence).AuditEventDefn[13]():
                 relate(frag, self.current_sequence, 58)
-                for start_evt in self.get_first_events(frag):
+                for start_evt in frag.get_first_events():
                     relate(start_evt, self.current_sequence, 13)
 
             # link the fragments in order
@@ -124,34 +170,12 @@ class PlusPopulator(PlusVisitor):
         # set the end event(s)
         # all the last events of the most recent fragment and the last event in any terminal
         # tines can be an end event for the sequence
-        end_evts = self.get_last_events(self.current_fragment) + list(many(self.current_sequence).AuditEventDefn[2](lambda sel: any(sel).Fragment[56].Tine[52](lambda sel: sel.IsTerminal)))
+        end_evts = self.current_fragment.get_last_events() + list(many(self.current_sequence).AuditEventDefn[2](lambda sel: any(sel).Fragment[56].Tine[52](lambda sel: sel.IsTerminal)))
         for end_evt in end_evts:
             relate(end_evt, self.current_sequence, 15)
 
         self.current_sequence = None
         return seq
-
-    # TODO maybe the belongs on the model and is useful for later
-    def get_first_events(self, fragment):
-        sub = xtuml.navigate_subtype(fragment, 56)
-        match sub.__metaclass__.kind:
-            case 'Fork':
-                return flatten(map(lambda f: self.get_last_events(f), many(sub).Tine[54].Fragment[51]()))
-            case 'Loop':
-                return flatten(map(lambda f: self.get_last_events(f), many(sub).Tine[55].Fragment[51]()))
-            case 'AuditEventDefn':
-                return [sub]
-
-    # TODO maybe the belongs on the model and is useful for later
-    def get_last_events(self, fragment):
-        sub = xtuml.navigate_subtype(fragment, 56)
-        match sub.__metaclass__.kind:
-            case 'Fork':
-                return flatten(map(lambda f: self.get_last_events(f), many(many(sub).Tine[54](lambda sel: not sel.IsTerminal)).Fragment[52]()))
-            case 'Loop':
-                return flatten(map(lambda f: self.get_last_events(f), many(many(sub).Tine[55](lambda sel: not sel.IsTerminal)).Fragment[52]()))
-            case 'AuditEventDefn':
-                return [sub]
 
     def visitEvent_defn(self, ctx: PlusParser.Event_defnContext):
         name, occurrence = self.visit(ctx.event_name())
@@ -183,8 +207,8 @@ class PlusPopulator(PlusVisitor):
         self.current_event = None
 
         # link all event successions
-        prev_evts = self.get_last_events(self.current_fragment) if self.current_fragment else []
-        next_evts = self.get_first_events(frag)
+        prev_evts = self.current_fragment.get_last_events() if self.current_fragment else []
+        next_evts = frag.get_first_events()
         for prev_evt in prev_evts:
             for next_evt in next_evts:
                 if not any(prev_evt).EvtSucc[3, 'precedes'](lambda sel: one(sel).AuditEventDefn[3, 'precedes']() == next_evt):
@@ -285,8 +309,8 @@ class PlusPopulator(PlusVisitor):
 
         # link all event successions
         const_defn = None
-        prev_evts = self.get_last_events(pre_fork_frag) if pre_fork_frag else []
-        next_evts = self.get_first_events(frag)
+        prev_evts = pre_fork_frag.get_last_events() if pre_fork_frag else []
+        next_evts = frag.get_first_events()
         for prev_evt in prev_evts:
             for next_evt in next_evts:
                 if not any(prev_evt).EvtSucc[3, 'precedes'](lambda sel: one(sel).AuditEventDefn[3, 'precedes']() == next_evt):
@@ -357,8 +381,8 @@ class PlusPopulator(PlusVisitor):
         relate(loop, self.processTine(ctx), 55)
 
         # link all event successions
-        prev_evts = self.get_last_events(frag) + (self.get_last_events(pre_loop_frag) if pre_loop_frag else [])
-        next_evts = self.get_first_events(frag)
+        prev_evts = frag.get_last_events() + (pre_loop_frag.get_last_events() if pre_loop_frag else [])
+        next_evts = frag.get_first_events()
         for prev_evt in prev_evts:
             for next_evt in next_evts:
                 if not any(prev_evt).EvtSucc[3, 'precedes'](lambda sel: one(sel).AuditEventDefn[3, 'precedes']() == next_evt):
@@ -411,4 +435,3 @@ class PlusPopulator(PlusVisitor):
         frag = self.m.new('Fragment')
         relate(frag, unhappy_event, 56)
         relate(frag, self.current_package[-1], 53)
-

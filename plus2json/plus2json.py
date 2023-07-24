@@ -11,11 +11,12 @@ import textwrap
 import uuid
 import xtuml
 
-from .definition import JobDefn_json
-from .play import JobDefn_play, Job_pretty_print, Job_json, Job_dispose
+import plus2json.definition
+import plus2json.pretty_print
+import plus2json.play as play2
+
 from .plus import PlusLexer, PlusParser
 from .populate import PlusPopulator, PlusErrorListener
-from .pretty_print import JobDefn_pretty_print
 
 from antlr4.error.Errors import CancellationException
 from importlib.resources import files
@@ -165,6 +166,10 @@ class Plus2Json:
         # process input event data
         opts.event_data = dict((s.split('=') + [1])[:2] for s in opts.event_data)
 
+        # load operations from modules
+        for m in (plus2json.definition, plus2json.pretty_print, play2):
+            self.metamodel.define_operations(m)
+
         # process each .puml input stream
         for filename, stream in self.inputs:
             try:
@@ -196,9 +201,9 @@ class Plus2Json:
         # output each job definition
         for job_defn in self.metamodel.select_many('JobDefn'):
             if opts.pretty_print:
-                JobDefn_pretty_print(job_defn)
+                job_defn.pretty_print()
             else:
-                output = json.dumps(JobDefn_json(job_defn), indent=4, separators=(',', ': '))
+                output = json.dumps(job_defn.json(), indent=4, separators=(',', ': '))
                 if self.outdir:
                     self.write_output_file(output, f'{job_defn.Name}.json')
                 else:
@@ -214,7 +219,7 @@ class Plus2Json:
         if opts.num_events == 0:
 
             # play each job definition
-            jobs = map(JobDefn_play, job_defns)
+            jobs = map(lambda j: j.play(), job_defns)
 
             # assure model consistency
             self.check_consistency()
@@ -222,10 +227,10 @@ class Plus2Json:
             # render each runtime job
             for job in jobs:
                 if opts.pretty_print:
-                    Job_pretty_print(job)
+                    job.pretty_print()
                 else:
                     # create events
-                    events = Job_json(job)
+                    events = job.json()
 
                     # shuffle events
                     if opts.shuffle:
@@ -238,7 +243,7 @@ class Plus2Json:
                     else:
                         print(output)
 
-                Job_dispose(job)
+                job.dispose()
 
         # play jobs in volume mode
         else:
@@ -254,8 +259,8 @@ class Plus2Json:
 
                 # batches of 500 events per file
                 while len(events) < min(opts.batch_size, opts.num_events - num_events_produced):
-                    job = JobDefn_play(next(job_defn_iter))
-                    events.extend(Job_json(job, dispose=True))
+                    job = next(job_defn_iter).play()
+                    events.extend(job.json(dispose=True))
 
                 # shuffle the events
                 if opts.shuffle:
