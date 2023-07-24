@@ -19,11 +19,16 @@ logger = logging.getLogger(__name__)
 def JobDefn_play(self):
     m = self.__metaclass__.metamodel
 
-    # TODO for now, create exactly one job
+    # TODO --play --playall diff goes here
 
     # create and link a new job
     job = m.new('Job')
     relate(job, self, 101)
+    # TODO ordinal pathway for now
+    pathway = any(self).Pathway[60](lambda sel: sel.number == 0)
+    relate(job, pathway, 104)
+    if not pathway:
+        logger.error('no pathway found')
 
     # play each sequence
     # LPS: I think this is a location where there is an implicit decision about ordering
@@ -184,8 +189,12 @@ def EvtDataDefn_play(self, is_source=True):
 
 def Fork_play(self, job, branch_count, prev_evts):
     if self.Type == ConstraintType.XOR:
-        # TODO arbitrarily choose the first tine
-        return Tine_play(any(self).Tine[54](), job, branch_count, prev_evts)
+        # choose the tine with an alternative in our pathway
+        pathway = one(job).Pathway[104]()
+        for tine in many(self).Tine[54]():
+            if pathway in many(tine).Alternative[63].Pathway[61]():
+                return Tine_play(tine, job, branch_count, prev_evts)
+        logger.error(f'no eligible tine for pathway:{pathway.JobDefnName}:{pathway.number}')
 
     elif self.Type == ConstraintType.AND:
         # play all tines combining the previous event lists

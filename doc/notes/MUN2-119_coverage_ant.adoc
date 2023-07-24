@@ -4,10 +4,11 @@ xtUML Project Analysis Note
 
 == 1 Abstract
 
-This note provides requirements, analysis and the work required to an
+This note enumerates the requirements, analysis and work required for an
 enhancement to `plus2json --play`.  The enhancement causes plus2json to
-produce sets of audit event instance streams that visit every audit event
-definition in a Protocol Verifier PLUS job definition.
+produce sets of audit event instance streams that traverse alternatives
+pathways to visit every audit event definition in a Protocol Verifier PLUS
+job definition.
 
 == 2 Introduction and Background
 
@@ -15,13 +16,13 @@ definition in a Protocol Verifier PLUS job definition.
 Thus, the engineers have begun referring to the feature as "plus2json
 play".  This feature interprets PLUS job definitions and "plays" out
 runtime audit event instance streams compliant to the job definitions.
-The value to testing the downstream Protocol Verifier cannot be
-over-stated, especially since a source of production input audit event
-streams data has been unavailable early in the project.
+The value to the testing of the Protocol Verifier cannot be over stated,
+especially since a source of production input audit event streams data has
+been unavailable early in the project.
 
-The current '--play' is limited to producing only one legal pathway
-through a job definition.  So, only the one pathway is tested.  Any
-particular job definition may have many legal pathways through it.
+The current (July 2023) '--play' is limited to producing only one legal
+pathway through a job definition.  So, only the one pathway is tested.
+Any particular job definition may have many legal pathways through it.
 
 This work extends 'plus2json --play' to be able to produce many or all
 legal pathways through a given job definition with the goal of achieving
@@ -35,12 +36,12 @@ In the sections following, terminology will be used according to the
 following (coined) terms/definitions.
 
 upstream:: One feature of a job definition (audit event definition,
-_fork_, _alternative_, etc) is upstream in the directed graph from another
-feature if it precedes the other feature sequentially in the job
+_fork_, _alternative_, etc) is _upstream_ in the directed graph from
+another feature if it precedes the other feature sequentially in the job
 definition.
 
 downstream:: One feature of a job definition (audit event definition,
-_fork_, _alternative_, etc) is downstream from another feature if it
+_fork_, _alternative_, etc) is _downstream_ from another feature if it
 succeeds the other feature sequentially in the job definition.
 
 fork:: an audit event definition with multiple different audit event
@@ -58,13 +59,8 @@ terminal tine:: a tine which does not merge (ends in 'detach')
 
 alternative:: a _tine_ proceeding from an XOR fork.  This will be modelled
 as the 'Alternative' class in the enhanced 'population' subsystem of the
-PLUS data model.
-
-depth:: a value applied to an XOR _fork_ or _alternative_ expressed as the
-count of upstream XOR _forks_ or _alternatives_ and including the start of
-the job.  Thus, the first XOR _fork_ in a job definition has _depth_ 1.
-The next downstream XOR _fork_ or _alternative_ has _depth_ 2.  Multiple
-_forks_ and _alternatives_ can be at the same _depth_.
+PLUS data model.  An _alternative_ implies a choice to be made at runtime.
+It thus implies multiple _pathways_.
 
 pathway:: a complete sequence of runtime audit event instances starting
 with the first audit event in a job definition and proceeding legally
@@ -83,18 +79,18 @@ event definition at least once.
 
 === 3.1 Multiple Different Pathways
 
-'plus2json --playall' shall produce multiple different pathways through a
+'plus2json --playall' shall traverse multiple different pathways through a
 single job definition when alternatives are present.
 
 === 3.2 Tine Coverage
 
-'plus2json --playall' shall produce multiple different pathways covering
+'plus2json --playall' shall traverse multiple different pathways covering
 all tines in all forks, thus covering all alternatives.
 
 === 3.3 Command Line Control
 
 'plus2json' shall accept a command line switch (`--playall`) to enable
-production of multiple pathways through the given set of job definitions
+traversal of multiple pathways through the given set of job definitions
 seeking to achieve 100% graph coverage.
 
 == 4 Analysis
@@ -106,8 +102,41 @@ Science.  Specifically, work on <<dr-2, Breadth First (Tree) Search>> is
 applicable to the problem being solved by this work.  Efficient algorithms
 exist which traverse trees ensuring a visit to every node.  However,
 because of merges and loops in the graphs of PLUS job definitions, direct
-application of breadth first search algorithms is not possible.  It is
-noted that XOR forks represent nodes in a tree structure.
+application of breadth first search algorithms is limited.  It is noted
+that XOR forks represent nodes in a tree structure.
+
+=== 4.2 Alternatives and Pathways
+
+'plus2json' relies heavily on an underlying model of PLUS.  The core of
+this model is the 'definition' subsystem establishing the foundational
+elements of a PLUS job definition.  A 'population' subsystem captures
+elements of the syntax of PLUS including loops, forks with their
+associated tines and the fragments of the language that structure the
+definition.  A third subsystem, 'runtime' defines the shape of runtime
+instances as they are produced interpretively from the definitions.
+
+The 'population' subsystem is enhanced to reveal and contain the
+multiplicity of alternatives and pathways through the definition.  These
+alternatives and pathways are then methodically traversed during runtime
+play of the job definitions.
+
+=== 4.2.1 Alternative Names
+
+PLUS supports a label next to 'if', 'elseif', 'else', 'switch' and 'case'.
+These have not been used semantically by PLUS but are supported to enable
+clarification on the PlantUML rendered activity diagram.  In this work,
+these labels are now recognised and stored in the Name attribute of the
+Alternative class.  This may be useful in the future to allow explicit
+selection of individual pathways (containing the named alternative) for
+'--play'.  The initial delivery of this work will support '--play' for the
+first pathway or '--playall' for all pathways.  There is presently no
+support for selecting a particular pathway.
+
+=== 4.3 Graph Coverage
+
+Alternatives and pathways are key in achieving and measuring graph
+coverage.  When all alternatives and all pathways have been traversed,
+full graph coverage is achieved and is measured and reported.
 
 == 5 Work Required
 
@@ -127,8 +156,18 @@ one another.  An alternative can be downstream from only one other
 (immediate) alternative.  An alternative can be upstream from multiple
 other (immediate) alternatives.
 
+Instances of Fork can now be nested (contained) within an instance of a
+Tine (across R64).  This relationship is used to maintain scoping of
+alternative tines.
+
 .Enhanced 'population' Subsystem Data Model
-:image:population1.jpg[enhanced population data model]
+:image:MUN2-119_pop.jpg[enhanced population data model]
+
+.Enhanced 'runtime' Subsystem Data Model
+:image:MUN2-119_run.jpg[enhanced runtime data model]
+
+.Unaltered 'definition' Subsystem Data Model (for completeness)
+:image:MUN2-119_def.jpg[unaltered definition data model]
 
 === 5.2 Updated Population
 
@@ -142,8 +181,8 @@ create an instance of Alternative and link it to the tine across R63.
 
 ==== 5.2.2 Link Upstream/Downstream Alternatives
 
-For each instance of Alternative, navigate upstream through Fork, Fragment
-and Tine to the first upstream alternative if one exists.  Link the
+With a new tine and alternative in hand, navigate up the nesting fork
+hierarchy (R64) to the first upstream alternative if one exists.  Link the
 downstream alternative to the upstream alternative across R62.
 
 ==== 5.2.3 Create/Link Alternative Pathways
@@ -166,10 +205,11 @@ pathway even if there are no alternatives (XOR forking) in the topology.
 === 5.3.1 Playing Pathways
 
 Enable '--playall' to select all instances of Pathway related to the Job
-Definition.  As the interpretation encounters XOR forks, select through
-the linked tines and alternatives to the pathway.  Choose to play down the
-tine which is linked through the alternative to a pathway matching the one
-currently being played.
+Definition.  At job creation (instance of Job), link the job to the
+selected pathway.  As the interpretation encounters XOR forks, select
+through the linked tines and alternatives to the pathway.  Choose to play
+down the tine which is linked through the alternative to a pathway
+matching the one currently being played.
 
 === 5.3.2 Coverage Reporting
 
@@ -203,3 +243,4 @@ pathway).
 This work is licensed under the Creative Commons CC0 License
 
 ---
+

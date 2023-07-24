@@ -9,6 +9,8 @@ within plus::population is
   @class_num(55);
   class Alternative is
 
+    Name: string;
+
   end class;
 
 end;

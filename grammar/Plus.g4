@@ -109,12 +109,12 @@ else           : ELSE ( '(' identifier ')' )? NEWLINE
 condition      : identifier
                ;
 
-switch         : SWITCH '(' condition ')' NEWLINE
+switch         : SWITCH '(' identifier ')' NEWLINE
                  case+
                  ENDSWITCH
                ;
 
-case           : CASE '(' condition ')' NEWLINE
+case           : CASE '(' identifier ')' NEWLINE
                  statement+
                ;
 

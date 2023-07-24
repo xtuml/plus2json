@@ -30,6 +30,11 @@ shapes :
     bounds : x : 4740.0 y : 3516.0 width : 204.0 height : 121.0
     styles :
       fill_color : #c0c0c0
+  shape : Pathway
+    render : imported_class "plus::runtime::Pathway"
+    bounds : x : 4739.0 y : 3227.0 width : 205.0 height : 86.0
+    styles :
+      fill_color : #c0c0c0
 
 connectors :
   connector : R101
@@ -169,3 +174,21 @@ connectors :
         bounds : x : 4673.0 y : 3513.0 width : 0.0 height : 0.0 where : middle
       text :
         bounds : x : 4667.0 y : 3556.0 width : 0.0 height : 0.0 where : end
+  connector : R104
+    render : association "plus::runtime::R104"
+    polyline :
+      segment :
+        start : x : 4632.0 y : 3263.0
+        end :   x : 4739.0 y : 3263.0
+    anchors :
+      start :
+        point : x : 4632.0 y : 3263.0
+        shape : Job
+      end :
+        point : x : 4739.0 y : 3263.0
+        shape : Pathway
+    texts :
+      text :
+        bounds : x : 4672.0 y : 3225.0 width : 0.0 height : 0.0 where : middle
+      text :
+        bounds : x : 4679.0 y : 3264.0 width : 0.0 height : 0.0 where : end
