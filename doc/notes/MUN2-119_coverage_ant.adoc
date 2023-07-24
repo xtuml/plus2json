@@ -28,7 +28,7 @@ This work extends 'plus2json --play' to be able to produce many or all
 legal pathways through a given job definition with the goal of achieving
 graph coverage.
 
-It shall be called `plus2json --playall`.
+It shall be invoked as `plus2json --play --all`.
 
 === 2.1 Definitions
 
@@ -79,17 +79,17 @@ event definition at least once.
 
 === 3.1 Multiple Different Pathways
 
-'plus2json --playall' shall traverse multiple different pathways through a
+'plus2json --play --all' shall traverse multiple different pathways through a
 single job definition when alternatives are present.
 
 === 3.2 Tine Coverage
 
-'plus2json --playall' shall traverse multiple different pathways covering
+'plus2json --play --all' shall traverse multiple different pathways covering
 all tines in all forks, thus covering all alternatives.
 
 === 3.3 Command Line Control
 
-'plus2json' shall accept a command line switch (`--playall`) to enable
+'plus2json' shall accept a command line switch (`--play --all`) to enable
 traversal of multiple pathways through the given set of job definitions
 seeking to achieve 100% graph coverage.
 
@@ -129,7 +129,7 @@ these labels are now recognised and stored in the Name attribute of the
 Alternative class.  This may be useful in the future to allow explicit
 selection of individual pathways (containing the named alternative) for
 '--play'.  The initial delivery of this work will support '--play' for the
-first pathway or '--playall' for all pathways.  There is presently no
+first pathway or '--play --all' for all pathways.  There is presently no
 support for selecting a particular pathway.
 
 === 4.3 Graph Coverage
@@ -204,7 +204,7 @@ pathway even if there are no alternatives (XOR forking) in the topology.
 
 === 5.3.1 Playing Pathways
 
-Enable '--playall' to select all instances of Pathway related to the Job
+Enable '--play --all' to select all instances of Pathway related to the Job
 Definition.  At job creation (instance of Job), link the job to the
 selected pathway.  As the interpretation encounters XOR forks, select
 through the linked tines and alternatives to the pathway.  Choose to play
@@ -213,7 +213,7 @@ matching the one currently being played.
 
 === 5.3.2 Coverage Reporting
 
-Add reporting to the end of '--playall' sessions.  Report the number of
+Add reporting to the end of '--play --all' sessions.  Report the number of
 pathways played and the graph coverage as a percentage of Audit Event
 Definitions visited.
 
@@ -223,7 +223,7 @@ Definition participating in R109 (with Audit Event) has been covered.
 
 === 5.4 Command Line Control
 
-Provide a command line switch, '--playall' to enable playing all pathways
+Provide a command line switch, '--play --all' to enable playing all pathways
 through the given job definitions (as opposed to playing only a single
 pathway).
 

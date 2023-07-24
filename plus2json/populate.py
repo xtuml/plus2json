@@ -396,7 +396,7 @@ class PlusPopulator(PlusVisitor):
         relate(frag, loop, 56)
 
         # process the tine
-        relate(loop, self.processTine(ctx, ConstrainType.AND), 55)
+        relate(loop, self.processTine(ctx, ConstraintType.AND), 55)
 
         # link all event successions
         prev_evts = self.get_last_events(frag) + (self.get_last_events(pre_loop_frag) if pre_loop_frag else [])

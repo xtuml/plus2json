@@ -18,24 +18,37 @@ logger = logging.getLogger(__name__)
 
 def JobDefn_play(self):
     m = self.__metaclass__.metamodel
+    opts = m.select_any('_Options')
 
-    # TODO --play --playall diff goes here
+    jobs = []
+    pathways = []
+    # select pathway(s)
+    if opts.all:
+        # --play --all
+        pathways = many(self).Pathway[60]()
+    else:
+        # --play only one pathway
+        pathways.append(any(self).Pathway[60](lambda sel: sel.number == 0))
+    for pathway in pathways:
+        # create and link a new job
+        job = m.new('Job')
+        jobs.append(job)
+        relate(job, self, 101)
+        relate(job, pathway, 104)
 
-    # create and link a new job
-    job = m.new('Job')
-    relate(job, self, 101)
-    # TODO ordinal pathway for now
-    pathway = any(self).Pathway[60](lambda sel: sel.number == 0)
-    relate(job, pathway, 104)
-    if not pathway:
-        logger.error('no pathway found')
+        # play each sequence
+        # LPS: I think this is a location where there is an implicit decision about ordering
+        for seq_defn in many(self).SeqDefn[1]():
+            SeqDefn_play(seq_defn, job)
 
-    # play each sequence
-    # LPS: I think this is a location where there is an implicit decision about ordering
-    for seq_defn in many(self).SeqDefn[1]():
-        SeqDefn_play(seq_defn, job)
+    # document graph coverage
+    total_aeds = len(many(self).SeqDefn[1].AuditEventDefn[2]())
+    # visited AuditEventDefns have a linked AuditEvent
+    visited_aeds = len(many(self).SeqDefn[1].AuditEventDefn[2](lambda sel: any(sel).AuditEvent[103]()))
+    graph_coverage = visited_aeds / total_aeds * 100
+    logger.info(f'JobDefnName:{self.Name} visited {visited_aeds} of {total_aeds} achieving a coverage of {graph_coverage:.1f}%')
 
-    return job
+    return jobs
 
 
 def SeqDefn_play(self, job):

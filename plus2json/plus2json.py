@@ -14,7 +14,7 @@ import xtuml
 from .definition import JobDefn_json
 from .play import JobDefn_play, Job_pretty_print, Job_json, Job_dispose
 from .plus import PlusLexer, PlusParser
-from .populate import PlusPopulator, PlusErrorListener
+from .populate import PlusPopulator, PlusErrorListener, flatten
 from .pretty_print import JobDefn_pretty_print
 
 from antlr4.error.Errors import CancellationException
@@ -70,6 +70,7 @@ def main():
 
     # play specific options
     play_options = parser.add_argument_group(title='Play Options')
+    play_options.add_argument('--all', action='store_true', help='Play all pathways through the job definition')
     play_options.add_argument('--integer-ids', action='store_true', help='Use deterministic integer IDs')
     play_options.add_argument('--num-events', type=int, default=0, help='The number of events to produce. If omitted, each job will be played one time.')
     play_options.add_argument('--batch-size', type=int, default=500, help='The number of events per file. Default is 500. Only valid if "--num-events" is present.')
@@ -214,7 +215,7 @@ class Plus2Json:
         if opts.num_events == 0:
 
             # play each job definition
-            jobs = map(JobDefn_play, job_defns)
+            jobs = flatten(map(JobDefn_play, job_defns))
 
             # assure model consistency
             self.check_consistency()
