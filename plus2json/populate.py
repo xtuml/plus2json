@@ -103,7 +103,7 @@ class PlusPopulator(PlusVisitor):
             self.visit(pkg)
 
         # create pathways for combinations of alternatives
-        alternatives = self.m.select_many('Alternative', lambda sel: not one(sel).Alternative[62, 'is_upstream_of']())
+        alternatives = self.m.select_many('Alternative', lambda sel: not one(sel).Alternative[62, 'is_upstream_of']() and not any(sel).Pathway[61]())
         for alternative in alternatives:
             # recursively link pathway to alternative and all upstream alternatives
             # each end-of-list Alterrnative implies a new Pathway
