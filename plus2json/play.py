@@ -22,6 +22,14 @@ def JobDefn_play(self):
 
     jobs = []
     pathways = []
+    # DEBUG
+    ps = many(self).Pathway[60]()
+    for p in ps:
+        logger.debug(f'1JobDefnName:{self.Name} Pathway:{p.number}')
+        alts = many(p).Alternative[61]()
+        for alt in alts:
+            logger.debug(f'2JobDefnName:{self.Name} Pathway:{p.number} Alternative:{alt.Name}')
+    # DEBUG
     # select pathway(s)
     if opts.all:
         # --play --all

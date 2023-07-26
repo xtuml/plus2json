@@ -192,10 +192,6 @@ one another.  An alternative can be downstream from only one other
 (immediate) alternative.  An alternative can be upstream from multiple
 other (immediate) alternatives.
 
-Instances of Fork can now be nested (contained) within an instance of a
-Tine (across R64).  This relationship is used to maintain scoping of
-alternative tines.
-
 .Enhanced 'population' Subsystem Data Model
 :image:MUN2-119_pop.jpg[enhanced population data model]
 
@@ -217,9 +213,10 @@ create an instance of Alternative and link it to the tine across R63.
 
 ==== 5.2.2 Link Upstream/Downstream Alternatives
 
-With a new tine and alternative in hand, navigate up the nesting fork
-hierarchy (R64) to the first upstream alternative if one exists.  Link the
-downstream alternative to the upstream alternative across R62.
+With a new alternative in hand, navigate down from the top of the stack of
+tines (maintained in the `current_tine` list) to the first upstream
+alternative if one exists.  Link the downstream alternative to the
+upstream alternative across R62.
 
 ==== 5.2.3 Create/Link Alternative Pathways
 

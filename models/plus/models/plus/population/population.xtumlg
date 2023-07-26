@@ -76,20 +76,20 @@ connectors :
     render : association "plus::population::R54"
     polyline :
       segment :
-        start : x : 3995.0 y : 3684.0
-        end :   x : 3995.0 y : 3564.0
+        start : x : 3945.0 y : 3684.0
+        end :   x : 3945.0 y : 3564.0
     anchors :
       start :
-        point : x : 3995.0 y : 3684.0
+        point : x : 3945.0 y : 3684.0
         shape : Fork
       end :
-        point : x : 3995.0 y : 3564.0
+        point : x : 3945.0 y : 3564.0
         shape : Tine
     texts :
       text :
-        bounds : x : 4000.0 y : 3616.0 width : 0.0 height : 0.0 where : middle
+        bounds : x : 3950.0 y : 3616.0 width : 0.0 height : 0.0 where : middle
       text :
-        bounds : x : 3998.0 y : 3565.0 width : 0.0 height : 0.0 where : end
+        bounds : x : 3948.0 y : 3565.0 width : 0.0 height : 0.0 where : end
   connector : R55
     render : association "plus::population::R55"
     polyline :
@@ -360,21 +360,3 @@ connectors :
         bounds : x : 4067.0 y : 3403.0 width : 0.0 height : 0.0 where : start
       text :
         bounds : x : 4020.0 y : 3420.0 width : 0.0 height : 0.0 where : middle
-  connector : R64
-    render : association "plus::population::R64"
-    polyline :
-      segment :
-        start : x : 3923.0 y : 3564.0
-        end :   x : 3923.0 y : 3684.0
-    anchors :
-      start :
-        point : x : 3923.0 y : 3564.0
-        shape : Tine
-      end :
-        point : x : 3923.0 y : 3684.0
-        shape : Fork
-    texts :
-      text :
-        bounds : x : 3927.0 y : 3610.0 width : 0.0 height : 0.0 where : middle
-      text :
-        bounds : x : 3928.0 y : 3657.0 width : 0.0 height : 0.0 where : end

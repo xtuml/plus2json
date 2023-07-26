@@ -53,9 +53,6 @@ within plus is
     relationship R63 is Alternative unconditionally relates to one Tine,
                         Tine conditionally 'is' one Alternative;
 
-    relationship R64 is Fork conditionally relates to one Tine,
-                        Tine conditionally nests many Fork;
-
   end package;
 
 end;

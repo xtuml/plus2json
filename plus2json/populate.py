@@ -59,7 +59,6 @@ class PlusPopulator(PlusVisitor):
         self.current_sequence = None
         self.current_package = []    # stack
         self.current_fragment = None
-        self.current_fork = []       # stack
         self.current_tine = []       # stack
         self.current_event = None
         self.id_factory = 0
@@ -72,18 +71,6 @@ class PlusPopulator(PlusVisitor):
         if alternative:
             relate(alternative, pathway, 61)
             self.linkPathway(one(alternative).Alternative[62, 'is_downstream_of'](), pathway)
-
-    def findUpstreamAlternative(self, fork):
-        '''find a single upstream pathway navigating up the fork hierarchy'''
-        alternative = one(fork).Tine[64].Alternative[63]()
-        if alternative:
-            return alternative
-        else:
-            preceding_fork = one(fork).Tine[64].Fork[54]()
-            if preceding_fork:
-                return self.findUpstreamAlternative(preceding_fork)
-            else:
-                return None
 
     def visitJob_defn(self, ctx: PlusParser.Job_defnContext):
         # create a new job
@@ -315,11 +302,6 @@ class PlusPopulator(PlusVisitor):
         fork = self.m.new('Fork', Type=type)
         relate(frag, fork, 56)
 
-        # nest the fork within the current tine if one
-        self.current_fork.append(fork)
-        if self.current_tine:
-            relate(self.current_tine[-1], fork, 64)
-
         # process all tines
         for tine_ctx in tine_ctxs:
             relate(fork, self.processTine(tine_ctx, type), 54)
@@ -341,22 +323,25 @@ class PlusPopulator(PlusVisitor):
                     relate(evt_succ, next_evt, 3, 'precedes')
 
         self.current_fragment = pre_fork_frag
-        self.current_fork.pop()
         return frag
 
     def processTine(self, ctx, type):
         # process the tine
         self.current_fragment = None
         tine = self.m.new('Tine')
-        self.current_tine.append(tine)
 
         # create/relate an alternative on XOR tines
         if ConstraintType.XOR == type:
             alternative = self.m.new('Alternative', Name = self.visitIdentifier(ctx.identifier()) if ctx.identifier() else "")
             relate(tine, alternative, 63)
-            upstream_alternative = self.findUpstreamAlternative(self.current_fork[-1])
-            if upstream_alternative:
-                relate(upstream_alternative, alternative, 62, 'is_upstream_of')
+            # walk downwards from the top of the stack of tines looking for alternatives
+            for t in list(reversed(self.current_tine)):
+                upstream_alternative = one(t).Alternative[63]()
+                if upstream_alternative:
+                    relate(upstream_alternative, alternative, 62, 'is_upstream_of')
+                    break
+
+        self.current_tine.append(tine)
 
         for smt in ctx.statement():
             # process the statement
