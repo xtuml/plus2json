@@ -45,7 +45,6 @@ def JobDefn_play(self):
         relate(job, pathway, 104)
 
         # play each sequence
-        # LPS: I think this is a location where there is an implicit decision about ordering
         for seq_defn in many(self).SeqDefn[1]():
             SeqDefn_play(seq_defn, job)
 
@@ -106,7 +105,7 @@ def AuditEventDefn_play(self, job, branch_count, prev_evts):
     m = self.__metaclass__.metamodel
 
     evts = []
-    if self.IsCritical and 0 == random.randint(0,1):
+    if self.IsCritical and 0 == random.randint(0, 1):
         # critical and coin toss is tails
         # play an unhappy event instead of this critical event
         return UnhappyEventDefn_play(m.select_any('UnhappyEventDefn'), job, branch_count, prev_evts)

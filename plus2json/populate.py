@@ -332,7 +332,7 @@ class PlusPopulator(PlusVisitor):
 
         # create/relate an alternative on XOR tines
         if ConstraintType.XOR == type:
-            alternative = self.m.new('Alternative', Name = self.visitIdentifier(ctx.identifier()) if ctx.identifier() else "")
+            alternative = self.m.new('Alternative', Name=self.visitIdentifier(ctx.identifier()) if ctx.identifier() else "")
             relate(tine, alternative, 63)
             # walk downwards from the top of the stack of tines looking for alternatives
             for t in list(reversed(self.current_tine)):
@@ -432,4 +432,3 @@ class PlusPopulator(PlusVisitor):
         frag = self.m.new('Fragment')
         relate(frag, unhappy_event, 56)
         relate(frag, self.current_package[-1], 53)
-
