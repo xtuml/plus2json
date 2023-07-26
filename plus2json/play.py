@@ -207,7 +207,9 @@ def Fork_play(self, job, branch_count, prev_evts):
         for tine in many(self).Tine[54]():
             if pathway in many(tine).Alternative[63].Pathway[61]():
                 return Tine_play(tine, job, branch_count, prev_evts)
+        # ERROR:  report error and play any tine to avoid crashing
         logger.error(f'no eligible tine for pathway:{pathway.JobDefnName}:{pathway.number}')
+        return Tine_play(any(self).Tine[54](), job, branch_count, prev_evts)
 
     elif self.Type == ConstraintType.AND:
         # play all tines combining the previous event lists
@@ -217,8 +219,11 @@ def Fork_play(self, job, branch_count, prev_evts):
         return evts
 
     elif self.Type == ConstraintType.IOR:
-        # TODO arbitrarily choose the first tine
-        return Tine_play(any(self).Tine[54](), job, branch_count, prev_evts)
+        # TODO arbitrarily play all tines
+        evts = [[]] * branch_count
+        for tine in many(self).Tine[54]():
+            evts = [a + b for a, b in zip(evts, Tine_play(tine, job, branch_count, prev_evts))]
+        return evts
 
     else:
         return [[]] * branch_count

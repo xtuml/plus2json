@@ -30,6 +30,9 @@ graph coverage.
 
 It shall be invoked as `plus2json --play --all`.
 
+This note assumes familiarity with the PLUS language as described in
+<<dr-4>> and the data model of PLUS (depicted below).
+
 === 2.1 Definitions
 
 In the sections following, terminology will be used according to the
@@ -48,14 +51,19 @@ fork:: an audit event definition with multiple different audit event
 definitions following directly after it.  A _fork_ can be constrained as
 an AND fork (all _tines_ are traversed) or an XOR _fork_ (only one _tine_
 is traversed) in any legal _pathway_.  A Fork is a class in the
-'population' subsystem of the PLUS data model.
+'population' subsystem of the PLUS data model.  Even though it is of
+dubious merit due to loosening the topology constraint, a Fork can be
+configured as an inclusive OR (IOR), which is equivalent to no constraint
+at all.
 
-tine:: a sequence of one or more audit event definitions proceeding
+tine:: a sequence of one or more audit event definitions following
 directly from a fork.  The sequence of one or more audit event definitions
-proceeding from the start of a loop is also considered a _tine_.  A Tine
+following from the start of a loop is also considered a _tine_.  A Tine
 is a class in the 'population' subsystem of the PLUS data model.
 
-terminal tine:: a tine which does not merge (ends in 'detach')
+terminal tine:: a tine which does not merge (ends in 'detach' which
+denotes that there is no connection to any following audit event
+definitions)
 
 alternative:: a _tine_ proceeding from an XOR fork.  This will be modelled
 as the 'Alternative' class in the enhanced 'population' subsystem of the
@@ -138,6 +146,34 @@ Alternatives and pathways are key in achieving and measuring graph
 coverage.  When all alternatives and all pathways have been traversed,
 full graph coverage is achieved and is measured and reported.
 
+=== 4.3.1 Unconstrained / Inclusive OR (IOR) Forks 
+
+It is noted that the Munin team is campaigning to deprecate support of
+unconstrained inclusive OR Forks (expressed as 'split' in PLUS) due to the
+looseness of the constraint.  However, they remain a part of the language
+and a part of the Protocol Verifier functionality.  For '--play' and
+'--play --all', an IOR Fork will be treated like an AND Fork.  This will
+provide graph coverage.  It is noted that an extension to '--play --all'
+would be to calculate the various combinations (2 ^ n-1) of one to all
+traversals of the AND Fork Tines.  This extension is not being implemented
+as part of this work.
+
+=== 4.3.2 Instance Forks
+
+An instance fork is "invisible" in the graph.  It is denoted by supplying
+a branch count to the instance fork audit event definition and a merge
+count to the audit event definition where the fork merges (if there is a
+merge).  No changes are necessary in 'plus2json' to effect coverage of
+these audit event definitions.
+
+=== 4.3.3 Multiple Sequences
+
+PLUS allows for multiple distinct sequences in a single job.  Separate
+sequences are not ordered relative to one another.  This disjoint
+separation does not affect this work.  'plus2json --play' interprets all
+audit event definitions in the job initiating the run from all audit event
+definitions detected to be start events.
+
 == 5 Work Required
 
 === 5.1 Data Model
@@ -219,7 +255,7 @@ Definitions visited.
 
 Graph coverage can be calculated by selecting all Audit Event Definition
 instances and attempting to traverse to Audit Event.  Any Audit Event
-Definition participating in R109 (with Audit Event) has been covered.
+Definition participating in R103 (with Audit Event) has been covered.
 
 === 5.4 Command Line Control
 
@@ -237,6 +273,8 @@ pathway).
 
 . [[dr-1]] https://onefact.atlassian.net/browse/MUN2-119[MUN2-119:  plus2json coverage]
 . [[dr-2]] https://en.wikipedia.org/wiki/Breadth-first_search[Breadth First (Tree) Search]
+. [[dr-3]] https://github.com/xtuml/plus2json[plus2json git repository on GitHub]
+. [[dr-4]] link:../tutorial/AuditEventTopologyTutorial.pdf[Audit Event Topology Tutorial]
 
 ---
 
