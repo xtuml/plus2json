@@ -61,7 +61,7 @@ class PlusPopulator(PlusVisitor):
         self.current_fragment = None
         self.current_tine = []       # stack
         self.current_event = None
-        self.id_factory = 0
+        self.id_factory = xtuml.IntegerGenerator()
 
     def aggregateResult(self, aggregate, nextResult):
         return nextResult or aggregate  # do not overwrite with None
@@ -94,17 +94,15 @@ class PlusPopulator(PlusVisitor):
         for alternative in alternatives:
             # recursively link pathway to alternative and all upstream alternatives
             # each end-of-list Alterrnative implies a new Pathway
-            pathway = self.m.new('Pathway', Number=self.id_factory)
-            self.id_factory += 1
+            pathway = self.m.new('Pathway', Number=next(self.id_factory))
             relate(self.current_job, pathway, 60)
             self.linkPathway(alternative, pathway)
 
         # create/link ordinal pathway if no alternatives detected
         if not any(job).Pathway[60]():
-            pathway = self.m.new('Pathway', Number=self.id_factory)
+            pathway = self.m.new('Pathway', Number=next(self.id_factory))
             relate(job, pathway, 60)
 
-        self.id_factory = 0
         self.current_job = None
         return job
 

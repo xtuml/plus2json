@@ -35,8 +35,8 @@ def JobDefn_play(self):
         # --play --all
         pathways = many(self).Pathway[60]()
     else:
-        # --play only one pathway
-        pathways.append(any(self).Pathway[60](lambda sel: sel.Number == 0))
+        # --play only one pathway (the first one numerically)
+        pathways.append(any(self).Pathway[60](xtuml.order_by('Number')))
     for pathway in pathways:
         # create and link a new job
         job = m.new('Job')
