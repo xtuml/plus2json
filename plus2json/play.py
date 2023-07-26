@@ -25,10 +25,10 @@ def JobDefn_play(self):
     # DEBUG
     ps = many(self).Pathway[60]()
     for p in ps:
-        logger.debug(f'1JobDefnName:{self.Name} Pathway:{p.number}')
+        logger.debug(f'1JobDefnName:{self.Name} Pathway:{p.Number}')
         alts = many(p).Alternative[61]()
         for alt in alts:
-            logger.debug(f'2JobDefnName:{self.Name} Pathway:{p.number} Alternative:{alt.Name}')
+            logger.debug(f'2JobDefnName:{self.Name} Pathway:{p.Number} Alternative:{alt.Name}')
     # DEBUG
     # select pathway(s)
     if opts.all:
@@ -36,7 +36,7 @@ def JobDefn_play(self):
         pathways = many(self).Pathway[60]()
     else:
         # --play only one pathway
-        pathways.append(any(self).Pathway[60](lambda sel: sel.number == 0))
+        pathways.append(any(self).Pathway[60](lambda sel: sel.Number == 0))
     for pathway in pathways:
         # create and link a new job
         job = m.new('Job')
@@ -215,7 +215,7 @@ def Fork_play(self, job, branch_count, prev_evts):
             if pathway in many(tine).Alternative[63].Pathway[61]():
                 return Tine_play(tine, job, branch_count, prev_evts)
         # ERROR:  report error and play any tine to avoid crashing
-        logger.error(f'no eligible tine for pathway:{pathway.JobDefnName}:{pathway.number}')
+        logger.error(f'no eligible tine for pathway:{pathway.JobDefnName}:{pathway.Number}')
         return Tine_play(any(self).Tine[54](), job, branch_count, prev_evts)
 
     elif self.Type == ConstraintType.AND:

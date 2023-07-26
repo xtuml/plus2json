@@ -94,14 +94,14 @@ class PlusPopulator(PlusVisitor):
         for alternative in alternatives:
             # recursively link pathway to alternative and all upstream alternatives
             # each end-of-list Alterrnative implies a new Pathway
-            pathway = self.m.new('Pathway', number=self.id_factory)
+            pathway = self.m.new('Pathway', Number=self.id_factory)
             self.id_factory += 1
             relate(self.current_job, pathway, 60)
             self.linkPathway(alternative, pathway)
 
         # create/link ordinal pathway if no alternatives detected
         if not any(job).Pathway[60]():
-            pathway = self.m.new('Pathway', number=self.id_factory)
+            pathway = self.m.new('Pathway', Number=self.id_factory)
             relate(job, pathway, 60)
 
         self.id_factory = 0

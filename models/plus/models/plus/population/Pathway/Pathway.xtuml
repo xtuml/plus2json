@@ -9,13 +9,13 @@ within plus::population is
   @class_num(56);
   class Pathway is
 
-    number: integer;
+    Number: integer;
 
     @ref_mode("referred_to");
     @use_prefix(prefix="JobDefn", root_name="Name");
     JobDefnName: referential (R60.'Job Definition'.Name) string;
 
-    preferred identifier is (number, JobDefnName);
+    preferred identifier is (Number, JobDefnName);
 
   end class;
 
