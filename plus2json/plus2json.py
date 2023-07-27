@@ -72,8 +72,8 @@ def main():
     # play specific options
     play_options = parser.add_argument_group(title='Play Options')
     play_options.add_argument('--all', action='store_true', help='Play all pathways through the job definition')
-    play_options.add_argument('--msgbroker', help='Play audit events to message broker <host:port>', default='localhost:9092')
-    play_options.add_argument('--topic', help='Specify message broker publish topic <topic name>', default='default.AEReception_service0')
+    play_options.add_argument('--msgbroker', help='Play audit events to message broker <host:port>')
+    play_options.add_argument('--topic', help='Specify message broker publish topic <topic name>')
     play_options.add_argument('--integer-ids', action='store_true', help='Use deterministic integer IDs')
     play_options.add_argument('--num-events', type=int, default=0, help='The number of events to produce. If omitted, each job will be played one time.')
     play_options.add_argument('--batch-size', type=int, default=500, help='The number of events per file. Default is 500. Only valid if "--num-events" is present.')
