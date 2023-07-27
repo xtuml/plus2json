@@ -51,9 +51,9 @@ compliant to the <<dr-6, Audit Event JSON Schema>>.
 'plus2json' shall accept a command line switch (`--play --msgbroker`) to
 cause the application to emit audit event streams into the message broker
 as an alternative to files or standard output.  The host name and port
-(e.g.  localhost:9092) shall be supplied as an argument to `--msgbroker`
-switch.  Multiple host name / port pairs may be supplied in the context of
-a multi- message broker configuration.
+(e.g.  localhost:9092) shall be supplied as an argument to the `--msgbroker`
+switch.  Multiple host name / port pairs may be supplied (separated by
+commas) in the context of a multi- message broker configuration.
 
 Additionally, when a message broker is specified, another parameter,
 `--topic <topic_name>`, shall be supplied to configure the specific topic
@@ -70,7 +70,7 @@ specific package chosen for this work is <<dr-4, kafka-python3>>.
 === 4.2 MASL C++ Software Architecture
 
 Inter-domain messages as handled by the MASL C++ model compiler are
-formatted as _length_ + _payload_.  MASL C++ sends and receives the length
+formatted as length plus payload.  MASL C++ sends and receives the length
 and payload concatenated together.  The length is supplied as a 4 byte
 integer in Big Endian form.  This enables the architecture to send a
 single stream of bytes through the transport mechanism.  The sender must
@@ -82,7 +82,7 @@ payload and send the concatenated byte stream as a single array of bytes.
 === 5.1 Broker Initialisation
 
 Import the <<dr-4, kafka-python3>> module.  Initialise a producer on the
-host(s) and port(s) supplied on the command publishing to the topic
+host(s) and port(s) supplied on the command line publishing to the topic
 supplied on the command line.
 
 === 5.2 Prepare Messages
@@ -104,13 +104,14 @@ provides the host name and port where a message broker is expected to be
 listening.  `--msgbroker` is only valid in the context of `--play`.
 
 Provide a command line switch, `--topic <reception topic>` to supply the
-name of the topic on which AERecption will be subscribed.
+name of the topic on which AERecption will be subscribed.  `--topic` is
+only valid in the context of `--msgbroker`.
 
 == 6 Acceptance Test
 
 . Test without Protocol Verifier.
   .. Launch the message broker.
-  .. Start message browser (e.g. <<dr-5, Kadek>>).
+  .. Start a message browser (e.g. <<dr-5, Kadek>>).
   .. Run 'plus2json --play --msgbroker localhost:9092' with an input job
      defintion.
   .. Browse the messages and visually inspect for correctness.
