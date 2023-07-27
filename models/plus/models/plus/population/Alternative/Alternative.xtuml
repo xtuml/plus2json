@@ -1,0 +1,16 @@
+// BP 7.1.6 content: ModelClass syschar: 3 persistence-version: 7.1.6
+
+within plus::population is
+
+  //! An alternative (instance of Alternative) is a conditionally taken step through
+  //! a job definition.  Alternatives imply multiple possible pathways through the
+  //! job definition.
+  @key_letters("Alternative");
+  @class_num(55);
+  class Alternative is
+
+    Name: string;
+
+  end class;
+
+end;

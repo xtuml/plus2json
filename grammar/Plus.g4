@@ -91,18 +91,18 @@ break          : BREAK
 detach         : DETACH
                ;
 
-if             : IF '(' condition ')' THEN ( '(' identifier ')' )? NEWLINE
+if             : IF '(' condition ')' THEN ( '(' label=identifier ')' )? NEWLINE
                  statement+
                  elseif*
                  else?
                  ENDIF
                ;
 
-elseif         : ELSEIF ( '(' identifier ')' )? NEWLINE
+elseif         : ELSEIF ( '(' label=identifier ')' )? NEWLINE
                  statement+
                ;
 
-else           : ELSE ( '(' identifier ')' )? NEWLINE
+else           : ELSE ( '(' label=identifier ')' )? NEWLINE
                  statement+
                ;
 
@@ -114,7 +114,7 @@ switch         : SWITCH '(' condition ')' NEWLINE
                  ENDSWITCH
                ;
 
-case           : CASE '(' condition ')' NEWLINE
+case           : CASE '(' label=identifier ')' NEWLINE
                  statement+
                ;
 

@@ -18,19 +18,44 @@ logger = logging.getLogger(__name__)
 
 def JobDefn_play(self):
     m = self.__metaclass__.metamodel
+    opts = m.select_any('_Options')
 
-    # TODO for now, create exactly one job
+    jobs = []
+    pathways = []
+    # DEBUG
+    ps = many(self).Pathway[60]()
+    for p in ps:
+        logger.debug(f'1JobDefnName:{self.Name} Pathway:{p.Number}')
+        alts = many(p).Alternative[61]()
+        for alt in alts:
+            logger.debug(f'2JobDefnName:{self.Name} Pathway:{p.Number} Alternative:{alt.Name}')
+    # DEBUG
+    # select pathway(s)
+    if opts.all:
+        # --play --all
+        pathways = many(self).Pathway[60]()
+    else:
+        # --play only one pathway (the first one numerically)
+        pathways.append(any(self).Pathway[60](xtuml.order_by('Number')))
+    for pathway in pathways:
+        # create and link a new job
+        job = m.new('Job')
+        jobs.append(job)
+        relate(job, self, 101)
+        relate(job, pathway, 104)
 
-    # create and link a new job
-    job = m.new('Job')
-    relate(job, self, 101)
+        # play each sequence
+        for seq_defn in many(self).SeqDefn[1]():
+            SeqDefn_play(seq_defn, job)
 
-    # play each sequence
-    # LPS: I think this is a location where there is an implicit decision about ordering
-    for seq_defn in many(self).SeqDefn[1]():
-        SeqDefn_play(seq_defn, job)
+    # document graph coverage
+    total_aeds = len(many(self).SeqDefn[1].AuditEventDefn[2]())
+    # visited AuditEventDefns have a linked AuditEvent
+    visited_aeds = len(many(self).SeqDefn[1].AuditEventDefn[2](lambda sel: any(sel).AuditEvent[103]()))
+    graph_coverage = visited_aeds / total_aeds * 100
+    logger.info(f'JobDefnName:{self.Name} visited {visited_aeds} of {total_aeds} achieving a coverage of {graph_coverage:.1f}%')
 
-    return job
+    return jobs
 
 
 def SeqDefn_play(self, job):
@@ -80,7 +105,7 @@ def AuditEventDefn_play(self, job, branch_count, prev_evts):
     m = self.__metaclass__.metamodel
 
     evts = []
-    if self.IsCritical and 0 == random.randint(0,1):
+    if self.IsCritical and 0 == random.randint(0, 1):
         # critical and coin toss is tails
         # play an unhappy event instead of this critical event
         return UnhappyEventDefn_play(m.select_any('UnhappyEventDefn'), job, branch_count, prev_evts)
@@ -184,7 +209,13 @@ def EvtDataDefn_play(self, is_source=True):
 
 def Fork_play(self, job, branch_count, prev_evts):
     if self.Type == ConstraintType.XOR:
-        # TODO arbitrarily choose the first tine
+        # choose the tine with an alternative in our pathway
+        pathway = one(job).Pathway[104]()
+        for tine in many(self).Tine[54]():
+            if pathway in many(tine).Alternative[63].Pathway[61]():
+                return Tine_play(tine, job, branch_count, prev_evts)
+        # ERROR:  report error and play any tine to avoid crashing
+        logger.error(f'no eligible tine for pathway:{pathway.JobDefnName}:{pathway.Number}')
         return Tine_play(any(self).Tine[54](), job, branch_count, prev_evts)
 
     elif self.Type == ConstraintType.AND:
@@ -195,8 +226,11 @@ def Fork_play(self, job, branch_count, prev_evts):
         return evts
 
     elif self.Type == ConstraintType.IOR:
-        # TODO arbitrarily choose the first tine
-        return Tine_play(any(self).Tine[54](), job, branch_count, prev_evts)
+        # TODO arbitrarily play all tines
+        evts = [[]] * branch_count
+        for tine in many(self).Tine[54]():
+            evts = [a + b for a, b in zip(evts, Tine_play(tine, job, branch_count, prev_evts))]
+        return evts
 
     else:
         return [[]] * branch_count

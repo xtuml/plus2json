@@ -57,13 +57,20 @@ class PlusPopulator(PlusVisitor):
         self.m = metamodel
         self.current_job = None
         self.current_sequence = None
-        self.current_package = [] # stack
+        self.current_package = []    # stack
         self.current_fragment = None
-        self.current_tine = None
+        self.current_tine = []       # stack
         self.current_event = None
+        self.id_factory = xtuml.IntegerGenerator()
 
     def aggregateResult(self, aggregate, nextResult):
         return nextResult or aggregate  # do not overwrite with None
+
+    def linkPathway(self, alternative, pathway):
+        '''link the given alternative and upstream alternatives to the given pathway'''
+        if alternative:
+            relate(alternative, pathway, 61)
+            self.linkPathway(one(alternative).Alternative[62, 'is_downstream_of'](), pathway)
 
     def visitJob_defn(self, ctx: PlusParser.Job_defnContext):
         # create a new job
@@ -81,6 +88,20 @@ class PlusPopulator(PlusVisitor):
         # process all packages
         for pkg in ctx.package_defn():
             self.visit(pkg)
+
+        # create pathways for combinations of alternatives
+        alternatives = self.m.select_many('Alternative', lambda sel: not one(sel).Alternative[62, 'is_upstream_of']() and not any(sel).Pathway[61]())
+        for alternative in alternatives:
+            # recursively link pathway to alternative and all upstream alternatives
+            # each end-of-list Alterrnative implies a new Pathway
+            pathway = self.m.new('Pathway', Number=next(self.id_factory))
+            relate(self.current_job, pathway, 60)
+            self.linkPathway(alternative, pathway)
+
+        # create/link ordinal pathway if no alternatives detected
+        if not any(job).Pathway[60]():
+            pathway = self.m.new('Pathway', Number=next(self.id_factory))
+            relate(job, pathway, 60)
 
         self.current_job = None
         return job
@@ -171,7 +192,7 @@ class PlusPopulator(PlusVisitor):
 
         # check if this is the termination of a tine
         if self.current_tine and ctx.detach():
-            self.current_tine.IsTerminal = True
+            self.current_tine[-1].IsTerminal = True
 
         # relate the event to the current sequence
         relate(evt, self.current_sequence, 2)
@@ -270,7 +291,7 @@ class PlusPopulator(PlusVisitor):
     def visitCritical(self, ctx: PlusParser.CriticalContext):
         self.current_event.IsCritical = True
 
-    def processFork(self, type, tines):
+    def processFork(self, type, tine_ctxs):
         # cache the current fragment
         pre_fork_frag = self.current_fragment
 
@@ -280,8 +301,8 @@ class PlusPopulator(PlusVisitor):
         relate(frag, fork, 56)
 
         # process all tines
-        for tine in tines:
-            relate(fork, self.processTine(tine), 54)
+        for tine_ctx in tine_ctxs:
+            relate(fork, self.processTine(tine_ctx, type), 54)
 
         # link all event successions
         const_defn = None
@@ -302,11 +323,24 @@ class PlusPopulator(PlusVisitor):
         self.current_fragment = pre_fork_frag
         return frag
 
-    def processTine(self, ctx):
+    def processTine(self, ctx, type):
         # process the tine
         self.current_fragment = None
         tine = self.m.new('Tine')
-        self.current_tine = tine
+
+        # create/relate an alternative on XOR tines
+        if ConstraintType.XOR == type:
+            alternative = self.m.new('Alternative', Name=self.visitIdentifier(ctx.label) if ctx.label else "")
+            relate(tine, alternative, 63)
+            # walk downwards from the top of the stack of tines looking for alternatives
+            for t in list(reversed(self.current_tine)):
+                upstream_alternative = one(t).Alternative[63]()
+                if upstream_alternative:
+                    relate(upstream_alternative, alternative, 62, 'is_upstream_of')
+                    break
+
+        self.current_tine.append(tine)
+
         for smt in ctx.statement():
             # process the statement
             frag = self.visit(smt)
@@ -323,7 +357,7 @@ class PlusPopulator(PlusVisitor):
             # set the current fragment
             self.current_fragment = frag
 
-        self.current_tine = None
+        self.current_tine.pop()
 
         # link the last fragment
         relate(frag, tine, 52)
@@ -332,17 +366,8 @@ class PlusPopulator(PlusVisitor):
     def visitIf(self, ctx: PlusParser.IfContext):
         return self.processFork(ConstraintType.XOR, [ctx] + ctx.elseif() + [ctx.else_()])
 
-    def visitElseif(self, ctx: PlusParser.ElseifContext):
-        return self.processTine(ctx)
-
-    def visitElse(self, ctx: PlusParser.ElseContext):
-        return self.processTine(ctx)
-
     def visitSwitch(self, ctx: PlusParser.SwitchContext):
         return self.processFork(ConstraintType.XOR, ctx.case())
-
-    def visitCase(self, ctx: PlusParser.CaseContext):
-        return self.processTine(ctx)
 
     def visitLoop(self, ctx: PlusParser.LoopContext):
         # cache the current fragment
@@ -354,7 +379,7 @@ class PlusPopulator(PlusVisitor):
         relate(frag, loop, 56)
 
         # process the tine
-        relate(loop, self.processTine(ctx), 55)
+        relate(loop, self.processTine(ctx, ConstraintType.AND), 55)
 
         # link all event successions
         prev_evts = self.get_last_events(frag) + (self.get_last_events(pre_loop_frag) if pre_loop_frag else [])
@@ -372,14 +397,8 @@ class PlusPopulator(PlusVisitor):
     def visitFork(self, ctx: PlusParser.ForkContext):
         return self.processFork(ConstraintType.AND, [ctx] + ctx.fork_again())
 
-    def visitFork_again(self, ctx: PlusParser.Fork_againContext):
-        return self.processTine(ctx)
-
     def visitSplit(self, ctx: PlusParser.SplitContext):
         return self.processFork(ConstraintType.IOR, [ctx] + ctx.split_again())
-
-    def visitSplit_again(self, ctx: PlusParser.Split_againContext):
-        return self.processTine(ctx)
 
     def visitIdentifier(self, ctx: PlusParser.IdentifierContext):
         return ctx.getText().strip('"')
@@ -411,4 +430,3 @@ class PlusPopulator(PlusVisitor):
         frag = self.m.new('Fragment')
         relate(frag, unhappy_event, 56)
         relate(frag, self.current_package[-1], 53)
-

@@ -1,0 +1,22 @@
+// BP 7.1.6 content: ModelClass syschar: 3 persistence-version: 7.1.6
+
+within plus::population is
+
+  //! Pathway abstracts the multiple possible legal routes through a job definition.
+  //! A pathway consists of a set of alternatives steering the way through the playing
+  //! of a job definition.
+  @key_letters("Pathway");
+  @class_num(56);
+  class Pathway is
+
+    Number: integer;
+
+    @ref_mode("referred_to");
+    @use_prefix(prefix="JobDefn", root_name="Name");
+    JobDefnName: referential (R60.'Job Definition'.Name) string;
+
+    preferred identifier is (Number, JobDefnName);
+
+  end class;
+
+end;

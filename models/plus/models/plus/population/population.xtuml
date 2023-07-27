@@ -4,11 +4,14 @@ within plus is
 
   @start_numbering(51);
   package population is
+    class Alternative;
     class Fork;
     class Fragment;
     class Loop;
+    class Pathway;
     class Tine;
     class 'Audit Event Definition' is plus::definition::'Audit Event Definition';
+    class 'Job Definition' is plus::definition::'Job Definition';
     class 'Package Definition' is plus::definition::'Package Definition';
     class 'Sequence Definition' is plus::definition::'Sequence Definition';
     class 'Unhappy Event Definition' is plus::definition::'Unhappy Event Definition';
@@ -37,6 +40,18 @@ within plus is
 
     relationship R59 is Fragment conditionally relates to one Tine,
                         Tine unconditionally is_made_of many Fragment;
+
+    relationship R60 is 'Job Definition' unconditionally has many Pathway,
+                        Pathway unconditionally relates to one 'Job Definition';
+
+    relationship R61 is Alternative conditionally relates to many Pathway,
+                        Pathway conditionally includes many Alternative;
+
+    relationship R62 is Alternative conditionally is_downstream_of one Alternative,
+                        Alternative conditionally is_upstream_of many Alternative;
+
+    relationship R63 is Alternative unconditionally relates to one Tine,
+                        Tine conditionally 'is' one Alternative;
 
   end package;
 
