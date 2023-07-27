@@ -1,0 +1,137 @@
+= plus2json --play to Message Broker
+
+xtUML Project Analysis Note
+
+== 1 Abstract
+
+This note enumerates the requirements, analysis and work required for an
+enhancement to `plus2json --play`.  The enhancement causes plus2json to
+support inter-domain communication through a network.  plus2json will play
+audit event instances as a producer to a message broker (<<dr-2, Apache
+Kafka>>) as an alternative to playing into files or standard output.
+
+== 2 Introduction and Background
+
+'plus2json' has a feature triggered by a command line switch: '--play'
+which interprets job definitions and produces streams of audit event
+instances.  The current (July 2023) '--play' is limited to emitting audit
+event instances to files (named by jobId) or to standard output.  This
+work extends the output options to include writing to a message broker port.
+<<dr-2, Apache Kafka>> is the currently selected message broker
+implementation.
+
+The application shall be invoked as `plus2json --play --msgbroker
+<host:port> --topic <reception topic name>...`.
+
+== 3 Requirements
+
+=== 3.1 Support Kafka Producer
+
+'plus2json --play --msgbroker' shall support the producer (publisher) mode
+of the <<dr-2, Apache Kafka>> message broker.
+
+=== 3.2 Both --play and --play --all
+
+'plus2json --play --msgbroker' shall be able to play single jobs or all
+pathways through jobs into the message broker (support of '--all').
+
+=== 3.3 Support Message Length Protocol
+
+'plus2json --play --msgbroker' shall prepend the length of messages sent
+to the broker in order to support the underlying software architecture of
+the Protocol Verifier inter-domain message passing conventions.
+
+=== 3.4 Message Granularity
+
+A message shall contain a single audit event instance sent as JSON
+compliant to the <<dr-6, Audit Event JSON Schema>>.
+
+=== 3.5 Command Line Control
+
+'plus2json' shall accept a command line switch (`--play --msgbroker`) to
+cause the application to emit audit event streams into the message broker
+as an alternative to files or standard output.  The host name and port
+(e.g.  localhost:9092) shall be supplied as an argument to `--msgbroker`
+switch.  Multiple host name / port pairs may be supplied in the context of
+a multi- message broker configuration.
+
+Additionally, when a message broker is specified, another parameter,
+`--topic <topic_name>`, shall be supplied to configure the specific topic
+under which messages are published to the broker.
+
+== 4 Analysis
+
+=== 4.1 Kafka for Python
+
+'plus2json' is implemented in Python.  A native Python implementation of
+the Apache Kafka message broker is available as Open Source Software.  The
+specific package chosen for this work is <<dr-4, kafka-python3>>.
+
+=== 4.2 MASL C++ Software Architecture
+
+Inter-domain messages as handled by the MASL C++ model compiler are
+formatted as _length_ + _payload_.  MASL C++ sends and receives the length
+and payload concatenated together.  The length is supplied as a 4 byte
+integer in Big Endian form.  This enables the architecture to send a
+single stream of bytes through the transport mechanism.  The sender must
+calculate the length of the payload and prepend that length value to the
+payload and send the concatenated byte stream as a single array of bytes.
+
+== 5 Work Required
+
+=== 5.1 Broker Initialisation
+
+Import the <<dr-4, kafka-python3>> module.  Initialise a producer on the
+host(s) and port(s) supplied on the command publishing to the topic
+supplied on the command line.
+
+=== 5.2 Prepare Messages
+
+Encode audit event instance JSON objects as 'utf-8'.  Convert the event
+into a bytestream and measure the length of the event bytestream.  Convert
+the integer length into a bytestream 4 bytes long in Big Endian form and
+prepend to the event bytestream payload.
+
+=== 5.3 Post Message to Topic
+
+Send the message to the broker.
+
+=== 5.4 Command Line Control
+
+Provide a command line switch, `--msgbroker <host:port>` to trigger
+'plus2json' to use the message broker.  The argument to the switch
+provides the host name and port where a message broker is expected to be
+listening.  `--msgbroker` is only valid in the context of `--play`.
+
+Provide a command line switch, `--topic <reception topic>` to supply the
+name of the topic on which AERecption will be subscribed.
+
+== 6 Acceptance Test
+
+. Test without Protocol Verifier.
+  .. Launch the message broker.
+  .. Start message browser (e.g. <<dr-5, Kadek>>).
+  .. Run 'plus2json --play --msgbroker localhost:9092' with an input job
+     defintion.
+  .. Browse the messages and visually inspect for correctness.
+. Test with Protocol Verifier.
+  .. Launch the message broker.
+  .. Launch the Protocol Verifier marked to run with the message broker.
+  .. Run 'plus2json --play --msgbroker localhost:9092' with an input job
+     definition.
+  .. See correct behaviour of the Protocol Verifier.
+
+== 7 Document References
+
+. [[dr-1]] https://onefact.atlassian.net/browse/MUN2-124[MUN2-12424: plus2json support of inter-domain communication]
+. [[dr-2]] https://kafka.apache.org/[Apache Kafka]
+. [[dr-3]] https://github.com/xtuml/plus2json[plus2json git repository on GitHub]
+. [[dr-4]] https://pypi.org/project/kafka-python3/[kafka-python3]
+. [[dr-5]] https://www.kadeck.com/[Kadeck]
+. [[dr-6]]
+https://github.com/xtuml/munin/blob/main/models/AEReception/schema/audit_event_schema.json[Audit Event JSON Schema]
+
+---
+This work is licensed under the Creative Commons CC0 License
+
+---

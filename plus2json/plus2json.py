@@ -20,6 +20,7 @@ from .pretty_print import JobDefn_pretty_print
 from antlr4.error.Errors import CancellationException
 from importlib.resources import files
 from itertools import cycle
+from kafka3 import KafkaProducer
 
 logger = logging.getLogger('plus2json')
 
@@ -130,7 +131,6 @@ def play(**kwargs):
     p2j.load(integer_ids=(kwargs['integer_ids'] or kwargs['pretty_print']), opts=kwargs)
     p2j.play_job_definitions()
 
-
 class Plus2Json:
 
     def __init__(self, outdir=None):
@@ -209,6 +209,8 @@ class Plus2Json:
     def play_job_definitions(self):
         opts = self.metamodel.select_any('_Options')
 
+        producer = KafkaProducer(bootstrap_servers='localhost:9092')
+
         job_defns = self.metamodel.select_many('JobDefn')
 
         # play all job definitions once
@@ -237,8 +239,14 @@ class Plus2Json:
                     if self.outdir:
                         self.write_output_file(output, f'{xtuml.navigate_one(job).JobDefn[101]().Name.replace(" ", "_")}_{job.Id}.json')
                     else:
-                        print(output)
-
+                        #print(output)
+                        for event in events:
+                            payload = bytearray(json.dumps(event, indent=4, separators=(',', ': ')).encode('utf-8'))
+                            msglen = len(payload).to_bytes(4, 'big')
+                            msglenbytearray = bytearray(msglen)
+                            msg = msglenbytearray
+                            msg.extend(payload)
+                            producer.send('p2j_to_reception', msg)
                 Job_dispose(job)
 
         # play jobs in volume mode
