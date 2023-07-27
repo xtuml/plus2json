@@ -66,19 +66,21 @@ def main():
     global_options.add_argument('-h', '--help', action='help', help='Show this help message and exit')
     global_options.add_argument('--debug', action='store_true', help='Enable debug logging')
     global_options.add_argument('-p', '--pretty-print', action='store_true', help='Print human readable debug output')
-    global_options.add_argument('-o', '--outdir', metavar='dir', help='Path to output directory')
+    global_options.add_argument('-o', '--outdir', help='Path to output directory')
     global_options.add_argument('filenames', nargs='*', help='Input .puml files')
 
     # play specific options
     play_options = parser.add_argument_group(title='Play Options')
     play_options.add_argument('--all', action='store_true', help='Play all pathways through the job definition')
+    play_options.add_argument('--msgbroker', help='Play audit events to message broker <host:port>', default='localhost:9092')
+    play_options.add_argument('--topic', help='Specify message broker publish topic <topic name>', default='default.AEReception_service0')
     play_options.add_argument('--integer-ids', action='store_true', help='Use deterministic integer IDs')
     play_options.add_argument('--num-events', type=int, default=0, help='The number of events to produce. If omitted, each job will be played one time.')
     play_options.add_argument('--batch-size', type=int, default=500, help='The number of events per file. Default is 500. Only valid if "--num-events" is present.')
     play_options.add_argument('--shuffle', action='store_true', help='Shuffle the events before writing to a file.')
     play_options.add_argument('--no-persist-einv', action='store_true', help='Do not persist external invariants in a file store')
-    play_options.add_argument('--inv-store-file', metavar='filename', help='Location to persist external invariant values', default='p2jInvariantStore')
-    play_options.add_argument('--event-data', action='append', metavar='data', help='Key/value pairs for source event data values', default=[])
+    play_options.add_argument('--inv-store-file', help='Location to persist external invariant values', default='p2jInvariantStore')
+    play_options.add_argument('--event-data', action='append', help='Key/value pairs for source event data values', default=[])
 
     # parse command line
     args = parser.parse_args()
@@ -130,6 +132,7 @@ def play(**kwargs):
         p2j.stream_input(sys.stdin)
     p2j.load(integer_ids=(kwargs['integer_ids'] or kwargs['pretty_print']), opts=kwargs)
     p2j.play_job_definitions()
+
 
 class Plus2Json:
 
@@ -205,11 +208,24 @@ class Plus2Json:
                 else:
                     print(output)
 
+    # pre-process message payload
+    def preprocess_payload(self, s):
+        '''prepend length as 4 byte Big Endian integer to message bytes (C++ architecture)'''
+        payload = bytearray(json.dumps(s, indent=4, separators=(',', ': ')).encode('utf-8'))
+        msglen = len(payload).to_bytes(4, 'big')
+        msg = bytearray(msglen)
+        msg.extend(payload)
+        return msg
+
     # process runtime play
     def play_job_definitions(self):
         opts = self.metamodel.select_any('_Options')
 
-        producer = KafkaProducer(bootstrap_servers='localhost:9092')
+        if opts.msgbroker:
+            if not opts.topic:
+                logger.error('--msgbroker specified without --topic')
+            else:
+                producer = KafkaProducer(bootstrap_servers=opts.msgbroker)
 
         job_defns = self.metamodel.select_many('JobDefn')
 
@@ -238,15 +254,13 @@ class Plus2Json:
                     output = json.dumps(events, indent=4, separators=(',', ': '))
                     if self.outdir:
                         self.write_output_file(output, f'{xtuml.navigate_one(job).JobDefn[101]().Name.replace(" ", "_")}_{job.Id}.json')
-                    else:
-                        #print(output)
+                    elif opts.msgbroker:
                         for event in events:
-                            payload = bytearray(json.dumps(event, indent=4, separators=(',', ': ')).encode('utf-8'))
-                            msglen = len(payload).to_bytes(4, 'big')
-                            msglenbytearray = bytearray(msglen)
-                            msg = msglenbytearray
-                            msg.extend(payload)
-                            producer.send('p2j_to_reception', msg)
+                            msg = self.preprocess_payload(event)
+                            producer.send(opts.topic, msg)
+                    else:
+                        print(output)
+
                 Job_dispose(job)
 
         # play jobs in volume mode
