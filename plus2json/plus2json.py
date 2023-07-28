@@ -1,5 +1,6 @@
 import antlr4
 import argparse
+import asyncio
 import json
 import logging
 import os
@@ -8,6 +9,7 @@ import random
 import sys
 import tempfile
 import textwrap
+import time
 import uuid
 import xtuml
 
@@ -20,6 +22,7 @@ from .pretty_print import JobDefn_pretty_print
 from antlr4.error.Errors import CancellationException
 from importlib.resources import files
 from itertools import cycle
+from kafka3 import KafkaProducer
 
 logger = logging.getLogger('plus2json')
 
@@ -65,19 +68,22 @@ def main():
     global_options.add_argument('-h', '--help', action='help', help='Show this help message and exit')
     global_options.add_argument('--debug', action='store_true', help='Enable debug logging')
     global_options.add_argument('-p', '--pretty-print', action='store_true', help='Print human readable debug output')
-    global_options.add_argument('-o', '--outdir', metavar='dir', help='Path to output directory')
+    global_options.add_argument('-o', '--outdir', help='Path to output directory')
     global_options.add_argument('filenames', nargs='*', help='Input .puml files')
 
     # play specific options
     play_options = parser.add_argument_group(title='Play Options')
     play_options.add_argument('--all', action='store_true', help='Play all pathways through the job definition')
+    play_options.add_argument('--msgbroker', help='Play audit events to message broker <host:port>')
+    play_options.add_argument('--topic', help='Specify message broker publish topic <topic name>')
     play_options.add_argument('--integer-ids', action='store_true', help='Use deterministic integer IDs')
+    play_options.add_argument('--shuffle', action='store_true', help='Shuffle the events before writing to a file.')
     play_options.add_argument('--num-events', type=int, default=0, help='The number of events to produce. If omitted, each job will be played one time.')
     play_options.add_argument('--batch-size', type=int, default=500, help='The number of events per file. Default is 500. Only valid if "--num-events" is present.')
-    play_options.add_argument('--shuffle', action='store_true', help='Shuffle the events before writing to a file.')
+    play_options.add_argument('--rate', type=int, default=0, help='The number of events per second. When present events will be generated indefinitely at the specified rate.')
     play_options.add_argument('--no-persist-einv', action='store_true', help='Do not persist external invariants in a file store')
-    play_options.add_argument('--inv-store-file', metavar='filename', help='Location to persist external invariant values', default='p2jInvariantStore')
-    play_options.add_argument('--event-data', action='append', metavar='data', help='Key/value pairs for source event data values', default=[])
+    play_options.add_argument('--inv-store-file', help='Location to persist external invariant values', default='p2jInvariantStore')
+    play_options.add_argument('--event-data', action='append', help='Key/value pairs for source event data values', default=[])
 
     # parse command line
     args = parser.parse_args()
@@ -136,6 +142,7 @@ class Plus2Json:
     def __init__(self, outdir=None):
         self.outdir = outdir
         self.inputs = []
+        self.producer = None
 
     def filename_input(self, filenames):
         if isinstance(filenames, str):
@@ -199,7 +206,7 @@ class Plus2Json:
             if opts.pretty_print:
                 JobDefn_pretty_print(job_defn)
             else:
-                output = json.dumps(JobDefn_json(job_defn), indent=4, separators=(',', ': '))
+                output = json.dumps(JobDefn_json(job_defn), indent=4)
                 if self.outdir:
                     self.write_output_file(output, f'{job_defn.Name}.json')
                 else:
@@ -209,61 +216,106 @@ class Plus2Json:
     def play_job_definitions(self):
         opts = self.metamodel.select_any('_Options')
 
+        # initialise the message broker
+        if opts.msgbroker:
+            if not opts.topic:
+                logger.error('--msgbroker specified without --topic')
+                sys.exit(1)
+            else:
+                self.producer = KafkaProducer(bootstrap_servers=opts.msgbroker)
+
+        if opts.num_events != 0 and opts.rate != 0:
+            logger.error('incompatible options --num-events and --rate')
+            sys.exit(1)
+
         job_defns = self.metamodel.select_many('JobDefn')
 
         # play all job definitions once
-        if opts.num_events == 0:
+        if opts.num_events != 0:
+            self.play_volume_mode(job_defns)
 
-            # play each job definition
-            jobs = flatten(map(JobDefn_play, job_defns))
+        # play all job definitions at a specified rate
+        if opts.rate != 0:
+            if opts.msgbroker:
+                self.play_rate_mode(job_defns)
+            else:
+                logger.error('rate mode only supported with --msgbroker')
+                sys.exit(1)
 
-            # assure model consistency
-            self.check_consistency()
+        # play all job definitions once
+        else:
+            self.play_normal_mode(job_defns)
 
-            # render each runtime job
-            for job in jobs:
-                if opts.pretty_print:
-                    Job_pretty_print(job)
+        # shutdown the message broker
+        if opts.msgbroker:
+            self.producer.flush()
+            self.producer.close()
+
+    def play_normal_mode(self, job_defns):
+        opts = self.metamodel.select_any('_Options')
+
+        # play each job definition
+        jobs = flatten(map(JobDefn_play, job_defns))
+
+        # assure model consistency
+        self.check_consistency()
+
+        # render each runtime job
+        for job in jobs:
+            if opts.pretty_print:
+                Job_pretty_print(job)
+            else:
+                # create events
+                events = Job_json(job)
+
+                # shuffle events
+                if opts.shuffle:
+                    random.shuffle(events)
+
+                # dump to JSON
+                if opts.msgbroker:
+                    for event in events:
+                        msg = self.preprocess_payload(json.dumps(event, indent=4))
+                        self.producer.send(opts.topic, msg)
                 else:
-                    # create events
-                    events = Job_json(job)
-
-                    # shuffle events
-                    if opts.shuffle:
-                        random.shuffle(events)
-
-                    # dump to JSON
-                    output = json.dumps(events, indent=4, separators=(',', ': '))
+                    output = json.dumps(events, indent=4)
                     if self.outdir:
                         self.write_output_file(output, f'{xtuml.navigate_one(job).JobDefn[101]().Name.replace(" ", "_")}_{job.Id}.json')
                     else:
                         print(output)
 
-                Job_dispose(job)
+            Job_dispose(job)
 
-        # play jobs in volume mode
-        else:
+    def play_volume_mode(self, job_defns):
+        opts = self.metamodel.select_any('_Options')
 
-            # create an infinite cycle iterator of job definitions
-            job_defn_iter = cycle(job_defns)
+        # create an infinite cycle iterator of job definitions
+        job_defn_iter = cycle(job_defns)
 
-            num_events_produced = 0
-            events = []
+        num_events_produced = 0
+        events = []
 
-            # keep generating until we produce 1.2M events
-            while num_events_produced < opts.num_events:
+        # keep generating until we produce 1.2M events
+        while num_events_produced < opts.num_events:
 
-                # batches of 500 events per file
-                while len(events) < min(opts.batch_size, opts.num_events - num_events_produced):
-                    job = JobDefn_play(next(job_defn_iter))
-                    events.extend(Job_json(job, dispose=True))
+            # batches of 500 events per file
+            while len(events) < min(opts.batch_size, opts.num_events - num_events_produced):
+                jobs = JobDefn_play(next(job_defn_iter))
+                if jobs:
+                    events.extend(Job_json(jobs[0], dispose=True))
 
-                # shuffle the events
-                if opts.shuffle:
-                    random.shuffle(events)
+            # shuffle the events
+            if opts.shuffle:
+                random.shuffle(events)
 
-                # write the file
-                output = json.dumps(events, indent=4, separators=(',', ': '))
+            # write the batch of events
+            if opts.msgbroker:
+                fn = opts.msgbroker
+                for event in events:
+                    msg = self.preprocess_payload(json.dumps(event, indent=4))
+                    self.producer.send(opts.topic, msg)
+            else:
+                output = json.dumps(events, indent=4)
                 if self.outdir:
                     fn = f'{uuid.uuid4()}.json'
                     self.write_output_file(output, fn)
@@ -271,12 +323,62 @@ class Plus2Json:
                     fn = 'stdout'
                     print(output)
 
-                logger.info(f'File {fn} written with {len(events)} events')
+            logger.info(f'File {fn} written with {len(events)} events')
 
-                num_events_produced += len(events)
-                events = []
+            num_events_produced += len(events)
+            events = []
 
-            logger.info(f'Total events produced: {num_events_produced}')
+        logger.info(f'Total events produced: {num_events_produced}')
+
+    def play_rate_mode(self, job_defns):
+        opts = self.metamodel.select_any('_Options')
+
+        # create an infinite cycle iterator of job definitions
+        job_defn_iter = cycle(job_defns)
+
+        # create an event queue
+        event_queue = []
+        buffer_len_low = opts.rate * 1    # start refill when there's 1 seconds of buffer left/
+        buffer_len_high = opts.rate * 2  # maintain a 2 second buffer
+        delay = 1 / opts.rate
+
+        # refill the queue if it needs more events
+        async def fill_queue():
+            while True:
+                if len(event_queue) < buffer_len_low:
+                    # refill
+                    new_events = []
+                    while len(new_events) < buffer_len_high - len(event_queue):
+                        jobs = JobDefn_play(next(job_defn_iter))
+                        if jobs:
+                            new_events.extend(Job_json(jobs[0], dispose=True))
+                    # shuffle the events
+                    if opts.shuffle:
+                        random.shuffle(new_events)
+                    event_queue.extend(new_events)
+                await asyncio.sleep(0)  # give up control
+
+        # publish the messages from the queue
+        async def publish():
+            while True:
+                if len(event_queue) > 0:
+                    t0 = time.time()
+                    msg = self.preprocess_payload(json.dumps(event_queue.pop(0)))  # remove from the front
+                    self.producer.send(opts.topic, msg)
+                    elapsed = time.time() - t0
+                    await asyncio.sleep(delay - elapsed)
+                else:
+                    await asyncio.sleep(0)
+
+        # start event loop
+        loop = asyncio.get_event_loop()
+        tasks = asyncio.gather(fill_queue(), publish())
+        try:
+            loop.run_until_complete(tasks)
+        except KeyboardInterrupt:
+            tasks.cancel()
+        finally:
+            loop.close()
 
     # atomically write output to a file
     def write_output_file(self, output, filename):
@@ -287,3 +389,11 @@ class Plus2Json:
             f.flush()
             tmpfilename = f.name
         os.replace(tmpfilename, outfile)
+
+    # pre-process message payload
+    def preprocess_payload(self, s):
+        '''prepend length as 4 byte Big Endian integer to message bytes (C++ architecture)'''
+        payload = s.encode('utf-8')
+        msglen = len(payload).to_bytes(4, 'big')
+        msg = msglen + payload
+        return msg
