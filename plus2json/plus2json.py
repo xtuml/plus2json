@@ -171,7 +171,7 @@ class Plus2Json:
         opts = self.metamodel.define_class('_Options', map(lambda item: (item[0], 'STRING'), opts.items())).new(**opts)
 
         # process input event data
-        opts.event_data = dict((s.split('=') + [1])[:2] for s in opts.event_data)
+        opts.event_data = dict((s.split('=') + [1])[:2] for s in (opts.event_data if hasattr(opts, 'event_data') else []))
 
         # process each .puml input stream
         for filename, stream in self.inputs:
