@@ -1,5 +1,6 @@
 import antlr4
 import argparse
+import asyncio
 import json
 import logging
 import os
@@ -8,6 +9,7 @@ import random
 import sys
 import tempfile
 import textwrap
+import time
 import uuid
 import xtuml
 
@@ -78,6 +80,7 @@ def main():
     play_options.add_argument('--shuffle', action='store_true', help='Shuffle the events before writing to a file.')
     play_options.add_argument('--num-events', type=int, default=0, help='The number of events to produce. If omitted, each job will be played one time.')
     play_options.add_argument('--batch-size', type=int, default=500, help='The number of events per file. Default is 500. Only valid if "--num-events" is present.')
+    play_options.add_argument('--rate', type=int, default=0, help='The number of events per second. When present events will be generated indefinitely at the specified rate.')
     play_options.add_argument('--no-persist-einv', action='store_true', help='Do not persist external invariants in a file store')
     play_options.add_argument('--inv-store-file', help='Location to persist external invariant values', default='p2jInvariantStore')
     play_options.add_argument('--event-data', action='append', help='Key/value pairs for source event data values', default=[])
@@ -221,11 +224,23 @@ class Plus2Json:
             else:
                 self.producer = KafkaProducer(bootstrap_servers=opts.msgbroker)
 
+        if opts.num_events != 0 and opts.rate != 0:
+            logger.error('incompatible options --num-events and --rate')
+            sys.exit(1)
+
         job_defns = self.metamodel.select_many('JobDefn')
 
         # play all job definitions once
         if opts.num_events != 0:
             self.play_volume_mode(job_defns)
+
+        # play all job definitions at a specified rate
+        if opts.rate != 0:
+            if opts.msgbroker:
+                self.play_rate_mode(job_defns)
+            else:
+                logger.error('rate mode only supported with --msgbroker')
+                sys.exit(1)
 
         # play all job definitions once
         else:
@@ -314,6 +329,56 @@ class Plus2Json:
             events = []
 
         logger.info(f'Total events produced: {num_events_produced}')
+
+    def play_rate_mode(self, job_defns):
+        opts = self.metamodel.select_any('_Options')
+
+        # create an infinite cycle iterator of job definitions
+        job_defn_iter = cycle(job_defns)
+
+        # create an event queue
+        event_queue = []
+        buffer_len_low = opts.rate * 1    # start refill when there's 1 seconds of buffer left/
+        buffer_len_high = opts.rate * 2  # maintain a 2 second buffer
+        delay = 1 / opts.rate
+
+        # refill the queue if it needs more events
+        async def fill_queue():
+            while True:
+                if len(event_queue) < buffer_len_low:
+                    # refill
+                    new_events = []
+                    while len(new_events) < buffer_len_high - len(event_queue):
+                        jobs = JobDefn_play(next(job_defn_iter))
+                        if jobs:
+                            new_events.extend(Job_json(jobs[0], dispose=True))
+                    # shuffle the events
+                    if opts.shuffle:
+                        random.shuffle(new_events)
+                    event_queue.extend(new_events)
+                await asyncio.sleep(0)  # give up control
+
+        # publish the messages from the queue
+        async def publish():
+            while True:
+                if len(event_queue) > 0:
+                    t0 = time.time()
+                    msg = self.preprocess_payload(json.dumps(event_queue.pop(0)))  # remove from the front
+                    self.producer.send(opts.topic, msg)
+                    elapsed = time.time() - t0
+                    await asyncio.sleep(delay - elapsed)
+                else:
+                    await asyncio.sleep(0)
+
+        # start event loop
+        loop = asyncio.get_event_loop()
+        tasks = asyncio.gather(fill_queue(), publish())
+        try:
+            loop.run_until_complete(tasks)
+        except KeyboardInterrupt:
+            tasks.cancel()
+        finally:
+            loop.close()
 
     # atomically write output to a file
     def write_output_file(self, output, filename):

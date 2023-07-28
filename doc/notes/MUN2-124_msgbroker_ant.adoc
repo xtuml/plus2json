@@ -107,6 +107,14 @@ Provide a command line switch, `--topic <reception topic>` to supply the
 name of the topic on which AERecption will be subscribed.  `--topic` is
 only valid in the context of `--msgbroker`.
 
+=== 5.5 Rate Mode
+
+During code review it was noted that using a message broker opens up the
+possiblity of implementing a "rate mode" for testing. The number of events
+per second could be specified and the tool would produce events at that
+rate indefinitely. This mode was implemented and a new command line parameter
+"--rate" was added.
+
 == 6 Acceptance Test
 
 . Test without Protocol Verifier.
