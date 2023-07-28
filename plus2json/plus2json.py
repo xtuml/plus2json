@@ -75,9 +75,9 @@ def main():
     play_options.add_argument('--msgbroker', help='Play audit events to message broker <host:port>')
     play_options.add_argument('--topic', help='Specify message broker publish topic <topic name>')
     play_options.add_argument('--integer-ids', action='store_true', help='Use deterministic integer IDs')
+    play_options.add_argument('--shuffle', action='store_true', help='Shuffle the events before writing to a file.')
     play_options.add_argument('--num-events', type=int, default=0, help='The number of events to produce. If omitted, each job will be played one time.')
     play_options.add_argument('--batch-size', type=int, default=500, help='The number of events per file. Default is 500. Only valid if "--num-events" is present.')
-    play_options.add_argument('--shuffle', action='store_true', help='Shuffle the events before writing to a file.')
     play_options.add_argument('--no-persist-einv', action='store_true', help='Do not persist external invariants in a file store')
     play_options.add_argument('--inv-store-file', help='Location to persist external invariant values', default='p2jInvariantStore')
     play_options.add_argument('--event-data', action='append', help='Key/value pairs for source event data values', default=[])
@@ -139,6 +139,7 @@ class Plus2Json:
     def __init__(self, outdir=None):
         self.outdir = outdir
         self.inputs = []
+        self.producer = None
 
     def filename_input(self, filenames):
         if isinstance(filenames, str):
@@ -202,90 +203,104 @@ class Plus2Json:
             if opts.pretty_print:
                 JobDefn_pretty_print(job_defn)
             else:
-                output = json.dumps(JobDefn_json(job_defn), indent=4, separators=(',', ': '))
+                output = json.dumps(JobDefn_json(job_defn), indent=4)
                 if self.outdir:
                     self.write_output_file(output, f'{job_defn.Name}.json')
                 else:
                     print(output)
 
-    # pre-process message payload
-    def preprocess_payload(self, s):
-        '''prepend length as 4 byte Big Endian integer to message bytes (C++ architecture)'''
-        payload = bytearray(json.dumps(s, indent=4, separators=(',', ': ')).encode('utf-8'))
-        msglen = len(payload).to_bytes(4, 'big')
-        msg = bytearray(msglen)
-        msg.extend(payload)
-        return msg
-
     # process runtime play
     def play_job_definitions(self):
         opts = self.metamodel.select_any('_Options')
 
+        # initialise the message broker
         if opts.msgbroker:
             if not opts.topic:
                 logger.error('--msgbroker specified without --topic')
+                sys.exit(1)
             else:
-                producer = KafkaProducer(bootstrap_servers=opts.msgbroker)
+                self.producer = KafkaProducer(bootstrap_servers=opts.msgbroker)
 
         job_defns = self.metamodel.select_many('JobDefn')
 
         # play all job definitions once
-        if opts.num_events == 0:
+        if opts.num_events != 0:
+            self.play_volume_mode(job_defns)
 
-            # play each job definition
-            jobs = flatten(map(JobDefn_play, job_defns))
-
-            # assure model consistency
-            self.check_consistency()
-
-            # render each runtime job
-            for job in jobs:
-                if opts.pretty_print:
-                    Job_pretty_print(job)
-                else:
-                    # create events
-                    events = Job_json(job)
-
-                    # shuffle events
-                    if opts.shuffle:
-                        random.shuffle(events)
-
-                    # dump to JSON
-                    output = json.dumps(events, indent=4, separators=(',', ': '))
-                    if self.outdir:
-                        self.write_output_file(output, f'{xtuml.navigate_one(job).JobDefn[101]().Name.replace(" ", "_")}_{job.Id}.json')
-                    elif opts.msgbroker:
-                        for event in events:
-                            msg = self.preprocess_payload(event)
-                            producer.send(opts.topic, msg)
-                    else:
-                        print(output)
-
-                Job_dispose(job)
-
-        # play jobs in volume mode
+        # play all job definitions once
         else:
+            self.play_normal_mode(job_defns)
 
-            # create an infinite cycle iterator of job definitions
-            job_defn_iter = cycle(job_defns)
+        # shutdown the message broker
+        if opts.msgbroker:
+            self.producer.flush()
+            self.producer.close()
 
-            num_events_produced = 0
-            events = []
+    def play_normal_mode(self, job_defns):
+        opts = self.metamodel.select_any('_Options')
 
-            # keep generating until we produce 1.2M events
-            while num_events_produced < opts.num_events:
+        # play each job definition
+        jobs = flatten(map(JobDefn_play, job_defns))
 
-                # batches of 500 events per file
-                while len(events) < min(opts.batch_size, opts.num_events - num_events_produced):
-                    job = JobDefn_play(next(job_defn_iter))
-                    events.extend(Job_json(job, dispose=True))
+        # assure model consistency
+        self.check_consistency()
 
-                # shuffle the events
+        # render each runtime job
+        for job in jobs:
+            if opts.pretty_print:
+                Job_pretty_print(job)
+            else:
+                # create events
+                events = Job_json(job)
+
+                # shuffle events
                 if opts.shuffle:
                     random.shuffle(events)
 
-                # write the file
-                output = json.dumps(events, indent=4, separators=(',', ': '))
+                # dump to JSON
+                if opts.msgbroker:
+                    for event in events:
+                        msg = self.preprocess_payload(json.dumps(event, indent=4))
+                        self.producer.send(opts.topic, msg)
+                else:
+                    output = json.dumps(events, indent=4)
+                    if self.outdir:
+                        self.write_output_file(output, f'{xtuml.navigate_one(job).JobDefn[101]().Name.replace(" ", "_")}_{job.Id}.json')
+                    else:
+                        print(output)
+
+            Job_dispose(job)
+
+    def play_volume_mode(self, job_defns):
+        opts = self.metamodel.select_any('_Options')
+
+        # create an infinite cycle iterator of job definitions
+        job_defn_iter = cycle(job_defns)
+
+        num_events_produced = 0
+        events = []
+
+        # keep generating until we produce 1.2M events
+        while num_events_produced < opts.num_events:
+
+            # batches of 500 events per file
+            while len(events) < min(opts.batch_size, opts.num_events - num_events_produced):
+                jobs = JobDefn_play(next(job_defn_iter))
+                if jobs:
+                    events.extend(Job_json(jobs[0], dispose=True))
+
+            # shuffle the events
+            if opts.shuffle:
+                random.shuffle(events)
+
+            # write the batch of events
+            if opts.msgbroker:
+                fn = opts.msgbroker
+                for event in events:
+                    msg = self.preprocess_payload(json.dumps(event, indent=4))
+                    self.producer.send(opts.topic, msg)
+            else:
+                output = json.dumps(events, indent=4)
                 if self.outdir:
                     fn = f'{uuid.uuid4()}.json'
                     self.write_output_file(output, fn)
@@ -293,12 +308,12 @@ class Plus2Json:
                     fn = 'stdout'
                     print(output)
 
-                logger.info(f'File {fn} written with {len(events)} events')
+            logger.info(f'File {fn} written with {len(events)} events')
 
-                num_events_produced += len(events)
-                events = []
+            num_events_produced += len(events)
+            events = []
 
-            logger.info(f'Total events produced: {num_events_produced}')
+        logger.info(f'Total events produced: {num_events_produced}')
 
     # atomically write output to a file
     def write_output_file(self, output, filename):
@@ -309,3 +324,11 @@ class Plus2Json:
             f.flush()
             tmpfilename = f.name
         os.replace(tmpfilename, outfile)
+
+    # pre-process message payload
+    def preprocess_payload(self, s):
+        '''prepend length as 4 byte Big Endian integer to message bytes (C++ architecture)'''
+        payload = s.encode('utf-8')
+        msglen = len(payload).to_bytes(4, 'big')
+        msg = msglen + payload
+        return msg

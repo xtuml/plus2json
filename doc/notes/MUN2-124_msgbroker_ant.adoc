@@ -111,7 +111,7 @@ only valid in the context of `--msgbroker`.
 
 . Test without Protocol Verifier.
   .. Launch the message broker.
-  .. Start a message browser (e.g. <<dr-5, Kadek>>).
+  .. Start a message browser (e.g. <<dr-5, Kadeck>>).
   .. Run 'plus2json --play --msgbroker localhost:9092' with an input job
      defintion.
   .. Browse the messages and visually inspect for correctness.
