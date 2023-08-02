@@ -1,0 +1,104 @@
+= Enforce Unhappy XOR Critical
+
+xtUML Project Implementation Note
+
+== 1 Abstract
+
+This note documents the implementation of enforcement of the rule
+surrounding unhappy event XOR critical event.
+
+== 2 Introduction and Background
+
+The concept of __Unhappy Path Event__ has been added to the PLUS language.
+__Happy Path Events__ can now be marked as 'critical'.  These two concepts
+are co-dependent.  It does not make sense to define a job with unhappy
+events without critical events and vice-versa.  Therefore, this work will
+update 'plus2json' to enforce a rule that demands a critical event to be
+present when unhappy event definitions are supplied in the PLUS job
+definition.  Likewise, when a critical event is detected in the PLUS job
+definition, an unhappy path event must also be present.
+
+== 3 Requirements
+
+=== 3.1 Unhappy without Critical
+
+'plus2json' shall flag an error (specific to this rule) in PLUS job
+definitions containing an unhappy path event definition(s) without any
+happy events being marked as critical.
+
+=== 3.2 Critical without Unhappy
+
+'plus2json' shall flag an error (specific to this rule) in PLUS job
+definitions containing a happy path event definition(s) marked as critical
+without any unhappy events being defined.
+
+=== 3.3 Unhappy with Critical
+
+'plus2json' shall not flag an error (specific to this rule) in PLUS job
+definitions containing unhappy path event definitions together with happy
+path events marked as critical.
+
+=== 3.4 Error Response
+
+'plus2json' shall output an error message when the unhappy XOR critical rule
+is violated.  No JSON shall be emitted for the job definition.
+
+== 4 Work Required
+
+. Add a routine to `plus2json.py` called `validate_job_definitions` which
+  takes a collection of instances of JobDefn as input and enforces an XOR
+  constraint on the existence of both Unhappy Path Event Definition and
+  Audit Event Definition with IsCritical set to True.
+. Call this validation routine from `process_job_definitions` ('--job')
+  and `play_job_definitions` ('--play') routines.
+. When a violation is detected, print an error message and return no
+  output job definitions ('--job') or audit event streams ('--play').
+
+== 5 Implementation Comments
+
+None.
+
+== 6 Unit Test
+
+=== 6.1 Unhappy without Critical
+
+. Update the PVprime PLUS job definition to omit an event marked as critical.
+. Run 'plus2json' --job.
+. Confirm error message and absense of JSON output.
+
+=== 6.2 Critical without Unhappy
+
+. Update the PVprime PLUS job definition to omit unhappy events but keep
+  the critical event.
+. Run 'plus2json' --job.
+. Confirm error message and absense of JSON output.
+
+=== 6.3 Unhappy with Critical
+
+. Run the correct PVprime PLUS job definition.
+. Run 'plus2json' --job and --play.
+. Confirm normal output.
+
+== 7 User Documentation
+
+User documentation shall be updated to include this rule at a later date.
+
+== 8 Code Changes
+
+- fork/repository:  xtuml/plus2json
+- branch:  MUN2-125_unhappy_critical
+
+----
+ doc/notes/MUN2-125_unhappy_critical_int.adoc | 103 ++++++++++++++++++++++++++++++++++++
+ plus2json/plus2json.py                       |  36 +++++++++++---
+----
+
+== 9 Document References
+
+. [[dr-1]] https://onefact.atlassian.net/browse/MUN2-119[MUN2-125: enforce unhappy + critical]
+
+---
+
+This work is licensed under the Creative Commons CC0 License
+
+---

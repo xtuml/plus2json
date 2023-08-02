@@ -24,6 +24,8 @@ from importlib.resources import files
 from itertools import cycle
 from kafka3 import KafkaProducer
 
+from xtuml import navigate_many as many, navigate_one as one, navigate_any as any
+
 logger = logging.getLogger('plus2json')
 
 
@@ -197,12 +199,33 @@ class Plus2Json:
             logger.error('Failed model integrity check')
             sys.exit(1)
 
+    # validate job definitions
+    def validate_job_definitions(self, job_defns):
+        '''check various rules to enforce constraints on job definitions'''
+        valid = True
+
+        # enforce rule that requires unhappy events and critical events to come together
+        for job_defn in job_defns:
+            critical_event = any(job_defn).SeqDefn[1].AuditEventDefn[2](lambda sel: sel.IsCritical)
+            unhappy_event = any(job_defn).PkgDefn[20].UnhappyEventDefn[21]()
+            if bool(critical_event) != bool(unhappy_event): # XOR
+                logger.error(f'Invalid job definition:  {job_defn.Name} - unhappy event / critical event violation')
+                valid = False
+
+        return valid
+
     # process job definitions
     def process_job_definitions(self):
         opts = self.metamodel.select_any('_Options')
 
-        # output each job definition
-        for job_defn in self.metamodel.select_many('JobDefn'):
+        job_defns = self.metamodel.select_many('JobDefn')
+
+        # enforce validation rules on job definitions
+        if not self.validate_job_definitions(job_defns):
+            # invalid:  get out
+            return
+
+        for job_defn in job_defns:
             if opts.pretty_print:
                 JobDefn_pretty_print(job_defn)
             else:
@@ -216,6 +239,13 @@ class Plus2Json:
     def play_job_definitions(self):
         opts = self.metamodel.select_any('_Options')
 
+        job_defns = self.metamodel.select_many('JobDefn')
+
+        # enforce validation rules on job definitions
+        if not self.validate_job_definitions(job_defns):
+            # invalid:  get out
+            return
+
         # initialise the message broker
         if opts.msgbroker:
             if not opts.topic:
@@ -227,8 +257,6 @@ class Plus2Json:
         if opts.num_events != 0 and opts.rate != 0:
             logger.error('incompatible options --num-events and --rate')
             sys.exit(1)
-
-        job_defns = self.metamodel.select_many('JobDefn')
 
         # play all job definitions once
         if opts.num_events != 0:
