@@ -24,7 +24,7 @@ from importlib.resources import files
 from itertools import cycle
 from kafka3 import KafkaProducer
 
-from xtuml import navigate_many as many, navigate_one as one, navigate_any as any
+from xtuml import navigate_any as any
 
 logger = logging.getLogger('plus2json')
 
@@ -208,7 +208,7 @@ class Plus2Json:
         for job_defn in job_defns:
             critical_event = any(job_defn).SeqDefn[1].AuditEventDefn[2](lambda sel: sel.IsCritical)
             unhappy_event = any(job_defn).PkgDefn[20].UnhappyEventDefn[21]()
-            if bool(critical_event) != bool(unhappy_event): # XOR
+            if (critical_event is None) is not (unhappy_event is None):  # XOR
                 logger.error(f'Invalid job definition:  {job_defn.Name} - unhappy event / critical event violation')
                 valid = False
 
