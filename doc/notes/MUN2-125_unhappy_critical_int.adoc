@@ -1,11 +1,11 @@
-= Enforce Unhappy XOR Critical
+= Enforce Unhappy XNOR Critical
 
 xtUML Project Implementation Note
 
 == 1 Abstract
 
 This note documents the implementation of enforcement of the rule
-surrounding unhappy event XOR critical event.
+surrounding unhappy event XNOR critical event.
 
 == 2 Introduction and Background
 
@@ -36,17 +36,17 @@ without any unhappy events being defined.
 
 'plus2json' shall not flag an error (specific to this rule) in PLUS job
 definitions containing unhappy path event definitions together with happy
-path events marked as critical.
+path events marked as critical (nor when both are absent).
 
 === 3.4 Error Response
 
-'plus2json' shall output an error message when the unhappy XOR critical rule
+'plus2json' shall output an error message when the unhappy XNOR critical rule
 is violated.  No JSON shall be emitted for the job definition.
 
 == 4 Work Required
 
 . Add a routine to `plus2json.py` called `validate_job_definitions` which
-  takes a collection of instances of JobDefn as input and enforces an XOR
+  takes a collection of instances of JobDefn as input and enforces an XNOR
   constraint on the existence of both Unhappy Path Event Definition and
   Audit Event Definition with IsCritical set to True.
 . Call this validation routine from `process_job_definitions` ('--job')
