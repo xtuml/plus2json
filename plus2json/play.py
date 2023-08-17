@@ -51,6 +51,7 @@ def JobDefn_play(self):
     # document graph coverage
     total_aeds = len(many(self).SeqDefn[1].AuditEventDefn[2]())
     # visited AuditEventDefns have a linked AuditEvent
+    # TODO - This needs to consider unhappy events.
     visited_aeds = len(many(self).SeqDefn[1].AuditEventDefn[2](lambda sel: any(sel).AuditEvent[103]()))
     graph_coverage = visited_aeds / total_aeds * 100
     logger.info(f'JobDefnName:{self.Name} visited {visited_aeds} of {total_aeds} achieving a coverage of {graph_coverage:.1f}%')
@@ -298,7 +299,10 @@ def AuditEvent_json(self):
     j = {}
     j['jobId'] = id_to_str(one(self).job[102]().Id)
     j['jobName'] = one(self).job[102].JobDefn[101]().Name
-    j['eventType'] = one(self).AuditEventDefn[103]().Name
+    if one(self).AuditEventDefn[103]():
+        j['eventType'] = one(self).AuditEventDefn[103]().Name
+    else:
+        j['eventType'] = one(self).UnhappyEventDefn[109]().Name
     j['eventId'] = id_to_str(self.Id)
     j['timestamp'] = datetime.utcfromtimestamp(self.TimeStamp).isoformat() + 'Z'
     j['applicationName'] = 'default_application_name'  # backwards compatibility
