@@ -107,21 +107,24 @@ def AuditEventDefn_play(self, job, branch_count, prev_evts):
     opts = m.select_any('_Options')
 
     evts = []
-    if opts.replace and self.Name == opts.replace:
-        # --replace ABC (or default REPLACEME)
-        # replace this event with an (any) unhappy event
-        return UnhappyEventDefn_play(m.select_any('UnhappyEventDefn'), job, branch_count, prev_evts)
-    elif opts.insert and self.Name == opts.insert:
-        # --insert XYZ (or default INSERTBEFOREME)
-        # ahead of this event insert an (any) unhappy event
-        # TODO the behaviour for sibling is simply playing the unhappy event and then continuing
-        # TODO passing the evts as returned from the UnhappyEventDefn_play
-        # for insert behaviour, the previous event ids need to be updated
-        prev_evts = UnhappyEventDefn_play(m.select_any('UnhappyEventDefn'), job, branch_count, prev_evts)
-    elif self.IsCritical and 0 == random.randint(0, 1):
+    if self.IsCritical and 0 == random.randint(0, 1) and not opts.replace and not opts.insert and not opts.sibling:
         # critical and coin toss is tails
         # play an (any) unhappy event instead of this critical event
         return UnhappyEventDefn_play(m.select_any('UnhappyEventDefn'), job, branch_count, prev_evts)
+    elif opts.replace and self.Name in opts.replace:
+        # --replace ABC
+        # replace this event with an (any) unhappy event
+        return UnhappyEventDefn_play(m.select_any('UnhappyEventDefn'), job, branch_count, prev_evts)
+    elif opts.insert and self.Name in opts.insert:
+        # --insert XYZ
+        # ahead of this event insert an (any) unhappy event
+        # for insert behaviour, the previous event ids need to be updated
+        prev_evts = UnhappyEventDefn_play(m.select_any('UnhappyEventDefn'), job, branch_count, prev_evts)
+    elif opts.sibling and self.Name in opts.sibling:
+        # --sibling MNO
+        # play an unhappy event and then continue passing forward
+        # the evts as returned from the UnhappyEventDefn_play
+        evts = UnhappyEventDefn_play(m.select_any('UnhappyEventDefn'), job, branch_count, prev_evts)
 
     for i in range(branch_count):
 

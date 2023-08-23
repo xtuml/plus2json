@@ -63,19 +63,19 @@ Alarm conditions __are not__ produced.
 
 This strategy replaces a non-critical happy path event with an unhappy
 path event and links it identically to the happy path event replaced.
-In '--play' mode, the non-critical happy path event is chosen randomly.
+In '--play' mode, a named audit event is replaced.
 In '--play --all' mode, all non-critical happy path events are substituted
 one-at-a-time to test the appearance of an unhappy event received in the
 topology in place of each non-critical happy path event.
 
 Alarm conditions _are_ produced in _some_ scenarios.
 
-==== 4.1.3 Unhappy Event Insertion Before Critical
+==== 4.1.3 Unhappy Event Insertion
 
-This strategy inserts and links an unhappy event into the tine directly
-ahead of a critical event.
+This strategy inserts and links an unhappy event into the tine ahead of a
+named audit event.
 
-Alarm conditions _are_ produced in _all_ scenarios.
+Alarm conditions _are_ produced in _some_ scenarios.
 
 ==== 4.1.4 Unhappy Event Insertion Anywhere
 
@@ -83,15 +83,16 @@ This strategy inserts an unhappy event into the flow anywhere.
 
 Alarm conditions _are_ produced in _some_ scenarios.
 
-==== 4.1.5 Critical Sibling Insertion
+==== 4.1.5 Sibling Insertion
 
-This strategy adds an unhappy event as a sibling to a critical event.  In
-other words, when a critical event is encountered it is produced and linked
-normally.  However, an additional unhappy event is linked to the same
-previous event as the critical event.  This produces a (direct) common
-ancestor shared by the critical event and the unhappy event.
+This strategy adds an unhappy event as a sibling to a named audit event.
+In other words, when the named event is encountered an unhappy event is
+produced and linked to the same previous event as the named sibling.  The
+remaining events are played out normally leaving the unhappy event
+"hanging beside the named audit event.  This produces a (direct) common
+ancestor shared by the named event and the unhappy event.
 
-Alarm conditions _are_ produced in _all_ scenarios.
+Alarm conditions _are_ produced in _some_ scenarios.
 
 ==== 4.1.6 Unlinked Unhappy Event Production
 
@@ -103,23 +104,23 @@ Alarm conditions _are_ produced in _all_ scenarios.
 === 3.2 Command Line Control
 
 The first thought for command line control is to enable targeted control
-of the insert and replace strategies.  Two new modifiers of the '--play'
-option could be '--replace' and '--insert'.  Each of these could take an
-argument which identified an audit event definition.  For '--replace ABC',
-the named audit event definition would define the place where the happy
-path event was substituted for an unhappy event.  In this case, 'ABC'
-would be replaced with an unhappy path event.  For '--insert XYZ', the
-named audit event definition would be used to control where an unhappy
-event got inserted (before).  In this case, an unhappy event would be
-inserted ahead of 'XYZ'.
+of the replace, insert and sibling strategies.  Three new modifiers of the
+'--play' option are '--replace', '--insert' and '--sibling'.  Each of
+these takes one or more arguments which each identify an audit event
+definition.  For '--replace ABC', the named audit event definition would
+define the place where the happy path event was substituted for an unhappy
+event.  In this case, 'ABC' would be replaced with an unhappy path event.
+For '--insert XYZ', the named audit event definition would be used to
+control where an unhappy event got inserted (before).  In this case, an
+unhappy event would be inserted ahead of 'XYZ'.  For '--sibling MNO', an
+unhappy event is inserted beside (as sibling to) 'MNO'.  The inserted
+unhappy event neither replaces nor precedes 'MNO' but has the same
+previous event identifier as 'MNO'.
 
-'--replace' and '--insert' could have default behaviour.  If no audit
-event is named with the option, then the job definition (assumed to be a
-job definition used for testing) would be searched for a default named
-audit event indicating where the replacement or insertion was to take
-place.  For '--replace', 'REPLACEME' could be the target to be replaced
-with an unhappy event.  For '--insert', 'INSERTBEFOREME' could be the
-target where an unhappy event would inserted.
+'--replace' and '--insert' could multiple arguments.  '--replace ABC DEF'
+would replace both 'ABC' and 'DEF' with an unhappy event.  '--insert RST
+UVW XYZ' would insert an unhappy event before each of 'RST', 'UVW' and
+'XYZ'.  The pattern is followed for '--sibling'.
 
 == 5 Work Required
 
@@ -130,19 +131,28 @@ target where an unhappy event would inserted.
 This is complete.  More work would be required to support '--all'.
 
 ==== 5.1.2 Non-Critical Substitution
+
+Implement '--replace'.  Add the option to `plus2json.py` and update
+`play.py` in the `AuditEventDefn_play` method.
+
 ==== 5.1.3 Unhappy Event Insertion Before Critical
+
+Implement '--insert'.  Add the option to `plus2json.py` and update
+`play.py` in the `AuditEventDefn_play` method.
+
 ==== 5.1.4 Unhappy Event Insertion Anywhere
-==== 5.1.5 Critical Sibling Insertion
+==== 5.1.5 Sibling Insertion
+
+Implement '--sibling'.  Add the option to `plus2json.py` and update
+`play.py` in the `AuditEventDefn_play` method.
+
 ==== 5.1.6 Unlinked Unhappy Event Production
 
 === 5.2 Command Line Control
 
-* '--replace [event name]' replaces the named event with an unhappy event
-* '--replace' (no named event) replaces all events with name 'REPLACEME'
-  with an unhappy event
-* '--insert [event name]' inserts an unhappy event before the named event
-* '--replace' (no named event) inserts an unhappy event before all events
-  with name 'INSERTBEFOREME'
+* '--replace [event name(s)]' replaces the named event with an unhappy event
+* '--insert [event name(s)]' inserts an unhappy event before the named event
+* '--sibling [event name(s)]' inserts an unhappy event as sibling to the named event
 
 == 6 Acceptance Test
 
