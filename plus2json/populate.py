@@ -248,6 +248,9 @@ class PlusPopulator(PlusVisitor):
         # link the user event
         if ctx.uevt:
             relate(self.visit(ctx.uevt), dc, 12)
+        else:
+            # default user is source
+            relate(self.current_event, dc, 12)
 
         return dc
 
