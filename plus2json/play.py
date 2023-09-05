@@ -107,7 +107,7 @@ def AuditEventDefn_play(self, job, branch_count, prev_evts):
     opts = m.select_any('_Options')
 
     evts = []
-    if self.IsCritical and 0 == random.randint(0, 1) and not opts.replace and not opts.insert and not opts.sibling:
+    if self.IsCritical and 0 == random.randint(0, 1) and not opts.replace and not opts.insert and not opts.sibling and not opts.append and not opts.orphan:
         # critical and coin toss is tails
         # play an (any) unhappy event instead of this critical event
         return UnhappyEventDefn_play(m.select_any('UnhappyEventDefn'), job, branch_count, prev_evts)
@@ -125,6 +125,11 @@ def AuditEventDefn_play(self, job, branch_count, prev_evts):
         # play an unhappy event and then continue passing forward
         # the evts as returned from the UnhappyEventDefn_play
         evts = UnhappyEventDefn_play(m.select_any('UnhappyEventDefn'), job, branch_count, prev_evts)
+    elif opts.orphan and self.Name in opts.orphan:
+        # --orphan PQR
+        # play an unhappy event with no previous event IDs and then continue passing forward
+        # the evts as returned from the UnhappyEventDefn_play
+        evts = UnhappyEventDefn_play(m.select_any('UnhappyEventDefn'), job, branch_count, [[]])
 
     for i in range(branch_count):
 
@@ -148,6 +153,11 @@ def AuditEventDefn_play(self, job, branch_count, prev_evts):
             relate(evt_data, evt, 107)
 
         evts.append([evt])
+
+    if opts.append and self.Name in opts.append:
+        # --append STU
+        # following this event append an (any) unhappy event
+        return UnhappyEventDefn_play(m.select_any('UnhappyEventDefn'), job, branch_count, evts)
 
     return evts
 
