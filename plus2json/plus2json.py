@@ -86,11 +86,12 @@ def main():
     play_options.add_argument('--no-persist-einv', action='store_true', help='Do not persist external invariants in a file store')
     play_options.add_argument('--inv-store-file', help='Location to persist external invariant values', default='p2jInvariantStore')
     play_options.add_argument('--event-data', action='append', help='Key/value pairs for source event data values', default=[])
-    play_options.add_argument('--replace', nargs='+', help='Replace named audit event with unhappy event')
-    play_options.add_argument('--insert', nargs='+', help='Insert an unhappy event before the named audit event')
-    play_options.add_argument('--append', nargs='+', help='Append an unhappy event after the named audit event')
-    play_options.add_argument('--sibling', nargs='+', help='Play an unhappy event as sibling to the named audit event')
-    play_options.add_argument('--orphan', nargs='+', help='Orphan an unhappy event without linking to the named audit event')
+    play_options.add_argument('--replace', nargs='+', help='Replace named audit event(s) with unhappy event')
+    play_options.add_argument('--insert', nargs='+', help='Insert an unhappy event before the named audit event(s)')
+    play_options.add_argument('--append', nargs='+', help='Append an unhappy event after the named audit event(s)')
+    play_options.add_argument('--sibling', nargs='+', help='Play an unhappy event as sibling to the named audit event(s)')
+    play_options.add_argument('--orphan', nargs='+', help='Orphan an unhappy event without linking to the named audit event(s)')
+    play_options.add_argument('--omit', nargs='+', help='Omit the named audit event(s)')
 
     # parse command line
     args = parser.parse_args()
