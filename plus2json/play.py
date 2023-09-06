@@ -124,12 +124,12 @@ def AuditEventDefn_play(self, job, branch_count, prev_evts):
         # --sibling MNO
         # play an unhappy event and then continue passing forward
         # the evts as returned from the UnhappyEventDefn_play
-        evts = UnhappyEventDefn_play(m.select_any('UnhappyEventDefn'), job, branch_count, prev_evts)
+        ignored_evts = UnhappyEventDefn_play(m.select_any('UnhappyEventDefn'), job, branch_count, prev_evts)
     elif opts.orphan and self.Name in opts.orphan:
         # --orphan PQR
         # play an unhappy event with no previous event IDs and then continue passing forward
         # the evts as returned from the UnhappyEventDefn_play
-        evts = UnhappyEventDefn_play(m.select_any('UnhappyEventDefn'), job, branch_count, [[]])
+        ignored_evts = UnhappyEventDefn_play(m.select_any('UnhappyEventDefn'), job, branch_count, [[]])
 
     for i in range(branch_count):
 
