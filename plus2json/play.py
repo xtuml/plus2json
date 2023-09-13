@@ -107,7 +107,7 @@ def AuditEventDefn_play(self, job, branch_count, prev_evts):
     opts = m.select_any('_Options')
 
     evts = []
-    if self.IsCritical and 0 == random.randint(0, 1) and not opts.replace and not opts.insert and not opts.sibling and not opts.append and not opts.orphan:
+    if self.IsCritical and 0 == random.randint(0, 1) and not opts.replace and not opts.insert and not opts.sibling and not opts.append and not opts.orphan and not opts.omit:
         # critical and coin toss is tails
         # play an (any) unhappy event instead of this critical event
         return UnhappyEventDefn_play(m.select_any('UnhappyEventDefn'), job, branch_count, prev_evts)
@@ -122,14 +122,16 @@ def AuditEventDefn_play(self, job, branch_count, prev_evts):
         prev_evts = UnhappyEventDefn_play(m.select_any('UnhappyEventDefn'), job, branch_count, prev_evts)
     elif opts.sibling and self.Name in opts.sibling:
         # --sibling MNO
-        # play an unhappy event and then continue passing forward
-        # the evts as returned from the UnhappyEventDefn_play
-        evts = UnhappyEventDefn_play(m.select_any('UnhappyEventDefn'), job, branch_count, prev_evts)
+        # play an unhappy event and then continue passing forward with prev_evts
+        ignored_evts = UnhappyEventDefn_play(m.select_any('UnhappyEventDefn'), job, branch_count, prev_evts)
     elif opts.orphan and self.Name in opts.orphan:
         # --orphan PQR
-        # play an unhappy event with no previous event IDs and then continue passing forward
-        # the evts as returned from the UnhappyEventDefn_play
-        evts = UnhappyEventDefn_play(m.select_any('UnhappyEventDefn'), job, branch_count, [[]])
+        # play an unhappy event with no previous event IDs and then continue forward with prev_evts
+        ignored_evts = UnhappyEventDefn_play(m.select_any('UnhappyEventDefn'), job, branch_count, [[]])
+    elif opts.omit and self.Name in opts.omit:
+        # --omit BYE
+        # skip this event returning the prev_evts
+        return prev_evts
 
     for i in range(branch_count):
 
