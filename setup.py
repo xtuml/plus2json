@@ -1,8 +1,8 @@
 from setuptools import setup
 
 if __name__ == '__main__':
+    version='1.1.0',
     setup(name='plus2json',
-          version='1.0.0',
           description='PLUS Activity PlantUML Parser/Processor',
           author='Cortland Starrett',
           author_email='cort@roxsoftware.com',
