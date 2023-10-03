@@ -96,8 +96,11 @@ def Fragment_play(self, job, branch_count=1, prev_evts=[[]]):
             branch_count *= int(bcnt.Value)
             evts *= int(bcnt.Value)
 
-        # play the next fragment
-        evts = Fragment_play(next_frag, job, branch_count, evts)
+        # play the next fragment checking to ensure there is at least one non-empty event in the list
+        for e in evts:
+            if e:
+                evts = Fragment_play(next_frag, job, branch_count, evts)
+                break
 
     return evts
 
