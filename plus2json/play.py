@@ -258,8 +258,8 @@ def Fork_play(self, job, branch_count, prev_evts):
         for tine in many(self).Tine[54]():
             if pathway in many(tine).Alternative[63].Pathway[61]():
                 return Tine_play(tine, job, branch_count, prev_evts)
-        # ERROR:  report error and play any tine to avoid crashing
-        logger.error(f'no eligible tine for pathway:{pathway.JobDefnName}:{pathway.Number}')
+        # WARNING:  report error and play any tine to avoid crashing
+        logger.warning(f'no eligible tine for pathway:{pathway.JobDefnName}:{pathway.Number}')
         return Tine_play(any(self).Tine[54](), job, branch_count, prev_evts)
 
     elif self.Type == ConstraintType.AND:

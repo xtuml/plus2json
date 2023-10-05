@@ -6,7 +6,7 @@ xtUML Project Analysis Note
 
 This note enumerates the requirements, analysis and work required for an
 enhancement to `plus2json --play`.  The enhancement causes plus2json to
-produce sets of audit event instance streams that traverse alternatives
+produce sets of audit event instance streams that traverse alternative
 pathways to visit every audit event definition in a Protocol Verifier PLUS
 job definition.
 
