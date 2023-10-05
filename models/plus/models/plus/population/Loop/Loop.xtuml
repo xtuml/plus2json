@@ -6,6 +6,8 @@ within plus::population is
   @class_num(53);
   class Loop is
 
+    Count: integer;
+
   end class;
 
 end;
