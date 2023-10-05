@@ -1,3 +1,4 @@
+import sys
 import xtuml
 import time
 import logging
@@ -110,7 +111,7 @@ def AuditEventDefn_play(self, job, branch_count, prev_evts):
     opts = m.select_any('_Options')
 
     evts = []
-    if self.IsCritical and 0 == random.randint(0, 1) and not opts.replace and not opts.insert and not opts.sibling and not opts.append and not opts.orphan and not opts.omit:
+    if self.IsCritical and 0 == random.randint(0, 1) and not opts.replace and not opts.insert and not opts.sibling and not opts.append and not opts.orphan and not opts.omit and not opts.injectAb4B:
         # critical and coin toss is tails
         # play an (any) unhappy event instead of this critical event
         return UnhappyEventDefn_play(m.select_any('UnhappyEventDefn'), job, branch_count, prev_evts)
@@ -123,6 +124,19 @@ def AuditEventDefn_play(self, job, branch_count, prev_evts):
         # ahead of this event insert an (any) unhappy event
         # for insert behaviour, the previous event ids need to be updated
         prev_evts = UnhappyEventDefn_play(m.select_any('UnhappyEventDefn'), job, branch_count, prev_evts)
+    elif opts.injectAb4B and self.Name == opts.injectAb4B[1]:
+        # --injectAb4B A B
+        # ahead of this event (B) inject the event with name (A)
+        # for injectAb4B behaviour, the previous event ids need to be updated
+        if opts.injectAb4B[0] == opts.injectAb4B[1]:
+            logger.error(f'injectAb4B:  Cannot inject an event ({opts.injectAb4B[0]}) before the same event ({opts.injectAb4B[1]}).')
+            sys.exit()
+        a = m.select_any('AuditEventDefn', lambda sel: sel.Name == opts.injectAb4B[0])
+        if a:
+            prev_evts = AuditEventDefn_play(a, job, branch_count, prev_evts)
+        else:
+            logger.error(f'injectAb4B:  Did not find an event named:{opts.injectAb4B[0]}.')
+            sys.exit()
     elif opts.sibling and self.Name in opts.sibling:
         # --sibling MNO
         # play an unhappy event and then continue passing forward with prev_evts
