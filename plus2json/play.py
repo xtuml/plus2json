@@ -96,8 +96,11 @@ def Fragment_play(self, job, branch_count=1, prev_evts=[[]]):
             branch_count *= int(bcnt.Value)
             evts *= int(bcnt.Value)
 
-        # play the next fragment
-        evts = Fragment_play(next_frag, job, branch_count, evts)
+        # play the next fragment checking to ensure there is at least one non-empty event in the list
+        for e in evts:
+            if e:
+                evts = Fragment_play(next_frag, job, branch_count, evts)
+                break
 
     return evts
 
@@ -161,6 +164,19 @@ def AuditEventDefn_play(self, job, branch_count, prev_evts):
         # following this event append an (any) unhappy event
         return UnhappyEventDefn_play(m.select_any('UnhappyEventDefn'), job, branch_count, evts)
 
+    # reset loop count to cause loop to break
+    if self.IsBreak:
+        # Search upwards through Fragment and Tine to find containing Loop.
+        # The fragments we care about are Forks and Loops.
+        fragment = one(self).Fragment[56]()
+        while ( fragment ):
+            loop = one(fragment).Tine[59].Loop[55]()
+            if loop:
+                loop.Count = 0
+                break
+            # not a Loop, must be a Fork
+            fragment = one(fragment).Tine[59].Fork[54].Fragment[56]()
+
     return evts
 
 
@@ -199,7 +215,7 @@ def EvtDataDefn_play(self, is_source=True):
                 if not m.select_any('_Options').no_persist_einv:
                     EventData_persist(evt_data)
                 else:
-                    logger.warn('Not persisting external invariant value')
+                    logger.warning('Not persisting external invariant value')
         else:
             # use the magic number 4 for all dynamic controls
             evt_data = m.new('EventData', Value=source_value or str(4), Creation=time.time(), Expiration=(time.time() + timedelta(days=30).total_seconds()), IsSource=True)
@@ -273,9 +289,13 @@ def Loop_play(self, job, branch_count, prev_evts):
     lcnt = any(lcnts).EventData[108](lambda sel: sel.IsSource)
 
     # play the loop the number of times
-    for i in range(int(lcnt.Value) if lcnt else 1):
+    self.Count = int(lcnt.Value) if lcnt else 1
+    i = 0
+    while i < self.Count:
+        # self.Count may get reset by a break statement in the Loop
         evts = Tine_play(one(self).Tine[55](), job, branch_count, prev_evts)
         prev_evts = evts
+        i = i + 1
     return evts
 
 

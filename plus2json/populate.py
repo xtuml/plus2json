@@ -189,6 +189,9 @@ class PlusPopulator(PlusVisitor):
             evt = self.m.new('AuditEventDefn', Name=name, OccurrenceId=occurrence, IsBreak=(ctx.break_() is not None))
             frag = self.m.new('Fragment')
             relate(frag, evt, 56)
+        # break is often found on events created via forward reference (e.g. loop count users)
+        if ctx.break_():
+            evt.IsBreak = True
 
         # check if this is the termination of a tine
         if self.current_tine and ctx.detach():
@@ -380,6 +383,9 @@ class PlusPopulator(PlusVisitor):
         frag = self.m.new('Fragment')
         loop = self.m.new('Loop')
         relate(frag, loop, 56)
+        # Count gets initialised to 1, defaulted to 1, set to the LCNT
+        # event data value and potentially reset by 'break'.
+        loop.Count = 1
 
         # process the tine
         relate(loop, self.processTine(ctx, ConstraintType.AND), 55)
