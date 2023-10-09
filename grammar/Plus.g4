@@ -19,7 +19,10 @@ job_defn       : PARTITION job_name '{' NEWLINE
 job_name       : identifier
                ;
 
-extern         : ':' EINV ',' SRC ',' JOBDEFN '=' jobdefn=identifier ',' NEWLINE? NAME '=' invname=identifier '|' NEWLINE? detach NEWLINE
+extern         : ':' EINV ',' SRC ',' JOBDEFN '=' jobdefn=identifier ',' NEWLINE? NAME '=' invname=identifier json? '|' NEWLINE? detach NEWLINE
+               ;
+
+json           : NEWLINE '{' .*? '}'
                ;
 
 sequence_defn  : GROUP sequence_name NEWLINE statement+ ( HIDE NEWLINE )? ENDGROUP NEWLINE
@@ -41,6 +44,7 @@ statement      : ( event_defn
 event_defn     : ( HIDE NEWLINE )?
                  ':' event_name
                  event_tag*
+                 json?
                  ( ';' | '<' | '>' | ']' )
                  ( NEWLINE ( break | detach ) )?
                ;

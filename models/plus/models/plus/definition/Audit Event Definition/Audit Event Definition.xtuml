@@ -26,6 +26,8 @@ within plus::definition is
 
     IsCritical: boolean;
 
+    Config_JSON: string;
+
     preferred identifier is (Name, OccurrenceId, JobDefnName);
 
   end class;

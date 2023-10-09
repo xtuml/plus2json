@@ -1,6 +1,8 @@
 import xtuml
 import logging
 import os.path
+import json
+import sys
 
 from .plus import PlusParser, PlusVisitor
 
@@ -106,6 +108,9 @@ class PlusPopulator(PlusVisitor):
         self.current_job = None
         return job
 
+    def visitJson(self, ctx: PlusParser.JsonContext):
+        return ctx.getText()
+
     def visitExtern(self, ctx: PlusParser.ExternContext):
         inv = self.m.new('EvtDataDefn', Name=self.visit(ctx.invname), Type=EventDataType.EINV, SourceJobDefnName=self.visit(ctx.jobdefn))
         relate(inv, self.current_job, 17)
@@ -114,6 +119,16 @@ class PlusPopulator(PlusVisitor):
         source_inv = any(self.m.select_any('JobDefn', lambda sel: sel.Name == inv.SourceJobDefnName)).EvtDataDefn[14](lambda sel: sel.Name == inv.Name)
         if source_inv:
             relate(inv, source_inv, 18, 'corresponds_to')
+
+        if ctx.json():
+            j = self.visit(ctx.json())
+            try:
+                js = json.loads(j)
+            except json.decoder.JSONDecodeError:
+                logger.error(f'Invalid JSON configuration parameter for JobDefn:{self.current_job.Name}')
+                sys.exit(1)
+            else:
+                self.current_job.Config_JSON = j
 
         return inv
 
@@ -205,6 +220,16 @@ class PlusPopulator(PlusVisitor):
         for tag in ctx.event_tag():
             self.visit(tag)
         self.current_event = None
+
+        if ctx.json():
+            j = self.visit(ctx.json())
+            try:
+                js = json.loads(j)
+            except json.decoder.JSONDecodeError:
+                logger.error(f'Invalid JSON configuration parameter for AuditEventDefn:{evt.Name}')
+                sys.exit(1)
+            else:
+                evt.Config_JSON = j
 
         # link all event successions
         prev_evts = self.get_last_events(self.current_fragment) if self.current_fragment else []
