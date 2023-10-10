@@ -1,3 +1,4 @@
+import json
 from xtuml import navigate_many as many, navigate_one as one, navigate_any as any
 
 from .populate import EventDataType  # TODO
@@ -7,6 +8,8 @@ from .populate import ConstraintType  # TODO
 def JobDefn_json(self):
     j = {}
     j['JobDefinitionName'] = self.Name
+    if self.Config_JSON:
+        j.update(json.loads(self.Config_JSON).items())
     j['Events'] = list(map(AuditEventDefn_json, many(self).SeqDefn[1].AuditEventDefn[2]()))
     if any(self).PkgDefn[20]():
         j['UnhappyEvents'] = list(map(UnhappyEventDefn_json, many(self).PkgDefn[20].UnhappyEventDefn[21]()))
@@ -21,6 +24,8 @@ def AuditEventDefn_json(self):
     j['OccurrenceId'] = self.OccurrenceId
     j['SequenceName'] = one(self).SeqDefn[2]().Name
     j['Application'] = 'default_application_name'  # backward compatibility
+    if self.Config_JSON:
+        j.update(json.loads(self.Config_JSON).items())
 
     # event features
     if one(self).SeqDefn[13]():

@@ -9,6 +9,8 @@ within plus::definition is
 
     Name: string;
 
+    Config_JSON: string;
+
     preferred identifier is (Name);
 
   end class;

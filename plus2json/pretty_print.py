@@ -5,6 +5,7 @@ Pretty print the PLUS job definition.
 """
 
 import logging
+import json
 
 from xtuml import navigate_many as many, navigate_one as one, navigate_any as any
 
@@ -20,6 +21,9 @@ logger = logging.getLogger(__name__)
 
 def JobDefn_pretty_print(self):
     logger.info(f'job defn: {self.Name}')
+    if self.Config_JSON:
+        js = json.dumps(json.loads(self.Config_JSON))
+        logger.info(f'config JSON: {js[1:-1]}')
     for seq in many(self).SeqDefn[1]():
         SeqDefn_pretty_print(seq)
     for pkg in many(self).PkgDefn[20]():
@@ -76,7 +80,10 @@ def AuditEventDefn_pretty_print(self):
     prev_aes = '    ' + ','.join(sorted(map(map_prev_ae, many(self).EvtSucc[3, 'follows']())))
     longest_name_length = max(map(lambda sel: len(sel.Name), self.__metaclass__.select_many()))
     name = f'{self.Name}({self.OccurrenceId})'
-    logger.info(f'{name:{longest_name_length+3}} {ss:{5}} {se:{3}} {b} {c} {prev_aes} {bcnt} {mcnt} {lcnt} {einv} {iinv}')
+    configjson = ''
+    if self.Config_JSON:
+        configjson = json.dumps(json.loads(self.Config_JSON))
+    logger.info(f'{name:{longest_name_length+3}} {ss:{5}} {se:{3}} {b} {c} {prev_aes} {bcnt} {mcnt} {lcnt} {einv} {iinv} {configjson}')
 
 def PkgDefn_pretty_print(self):
     logger.info(f'package: {self.Name}')
