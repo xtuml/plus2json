@@ -22,7 +22,7 @@ job_name       : identifier
 extern         : ':' EINV ',' SRC ',' JOBDEFN '=' jobdefn=identifier ',' NEWLINE? NAME '=' invname=identifier json? '|' NEWLINE? detach NEWLINE
                ;
 
-json           : NEWLINE '{' .*? '}'
+json           : NEWLINE* '{' .*? '}'
                ;
 
 sequence_defn  : GROUP sequence_name NEWLINE statement+ ( HIDE NEWLINE )? ENDGROUP NEWLINE
