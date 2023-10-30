@@ -82,7 +82,7 @@ def main():
     play_options.add_argument('--shuffle', action='store_true', help='Shuffle the events before writing to a file.')
     play_options.add_argument('--num-events', type=int, default=0, help='The number of events to produce. If omitted, each job will be played one time.')
     play_options.add_argument('--batch-size', type=int, default=500, help='The number of events per file. Default is 500. Only valid if "--num-events" is present.')
-    play_options.add_argument('--rate', type=int, default=0, help='The number of events per second. When present events will be generated indefinitely at the specified rate.')
+    play_options.add_argument('--rate', type=int, default=500, help='The number of events per second to be produced.')
     play_options.add_argument('--no-persist-einv', action='store_true', help='Do not persist external invariants in a file store')
     play_options.add_argument('--inv-store-file', help='Location to persist external invariant values', default='p2jInvariantStore')
     play_options.add_argument('--event-data', action='append', help='Key/value pairs for source event data values', default=[])
@@ -261,21 +261,9 @@ class Plus2Json:
             else:
                 self.producer = KafkaProducer(bootstrap_servers=opts.msgbroker)
 
-        if opts.num_events != 0 and opts.rate != 0:
-            logger.error('incompatible options --num-events and --rate')
-            sys.exit(1)
-
-        # play all job definitions once
+        # play a specific number of events
         if opts.num_events != 0:
             self.play_volume_mode(job_defns)
-
-        # play all job definitions at a specified rate
-        if opts.rate != 0:
-            if opts.msgbroker:
-                self.play_rate_mode(job_defns)
-            else:
-                logger.error('rate mode only supported with --msgbroker')
-                sys.exit(1)
 
         # play all job definitions once
         else:
@@ -358,10 +346,11 @@ class Plus2Json:
                     fn = 'stdout'
                     print(output)
 
-            logger.info(f'File {fn} written with {len(events)} events')
-
             num_events_produced += len(events)
+            logger.info(f'File {fn} written with {len(events)} events.  {num_events_produced} of {opts.num_events}')
             events = []
+            # sleep time = event batch size / rate
+            time.sleep(opts.batch_size / opts.rate)
 
         logger.info(f'Total events produced: {num_events_produced}')
 
