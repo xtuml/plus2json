@@ -114,11 +114,13 @@ def AuditEventDefn_play(self, job, branch_count, prev_evts):
     if self.IsCritical and 0 == random.randint(0, 1) and not opts.replace and not opts.insert and not opts.sibling and not opts.append and not opts.orphan and not opts.omit and not opts.injectAb4B:
         # critical and coin toss is tails
         # play an (any) unhappy event instead of this critical event
-        return UnhappyEventDefn_play(m.select_any('UnhappyEventDefn'), job, branch_count, prev_evts)
+        unhappy_event_defn = any(job).JobDefn[101].PkgDefn[20].UnhappyEventDefn[21]()
+        return UnhappyEventDefn_play(unhappy_event_defn, job, branch_count, prev_evts)
     elif opts.replace and self.Name in opts.replace:
         # --replace ABC
         # replace this event with an (any) unhappy event
-        return UnhappyEventDefn_play(m.select_any('UnhappyEventDefn'), job, branch_count, prev_evts)
+        unhappy_event_defn = any(job).JobDefn[101].PkgDefn[20].UnhappyEventDefn[21]()
+        return UnhappyEventDefn_play(unhappy_event_defn, job, branch_count, prev_evts)
     elif opts.insert and self.Name in opts.insert:
         # --insert XYZ
         # ahead of this event insert an (any) unhappy event
@@ -140,11 +142,13 @@ def AuditEventDefn_play(self, job, branch_count, prev_evts):
     elif opts.sibling and self.Name in opts.sibling:
         # --sibling MNO
         # play an unhappy event and then continue passing forward with prev_evts
-        ignored_evts = UnhappyEventDefn_play(m.select_any('UnhappyEventDefn'), job, branch_count, prev_evts)
+        unhappy_event_defn = any(job).JobDefn[101].PkgDefn[20].UnhappyEventDefn[21]()
+        ignored_evts = UnhappyEventDefn_play(unhappy_event_defn, job, branch_count, prev_evts)
     elif opts.orphan and self.Name in opts.orphan:
         # --orphan PQR
         # play an unhappy event with no previous event IDs and then continue forward with prev_evts
-        ignored_evts = UnhappyEventDefn_play(m.select_any('UnhappyEventDefn'), job, branch_count, [[]])
+        unhappy_event_defn = any(job).JobDefn[101].PkgDefn[20].UnhappyEventDefn[21]()
+        ignored_evts = UnhappyEventDefn_play(unhappy_event_defn, job, branch_count, [[]])
     elif opts.omit and self.Name in opts.omit:
         # --omit BYE
         # skip this event returning the prev_evts
@@ -176,7 +180,8 @@ def AuditEventDefn_play(self, job, branch_count, prev_evts):
     if opts.append and self.Name in opts.append:
         # --append STU
         # following this event append an (any) unhappy event
-        return UnhappyEventDefn_play(m.select_any('UnhappyEventDefn'), job, branch_count, evts)
+        unhappy_event_defn = any(job).JobDefn[101].PkgDefn[20].UnhappyEventDefn[21]()
+        return UnhappyEventDefn_play(unhappy_event_defn, job, branch_count, evts)
 
     # reset loop count to cause loop to break
     if self.IsBreak:
