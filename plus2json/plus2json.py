@@ -121,6 +121,10 @@ def check(**kwargs):
         p2j.stream_input(sys.stdin)
     p2j.load()
 
+    def count_instances(self):
+        '''Return the number of instances of all classes of all types.'''
+        return sum(map(lambda cls: len(cls.select_many()), self.metamodel.metaclasses.values()))
+
 
 def job(**kwargs):
     p2j = Plus2Json(outdir=kwargs['outdir'])
@@ -205,6 +209,10 @@ class Plus2Json:
         if xtuml.check_association_integrity(self.metamodel) + xtuml.check_uniqueness_constraint(self.metamodel) > 0:
             logger.error('Failed model integrity check')
             sys.exit(1)
+
+    def count_instances(self):
+        '''return the number of instances of all classes of all types'''
+        return sum(map(lambda cls: len(cls.select_many()), self.metamodel.metaclasses.values()))
 
     # validate job definitions
     def validate_job_definitions(self, job_defns):
@@ -311,7 +319,6 @@ class Plus2Json:
 
     def play_volume_mode(self, job_defns):
         opts = self.metamodel.select_any('_Options')
-
         # create an infinite cycle iterator of job definitions
         job_defn_iter = cycle(job_defns)
 
@@ -324,8 +331,9 @@ class Plus2Json:
             # batches of 500 events per file
             while len(events) < min(opts.batch_size, opts.num_events - num_events_produced):
                 jobs = JobDefn_play(next(job_defn_iter))
-                if jobs:
-                    events.extend(Job_json(jobs[0], dispose=True))
+                for job in jobs:
+                    events.extend(Job_json(job, dispose=True))
+                jobs = []
 
             # shuffle the events
             if opts.shuffle:

@@ -7,7 +7,7 @@ import random
 
 from datetime import datetime, timedelta
 
-from xtuml import relate, delete, order_by, navigate_many as many, navigate_one as one, navigate_any as any
+from xtuml import relate, unrelate, delete, order_by, navigate_many as many, navigate_one as one, navigate_any as any
 from uuid import UUID
 
 from .populate import EventDataType  # TODO
@@ -427,6 +427,8 @@ def EventData_load(self):  # TODO filename
 def Job_dispose(self):
     for evt in many(self).AuditEvent[102]():
         AuditEvent_dispose(evt)
+    unrelate(self, one(self).JobDefn[101](), 101)
+    unrelate(self, one(self).Pathway[104](), 104)
     delete(self, disconnect=True)
 
 
