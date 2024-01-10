@@ -121,10 +121,6 @@ def check(**kwargs):
         p2j.stream_input(sys.stdin)
     p2j.load()
 
-    def count_instances(self):
-        '''Return the number of instances of all classes of all types.'''
-        return sum(map(lambda cls: len(cls.select_many()), self.metamodel.metaclasses.values()))
-
 
 def job(**kwargs):
     p2j = Plus2Json(outdir=kwargs['outdir'])
@@ -325,7 +321,8 @@ class Plus2Json:
         num_events_produced = 0
         events = []
 
-        # keep generating until we produce 1.2M events
+        t0 = time.monotonic()
+        # keep generating until we produce the specified number of events
         while num_events_produced < opts.num_events:
 
             # batches of 500 events per file
@@ -355,7 +352,11 @@ class Plus2Json:
                     print(output)
 
             num_events_produced += len(events)
-            logger.info(f'File {fn} written with {len(events)} events.  {num_events_produced} of {opts.num_events}')
+            # log once every 10 seconds
+            t1 = time.monotonic()
+            if ( t1 - t0 ) > 10:
+                logger.info(f'{num_events_produced} of {opts.num_events}')
+                t0 = t1
             events = []
             # sleep time = event batch size / rate
             time.sleep(opts.batch_size / opts.rate)

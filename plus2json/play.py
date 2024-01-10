@@ -55,7 +55,9 @@ def JobDefn_play(self):
     # TODO - This needs to consider unhappy events.
     visited_aeds = len(many(self).SeqDefn[1].AuditEventDefn[2](lambda sel: any(sel).AuditEvent[103]()))
     graph_coverage = visited_aeds / total_aeds * 100
-    logger.info(f'JobDefnName:{self.Name} visited {visited_aeds} of {total_aeds} achieving a coverage of {graph_coverage:.1f}%')
+    if opts.num_events == 0:
+        # Do not output statistics when running in volume mode.
+        logger.info(f'JobDefnName:{self.Name} visited {visited_aeds} of {total_aeds} achieving a coverage of {graph_coverage:.1f}%')
 
     return jobs
 
@@ -265,7 +267,7 @@ def EvtDataDefn_play(self, is_source=True):
                 # try to load from store
                 EventData_load(evt_data)
             else:
-                logger.warning(f'Unable to find exiting invariant value for invariant "{self.Name}"')
+                logger.warning(f'Unable to find existing invariant value for invariant "{self.Name}"')
 
     return evt_data
 
@@ -278,7 +280,7 @@ def Fork_play(self, job, branch_count, prev_evts):
             if pathway in many(tine).Alternative[63].Pathway[61]():
                 return Tine_play(tine, job, branch_count, prev_evts)
         # WARNING:  report error and play any tine to avoid crashing
-        logger.warning(f'no eligible tine for pathway:{pathway.JobDefnName}:{pathway.Number}')
+        logger.debug(f'no eligible tine for pathway:{pathway.JobDefnName}:{pathway.Number}', exc_info=True)
         return Tine_play(any(self).Tine[54](), job, branch_count, prev_evts)
 
     elif self.Type == ConstraintType.AND:
@@ -433,6 +435,19 @@ def Job_dispose(self):
 
 
 def AuditEvent_dispose(self):
+    unrelate(self, one(self).Job[102](), 102)
+    audit_event_defn = one(self).AuditEventDefn[103]()
+    if audit_event_defn:
+        unrelate(self, audit_event_defn, 103)
+    unhappy_event_defn = one(self).UnhappyEventDefn[109]()
+    if unhappy_event_defn:
+        unrelate(self, unhappy_event_defn, 109)
+    for prev in many(self).AuditEvent[106,'must_precede']():
+        unrelate(self, prev, 106,'must_precede')
+    for succ in many(self).AuditEvent[106,'must_follow']():
+        unrelate(self, succ, 106,'must_follow')
     for data in many(self).EventData[107]():
+        unrelate(data, one(data).EvtDataDefn[108](), 108)
+        unrelate(self, data, 107)
         delete(data, disconnect=True)
     delete(self, disconnect=True)
