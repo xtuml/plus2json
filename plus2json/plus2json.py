@@ -14,6 +14,7 @@ import uuid
 import xtuml
 
 from .definition import JobDefn_json
+from .json2plus import JobDefn_plus
 from .play import JobDefn_play, Job_pretty_print, Job_json, Job_dispose
 from .plus import PlusLexer, PlusParser
 from .populate import PlusPopulator, PlusErrorListener, flatten
@@ -63,6 +64,7 @@ def main():
     commands = commands_group.add_mutually_exclusive_group()
     commands.add_argument('--job', action='store_true', help='Ouput PLUS job definition')
     commands.add_argument('--play', action='store_true', help='Generate runtime event data')
+    commands.add_argument('--json2plus', action='store_true', help='Derive PLUS from JSON job definition')
 
     # global options
     global_options = parser.add_argument_group(title='Global Options')
@@ -105,6 +107,8 @@ def main():
     # execute the command
     if args.job:
         job(**vars(args))
+    elif args.json2plus:
+        json2plus(**vars(args))
     elif args.play:
         play(**vars(args))
     else:
@@ -132,6 +136,18 @@ def job(**kwargs):
         p2j.stream_input(sys.stdin)
     p2j.load(integer_ids=kwargs['pretty_print'], opts=kwargs)
     p2j.process_job_definitions()
+
+
+def json2plus(**kwargs):
+    p2j = Plus2Json(outdir=kwargs['outdir'])
+    if 'filenames' in kwargs and len(kwargs['filenames']) > 0:
+        p2j.filename_input(kwargs['filenames'])
+    elif 'input' in kwargs:
+        p2j.string_input(kwargs['input'])
+    else:
+        p2j.stream_input(sys.stdin)
+    p2j.load(integer_ids=kwargs['pretty_print'], opts=kwargs)
+    p2j.render_plus_job_definitions()
 
 
 def play(**kwargs):
@@ -245,6 +261,20 @@ class Plus2Json:
                     self.write_output_file(output, f'{job_defn.Name}.json')
                 else:
                     print(output)
+
+    # perform json2plus conversion
+    def render_plus_job_definitions(self):
+        opts = self.metamodel.select_any('_Options')
+
+        job_defns = self.metamodel.select_many('JobDefn')
+
+        # enforce validation rules on job definitions
+        if not self.validate_job_definitions(job_defns):
+            # invalid:  get out
+            return
+
+        for job_defn in job_defns:
+            print(JobDefn_plus(job_defn))
 
     # process runtime play
     def play_job_definitions(self):

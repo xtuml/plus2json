@@ -91,7 +91,18 @@ This is a feasible approach but is not as natural as augmenting
   .. descend into UnhappyEvents
      ... loop through and create each Unhappy Event Definition
 . Populate the model of 'population'?
-. Produce output tine by tine.
+. render_job_defn
+  .. render_sequence(aed) : p
+     ... render_fragment(aed) : p, naed
+         .... render_fork(aed) : p, naed
+              ..... render_tine(aed) : p, naed
+         .... render_loop(aed) : p, naed
+              ..... render_tine
+         .... render_audit_event(aed) : p, naeds
+              ..... render_tine
+   .. render_package
+      ... render_unhappy_event
+. Detect structures.
   .. Detect forks.
     ... Find multiple Event Succession instances following with the same constraint.
     ... AND is 'fork'.
