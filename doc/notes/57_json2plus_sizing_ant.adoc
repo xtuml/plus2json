@@ -110,12 +110,12 @@ This is a feasible approach but is not as natural as augmenting
     ... OR ('split') is not supported.
     ... 'if','then','else' is redundant to 'switch' and will not be produced.
   .. Detect merges.
-    ... Find multiple Event Succession instances preceding with me as a succession.
+    ... Find multiple precession instances.
   .. Detect loops.
     ... start of loop
-        .... Find a precession event that does not have me as a succession.
+        .... Find a precession event that has not yet been visited.
     ... end of loop
-        .... Find a succesion event that does not have me as a precession.
+        .... Find a succesion event that has already been visited.
     ... Break
         .... IsBreak is true
 
