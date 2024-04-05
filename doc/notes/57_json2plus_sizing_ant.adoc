@@ -90,7 +90,6 @@ This is a feasible approach but is not as natural as augmenting
          .... create and link Constraint Definitions
   .. descend into UnhappyEvents
      ... loop through and create each Unhappy Event Definition
-. Populate the model of 'population'?
 . render_job_defn
   .. render_sequence(aed) : p
      ... render_fragment(aed) : p, naed
@@ -99,7 +98,6 @@ This is a feasible approach but is not as natural as augmenting
          .... render_loop(aed) : p, naed
               ..... render_tine
          .... render_audit_event(aed) : p, naeds
-              ..... render_tine
    .. render_package
       ... render_unhappy_event
 . Detect structures.
@@ -113,9 +111,10 @@ This is a feasible approach but is not as natural as augmenting
     ... Find multiple precession instances.
   .. Detect loops.
     ... start of loop
-        .... Find a precession event that has not yet been visited.
+        .... Find myself downstream from myself.
+        .... Nesting loops is not (yet) supported.
     ... end of loop
-        .... Find a succesion event that has already been visited.
+        .... Find exactly two succesion event without constraints.
     ... Break
         .... IsBreak is true
 

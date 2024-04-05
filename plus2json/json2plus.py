@@ -1,3 +1,7 @@
+# loops with 1 event
+# event after loop at end of fork tine
+# event data items
+
 import sys
 import xtuml
 import time
@@ -14,8 +18,7 @@ from .populate import flatten
 logger = logging.getLogger(__name__)
 
 visited_aeds = []              # audit event definitions that have been processed (loop detection)
-loop_start_aed_stack = []
-loop_count = 0
+loop_count = 0                 # TODO - consider supporting nested loops
 
 def JobDefn_plus(self):
     ''' render PLUS job definition '''
@@ -97,7 +100,7 @@ def Fork_plus(audit_event_defn):
     # Render the top audit event definition.
     # Render the tines.
     # Return the merge point as next (if fork merges).
-    logger.debug( f'Fork_plus: {audit_event_defn.Name}' )
+    logger.debug( f'Fork_plus:  entering {audit_event_defn.Name}' )
     p = ""
     next_aed = None
     # Render the top of the fork (the node that has multiple edges).
@@ -133,39 +136,42 @@ def Fork_plus(audit_event_defn):
         p += '    end fork\n'
     elif const_defn.Type == ConstraintType.XOR:
         p += '    endswitch\n'
+    logger.debug( f'Fork_plus:  exiting {audit_event_defn.Name}' )
     return p, next_aed
 
 
 def Loop_plus(audit_event_defn):
     ''' render PLUS for a loop '''
     # Render the loop tine.
-    logger.debug( f'Loop_plus: {audit_event_defn.Name}' )
+    logger.debug( f'Loop_plus:  entering {audit_event_defn.Name}' )
     p = ""
     next_aed = None
     global loop_count
     loop_count += 1
-    logger.debug( f'Loop_plus: in_loop turned ON' )
     p += "    repeat\n"
     s, next_aed = Tine_plus( audit_event_defn )
     p += s
     p += "    repeat while\n"
     loop_count -= 1
-    logger.debug( f'Loop_plus: in_loop turned OFF' )
         
+    logger.debug( f'Loop_plus:  exiting {audit_event_defn.Name}' )
     return p, next_aed
 
 
 def Tine_plus(audit_event_defn):
     ''' render PLUS for a tine (sequence of fragments) '''
     # Play out fragments until the end of the tine is detected.
-    logger.debug( f'Tine_plus: {audit_event_defn.Name}' )
+    logger.debug( f'Tine_plus:  entering {audit_event_defn.Name}' )
     p = ""
     s, next_aed = Fragment_plus( audit_event_defn )
     p += s
     # The end of a tine is either:
     #   a dead end (no next_aed)
-    #   just ahead of a merge point (multiple prev_aeds) BUT NOT A LOOP START
+    #   just ahead of a merge point (multiple prev_aeds) but not a loop start
     #   a loop end
+    if Loop_end_detect( audit_event_defn ):
+        # detecting single event loop tine
+        return p, next_aed
 
     # Detect the start of a loop and distinguish it from the end of a tine (merge point).
     # Detect merge point as next event with multiple precessors but not a loop.
@@ -185,10 +191,10 @@ def Tine_plus(audit_event_defn):
             if loop_end_detected:
                 break
             precessor_aeds = many(next_aed).AuditEventDefn[3,'follows']()
-            # Detecting start of loop.
             start_of_loop = Loop_detect( next_aed )
         else:
             break
+    logger.debug( f'Tine_plus:  exiting {audit_event_defn.Name}' )
     return p, next_aed
 
 
@@ -198,7 +204,9 @@ def AuditEventDefn_plus(self):
     p = ""
     p += f'    :{self.Name};\n'
     next_aeds = many(self).AuditEventDefn[3,'precedes']()
-    if not next_aeds:
+    if self.IsBreak:
+        p += "    break\n"
+    elif not next_aeds:
         p += "    detach\n"
     # Keep track of events that have been processed.
     visited_aeds.append( self )
