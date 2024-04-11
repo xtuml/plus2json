@@ -20,32 +20,32 @@ logger = logging.getLogger(__name__)
 visited_aeds = []              # audit event definitions that have been processed (loop detection)
 loop_count = 0                 # TODO - consider supporting nested loops
 
-def JobDefn_plus(self):
+def JobDefn_plus(job_defn):
     ''' render PLUS job definition '''
-    m = self.__metaclass__.metamodel
+    m = job_defn.__metaclass__.metamodel
     opts = m.select_any('_Options')
-    logger.debug( f'JobDefn_plus:  rendering job definition {self.Name}' )
+    logger.debug( f'JobDefn_plus:  rendering job definition {job_defn.Name}' )
     p = ""
     p += "@startuml\n"
-    p += f'partition "{self.Name}"' + ' {\n'
+    p += f'partition "{job_defn.Name}"' + ' {\n'
     # render sequences
-    for seq_defn in many(self).SeqDefn[1]():
+    for seq_defn in many(job_defn).SeqDefn[1]():
         p += SeqDefn_plus(seq_defn)
     # render packages
-    for pkg_defn in many(self).PkgDefn[20]():
+    for pkg_defn in many(job_defn).PkgDefn[20]():
         p += PkgDefn_plus(pkg_defn)
     p += "}\n"
     p += "@enduml"
     return p
 
 
-def SeqDefn_plus(self):
+def SeqDefn_plus(seq_defn):
     ''' render PLUS mapping for sequence '''
-    logger.debug( f'SeqDefn_plus:  rendering sequence {self.Name}' )
+    logger.debug( f'SeqDefn_plus:  rendering sequence {seq_defn.Name}' )
     p = ""
-    p += f'  group "{self.Name}"\n'
+    p += f'  group "{seq_defn.Name}"\n'
     # Render fragments (fork, loop or event) for possibly multiple start events.
-    sequence_starts = many(self).AuditEventDefn[13]()
+    sequence_starts = many(seq_defn).AuditEventDefn[13]()
     for first_audit_event_defn in sequence_starts:
         s, next_aed = Fragment_plus( first_audit_event_defn )
         p += s
@@ -56,13 +56,13 @@ def SeqDefn_plus(self):
     return p
 
 
-def PkgDefn_plus(self):
+def PkgDefn_plus(pkg_defn):
     ''' render PLUS mapping for package of unhappy events '''
-    logger.debug( f'PkgDefn_plus:  rendering package {self.Name}' )
+    logger.debug( f'PkgDefn_plus:  rendering package {pkg_defn.Name}' )
     p = ""
-    p += f'  package "{self.Name}"' + ' {\n'
+    p += f'  package "{pkg_defn.Name}"' + ' {\n'
     # render unhappy events
-    for unhappy_event_defn in many(self).UnhappyEventDefn[21]():
+    for unhappy_event_defn in many(pkg_defn).UnhappyEventDefn[21]():
         p += UnhappyEventDefn_plus(unhappy_event_defn)
     p += "  }\n"
     return p
@@ -120,7 +120,7 @@ def Fork_plus(audit_event_defn):
     i = 1
     j = len(next_aeds)
     for tine_aed in next_aeds:
-        s, tine_next_aed = Tine_plus(tine_aed)
+        s, tine_next_aed = Fork_Tine_plus(tine_aed)
         p += s
         # Some tines will detach and not have a next.
         # Keep a next from any tine, because it will be the merge point.
@@ -149,7 +149,7 @@ def Loop_plus(audit_event_defn):
     global loop_count
     loop_count += 1
     p += "    repeat\n"
-    s, next_aed = Tine_plus( audit_event_defn )
+    s, next_aed = Loop_Tine_plus( audit_event_defn )
     p += s
     p += "    repeat while\n"
     loop_count -= 1
@@ -158,89 +158,88 @@ def Loop_plus(audit_event_defn):
     return p, next_aed
 
 
-def Tine_plus(audit_event_defn):
-    ''' render PLUS for a tine (sequence of fragments) '''
+def Fork_Tine_plus(audit_event_defn):
+    ''' render PLUS for a fork tine (sequence of fragments) '''
     # Play out fragments until the end of the tine is detected.
-    logger.debug( f'Tine_plus:  entering {audit_event_defn.Name}' )
+    logger.debug( f'Fork_Tine_plus:  entering {audit_event_defn.Name}' )
     p = ""
     s, next_aed = Fragment_plus( audit_event_defn )
     p += s
-    # The end of a tine is either:
+    # The end of a fork tine is either:
     #   a dead end (no next_aed)
     #   just ahead of a merge point (multiple prev_aeds) but not a loop start
-    #   a loop end
-    if Loop_end_detect( audit_event_defn ):
-        # detecting single event loop tine
-        return p, next_aed
 
-    # Detect the start of a loop and distinguish it from the end of a tine (merge point).
-    # Detect merge point as next event with multiple precessors but not a loop.
-    start_of_loop = False
-    if next_aed:
-        start_of_loop = Loop_detect(next_aed)
+    # Detect the start of a loop or fork.
+    start_of_loop = Loop_detect( next_aed )
+    fork_detected = Fork_detect( audit_event_defn )
 
     precessor_aeds = many(next_aed).AuditEventDefn[3,'follows']()
-    # Tine continues when there is a single follow-on event or when a loop is starting.
-    while len(precessor_aeds) == 1 or start_of_loop:
-        loop_end_detected = Loop_end_detect( next_aed )
+    # Tine continues when there is a single follow-on event or when a loop or fork is starting.
+    # Detect merge point as next event with multiple precessors but not a loop.
+    # TODO - CDS - Apr 10 - A fork fragment will return with an event that has more than 1 next aed.
+    # TODO The merge point may not have multiple precessors because of 'detach'!
+    # TODO Is there a way to detect the end of the tine?
+    # TODO Perhaps we need to keep track of the fork count and then do math as we go along including subtraction with detach?
+    # TODO We need Fork_find_merge() to identify the audit event that is the merge point.
+    # TODO This could be done by looping through the head of tines, looking forward, and matching a common downstream event.
+    # TODO Perhaps we can be smart by recognizing tines with detach... meaning ending without encountering an event with multiple precessors... no, that is the same as what we see.
+    while len(precessor_aeds) == 1 or start_of_loop or fork_detected:
         s, next_aed = Fragment_plus(next_aed)
         p += s
-        # detect end of loop
         # We rendered the end of loop event.  Check/detect end of loop.
         if next_aed:
-            if loop_end_detected:
-                break
             precessor_aeds = many(next_aed).AuditEventDefn[3,'follows']()
             start_of_loop = Loop_detect( next_aed )
+            fork_detected = Fork_detect( next_aed )
         else:
             break
-    logger.debug( f'Tine_plus:  exiting {audit_event_defn.Name}' )
+    logger.debug( f'Fork_Tine_plus:  exiting {audit_event_defn.Name}' )
     return p, next_aed
 
 
-def AuditEventDefn_plus(self):
-    ''' render PLUS for an audit event definition '''
-    logger.debug( f'AuditEvent_defn_plus: {self.Name}' )
+def Loop_Tine_plus(audit_event_defn):
+    ''' render PLUS for a loop tine (sequence of fragments) '''
+    # Play out fragments until the end of the tine is detected.
+    logger.debug( f'Loop_Tine_plus:  entering {audit_event_defn.Name}' )
     p = ""
-    p += f'    :{self.Name};\n'
-    next_aeds = many(self).AuditEventDefn[3,'precedes']()
-    if self.IsBreak:
+    next_aed = audit_event_defn
+    loop_end_detected = False
+    escape = 30
+    while not loop_end_detected:
+        loop_end_detected = Loop_end_detect( next_aed )
+        s, next_aed = Fragment_plus( next_aed )
+        p += s
+        escape = escape - 1
+        # TODO
+        if escape == 0:
+            p += "ESCAPING LOOP... probably fork snugged into end of loop\n"
+            break
+    logger.debug( f'Loop_Tine_plus:  exiting {audit_event_defn.Name}' )
+    return p, next_aed
+
+
+def AuditEventDefn_plus(audit_event_defn):
+    ''' render PLUS for an audit event definition '''
+    logger.debug( f'AuditEvent_defn_plus: {audit_event_defn.Name}' )
+    p = ""
+    p += f'    :{audit_event_defn.Name};\n'
+    next_aeds = many(audit_event_defn).AuditEventDefn[3,'precedes']()
+    if audit_event_defn.IsBreak:
         p += "    break\n"
     elif not next_aeds:
         p += "    detach\n"
     # Keep track of events that have been processed.
-    visited_aeds.append( self )
+    visited_aeds.append( audit_event_defn )
     return p, next_aeds
 
 
-def UnhappyEventDefn_plus(self):
+def UnhappyEventDefn_plus(unhappy_event_defn):
     ''' render PLUS for unhappy event definition '''
-    logger.debug( f'UnhappyEventDefn_plus: {self.Name}' )
+    logger.debug( f'UnhappyEventDefn_plus: {unhappy_event_defn.Name}' )
     p = ""
-    p += f'    :{self.Name};\n'
+    p += f'    :{unhappy_event_defn.Name};\n'
     p += f'    kill\n'
     return p
-
-def Loop_detect(audit_event_defn):
-    ''' detect the start of a loop '''
-    if not audit_event_defn:
-        return False
-    logger.debug( f'Loop_detect: {audit_event_defn.Name}' )
-    # We are starting a loop if the given event is downstream in the graph.
-    if loop_count > 0:
-        # only try to detect a loop when we are not already in one
-        return False
-    depth_to_detect = 20  # arbitrary max depth to search
-    next_aeds = many(audit_event_defn).AuditEventDefn[3,'precedes']()
-    while depth_to_detect > 0:
-        if not next_aeds:
-            return False
-        if audit_event_defn in next_aeds:
-            logger.debug( f'Loop_detect: loop detected {audit_event_defn.Name}' )
-            return True
-        depth_to_detect = depth_to_detect - 1
-        next_aeds = many(next_aeds).AuditEventDefn[3,'precedes']()
-    return False
 
 def Fork_detect(audit_event_defn):
     ''' detect the start of a fork '''
@@ -268,7 +267,30 @@ def Fork_detect(audit_event_defn):
                 # succession with no constraint, probably looping
                 fork_detected = False
                 break
+    if fork_detected:
+        logger.debug( f'Fork_detect: DETECTED fork at {audit_event_defn.Name}' )
     return fork_detected
+
+def Loop_detect(audit_event_defn):
+    ''' detect the start of a loop '''
+    if not audit_event_defn:
+        return False
+    logger.debug( f'Loop_detect: {audit_event_defn.Name}' )
+    # We are starting a loop if the given event is downstream in the graph.
+    if loop_count > 0:
+        # only try to detect a loop when we are not already in one
+        return False
+    depth_to_detect = 20  # arbitrary max depth to search
+    next_aeds = many(audit_event_defn).AuditEventDefn[3,'precedes']()
+    while depth_to_detect > 0:
+        if not next_aeds:
+            return False
+        if audit_event_defn in next_aeds:
+            logger.debug( f'Loop_detect: loop DETECTED {audit_event_defn.Name}' )
+            return True
+        depth_to_detect = depth_to_detect - 1
+        next_aeds = many(next_aeds).AuditEventDefn[3,'precedes']()
+    return False
 
 def Loop_end_detect(audit_event_defn):
     ''' detect the end of a loop '''
@@ -276,7 +298,7 @@ def Loop_end_detect(audit_event_defn):
     # constraints, one for going onward and one for looping backward.
     # TODO This limits us to not being able to do close nesting of constructs.
     # TODO We could take into account the idea that one of the successions has been visited and one has not.
-    logger.debug( f'Loop_end_detect: detecting loop end at {audit_event_defn.Name}' )
+    # TODO If this is a fork (snugged up to end of loop), we do not know how to detect end of loop.
     loop_end_detected = False
     if loop_count > 0:
         evt_succs = many(audit_event_defn).EvtSucc[3,'precedes']()
@@ -289,5 +311,11 @@ def Loop_end_detect(audit_event_defn):
                 else:
                     logger.debug( f'Loop_end_detect: DETECTED loop end at {audit_event_defn.Name}' )
                     loop_end_detected = True
+        # TODO - Detect the end of loop when the fragment is a fork.
+        if not loop_end_detected:
+            logger.debug( f'Loop_end_detect: attempting fork in loop' )
+            if audit_event_defn:
+                if Fork_detect( audit_event_defn ):
+                    logger.debug( f'Loop_end_detect: fork in loop at {audit_event_defn.Name}' )
     return loop_end_detected
 
