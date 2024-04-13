@@ -319,3 +319,59 @@ def Loop_end_detect(audit_event_defn):
                     logger.debug( f'Loop_end_detect: fork in loop at {audit_event_defn.Name}' )
     return loop_end_detected
 
+def json2plus_populate(populator, filename, j):
+    ''' populate model of PLUS from JSON object '''
+
+    logger.debug( f'json2plus_populate:  {filename}' )
+    # create a new job
+    job_defn = populator.m.new('JobDefn', Name=j['JobDefinitionName'] )
+    # add default pathway
+    pathway = populator.m.new('Pathway', Number=1 )
+    relate(job_defn, pathway, 60)
+
+    # Create the audit events in a first pass.
+    for event in j['Events']:
+        # Create audit event definition.
+        fragment = populator.m.new('Fragment')
+        aed = populator.m.new('AuditEventDefn',
+                              Name=event['EventName'],
+                              OccurrenceId=event['OccurrenceId'],
+                              Application=event['Application'])
+        relate(fragment, aed, 56)
+        # Create and relate the sequence if not already in place.
+        seq_defn = one(job_defn).SeqDefn[1](lambda sel: sel.Name == event['SequenceName'])
+        if not seq_defn:
+            seq_defn = populator.m.new('SeqDefn', Name=event['SequenceName'])
+            logger.debug( f'json2plus: creating sequence {seq_defn.Name}' )
+            relate(seq_defn, job_defn, 1)
+        relate(seq_defn, aed, 2)
+        if 'SequenceStart' in event and event['SequenceStart']:
+            relate(seq_defn, aed, 13)
+            relate(seq_defn, fragment, 58)
+            logger.debug( f'json2plus: detected start event {aed.Name}' )
+        if 'SequenceEnd' in event and event['SequenceEnd']:
+            relate(seq_defn, aed, 15)
+            logger.debug( f'json2plus: detected end event {aed.Name}' )
+
+    # Loop through and link events and constraints in a second pass.
+    for event in j['Events']:
+        aed = one(job_defn).SeqDefn[1].AuditEventDefn[2](lambda sel: sel.Name == event['EventName'] and sel.OccurrenceId == event['OccurrenceId'])
+        if 'PreviousEvents' in event:
+            for previous_event in event['PreviousEvents']:
+                prev_aed = one(job_defn).SeqDefn[1].AuditEventDefn[2](lambda sel: sel.Name == previous_event['PreviousEventName'] and sel.OccurrenceId == previous_event['PreviousOccurrenceId'])
+                evt_succ = populator.m.new('EvtSucc')
+                relate(prev_aed, evt_succ, 3, 'precedes')
+                relate(evt_succ, aed, 3, 'precedes')
+                if 'ConstraintDefinitionId' in previous_event:
+                    # Create the constraint if one does not exist.  Link it to the succession.
+                    const_defn = populator.m.select_any('ConstDefn', lambda sel: sel.Id == previous_event['ConstraintDefinitionId'])
+                    if not const_defn:
+                        const_defn = populator.m.new('ConstDefn', Id=previous_event['ConstraintDefinitionId'])
+                    if 'AND' == previous_event['ConstraintValue']:
+                        const_defn.Type = ConstraintType.AND
+                    elif 'XOR' == previous_event['ConstraintValue']:
+                        const_defn.Type = ConstraintType.XOR
+                    else:
+                        const_defn.Type = ConstraintType.IOR
+                    relate(evt_succ, const_defn, 16)
+

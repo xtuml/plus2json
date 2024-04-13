@@ -14,7 +14,7 @@ import uuid
 import xtuml
 
 from .definition import JobDefn_json
-from .json2plus import JobDefn_plus
+from .json2plus import JobDefn_plus, json2plus_populate
 from .play import JobDefn_play, Job_pretty_print, Job_json, Job_dispose
 from .plus import PlusLexer, PlusParser
 from .populate import PlusPopulator, PlusErrorListener, flatten
@@ -172,7 +172,16 @@ class Plus2Json:
     def filename_input(self, filenames):
         if isinstance(filenames, str):
             filenames = [filenames]
-        self.inputs += map(lambda fn: (fn, antlr4.FileStream(fn)), filenames)
+        if filenames[0].endswith('.puml'):
+            # load PLUS
+            self.inputs += map(lambda fn: (fn, antlr4.FileStream(fn)), filenames)
+        elif filenames[0].endswith('.json'):
+            # load JSON
+            for fn in filenames:
+                with open(fn, 'r') as f:
+                   self.inputs += [(fn.replace(' ','_'), json.load(f))]
+        else:
+            logger.error(f'unrecognised input file suffix  "{os.path.basename(filenames[0])}".')
 
     def stream_input(self, stream):
         self.inputs += [('STDIN', antlr4.InputStream(stream.read()))]
@@ -198,21 +207,28 @@ class Plus2Json:
         # process input event data
         opts.event_data = dict((s.split('=') + [1])[:2] for s in (opts.event_data if hasattr(opts, 'event_data') else []))
 
-        # process each .puml input stream
+        # process each .puml or .json input stream
         for filename, stream in self.inputs:
-            try:
-                error_listener = PlusErrorListener(filename)
-                lexer = PlusLexer(stream)
-                lexer.addErrorListener(error_listener)
-                tokens = antlr4.CommonTokenStream(lexer)
-                parser = PlusParser(tokens)
-                parser.addErrorListener(error_listener)
-                tree = parser.plusdefn()
-            except (CancellationException, IOError):
-                logger.error(f'Failed to parse file "{os.path.basename(filename)}".')
-                continue
-            populator = PlusPopulator(self.metamodel)
-            populator.visit(tree)
+            if filename.endswith('.puml'):
+                try:
+                    error_listener = PlusErrorListener(filename)
+                    lexer = PlusLexer(stream)
+                    lexer.addErrorListener(error_listener)
+                    tokens = antlr4.CommonTokenStream(lexer)
+                    parser = PlusParser(tokens)
+                    parser.addErrorListener(error_listener)
+                    tree = parser.plusdefn()
+                except (CancellationException, IOError):
+                    logger.error(f'Failed to parse file "{os.path.basename(filename)}".')
+                    continue
+                populator = PlusPopulator(self.metamodel)
+                populator.visit(tree)
+            elif filename.endswith('.json'):
+                populator = PlusPopulator(self.metamodel)
+                json2plus_populate( populator, filename.replace(' ','_'), stream )
+            else:
+                logger.error(f'unrecognised input file suffix  "{os.path.basename(filename)}".')
+                sys.exit(1)
 
         # assure model consistency
         self.check_consistency()
