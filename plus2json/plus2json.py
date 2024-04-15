@@ -28,6 +28,7 @@ from kafka3 import KafkaProducer
 from xtuml import navigate_any as any
 
 logger = logging.getLogger('plus2json')
+json_input_detected = False
 
 
 def main():
@@ -64,7 +65,6 @@ def main():
     commands = commands_group.add_mutually_exclusive_group()
     commands.add_argument('--job', action='store_true', help='Ouput PLUS job definition')
     commands.add_argument('--play', action='store_true', help='Generate runtime event data')
-    commands.add_argument('--json2plus', action='store_true', help='Derive PLUS from JSON job definition')
 
     # global options
     global_options = parser.add_argument_group(title='Global Options')
@@ -107,8 +107,6 @@ def main():
     # execute the command
     if args.job:
         job(**vars(args))
-    elif args.json2plus:
-        json2plus(**vars(args))
     elif args.play:
         play(**vars(args))
     else:
@@ -138,18 +136,6 @@ def job(**kwargs):
     p2j.process_job_definitions()
 
 
-def json2plus(**kwargs):
-    p2j = Plus2Json(outdir=kwargs['outdir'])
-    if 'filenames' in kwargs and len(kwargs['filenames']) > 0:
-        p2j.filename_input(kwargs['filenames'])
-    elif 'input' in kwargs:
-        p2j.string_input(kwargs['input'])
-    else:
-        p2j.stream_input(sys.stdin)
-    p2j.load(integer_ids=kwargs['pretty_print'], opts=kwargs)
-    p2j.render_plus_job_definitions()
-
-
 def play(**kwargs):
     p2j = Plus2Json(outdir=kwargs['outdir'])
     if 'filenames' in kwargs and len(kwargs['filenames']) > 0:
@@ -170,12 +156,14 @@ class Plus2Json:
         self.producer = None
 
     def filename_input(self, filenames):
+        global json_input_detected
         if isinstance(filenames, str):
             filenames = [filenames]
         if filenames[0].endswith('.puml'):
             # load PLUS
             self.inputs += map(lambda fn: (fn, antlr4.FileStream(fn)), filenames)
         elif filenames[0].endswith('.json'):
+            json_input_detected = True # loading from JSON rather than PLUS
             # load JSON
             for fn in filenames:
                 with open(fn, 'r') as f:
@@ -271,26 +259,14 @@ class Plus2Json:
         for job_defn in job_defns:
             if opts.pretty_print:
                 JobDefn_pretty_print(job_defn)
+            elif json_input_detected:
+                print(JobDefn_plus(job_defn))
             else:
                 output = json.dumps(JobDefn_json(job_defn), indent=4)
                 if self.outdir:
                     self.write_output_file(output, f'{job_defn.Name}.json')
                 else:
                     print(output)
-
-    # perform json2plus conversion
-    def render_plus_job_definitions(self):
-        opts = self.metamodel.select_any('_Options')
-
-        job_defns = self.metamodel.select_many('JobDefn')
-
-        # enforce validation rules on job definitions
-        if not self.validate_job_definitions(job_defns):
-            # invalid:  get out
-            return
-
-        for job_defn in job_defns:
-            print(JobDefn_plus(job_defn))
 
     # process runtime play
     def play_job_definitions(self):
