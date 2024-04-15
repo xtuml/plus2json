@@ -353,6 +353,12 @@ def json2plus_populate(populator, filename, j):
         if 'SequenceEnd' in event and event['SequenceEnd']:
             relate(seq_defn, aed, 15)
             logger.debug( f'json2plus: detected end event {aed.Name}' )
+        if 'IsBreak' in event and event['IsBreak']:
+            aed.IsBreak = True
+            logger.debug( f'json2plus: detected break event {aed.Name}' )
+        if 'IsCritical' in event and event['IsCritical']:
+            aed.IsCritical = True
+            logger.debug( f'json2plus: detected critical event {aed.Name}' )
         if previous_fragment:
             relate(fragment, previous_fragment, 57, 'follows')
         previous_fragment = fragment
@@ -378,4 +384,22 @@ def json2plus_populate(populator, filename, j):
                     else:
                         const_defn.Type = ConstraintType.IOR
                     relate(evt_succ, const_defn, 16)
+
+    # Create the unhappy audit events.
+    if 'UnhappyEvents' in j:
+        previous_fragment = None
+        for unhappy_event in j['UnhappyEvents']:
+            # Create unhappy event definition.
+            fragment = populator.m.new('Fragment')
+            ued = populator.m.new('UnhappyEventDefn',
+                                  Name=unhappy_event['EventName'],
+                                  Application=unhappy_event['Application'])
+            relate(fragment, ued, 56)
+            # Create and relate the package if not already in place.
+            pkg_defn = one(job_defn).PkgDefn[20](lambda sel: sel.Name == unhappy_event['PackageName'])
+            if not pkg_defn:
+                pkg_defn = populator.m.new('PkgDefn', Name=unhappy_event['PackageName'])
+                logger.debug( f'json2plus: creating package {pkg_defn.Name}' )
+                relate(pkg_defn, job_defn, 20)
+            relate(pkg_defn, ued, 21)
 
