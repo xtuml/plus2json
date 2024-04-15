@@ -447,8 +447,6 @@ class Plus2Json:
 
     # pre-process message payload
     def preprocess_payload(self, s):
-        '''prepend length as 4 byte Big Endian integer to message bytes (C++ architecture)'''
+        '''encode message payload as bytes'''
         payload = s.encode('utf-8')
-        msglen = len(payload).to_bytes(4, 'big')
-        msg = msglen + payload
-        return msg
+        return payload
