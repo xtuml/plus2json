@@ -330,6 +330,7 @@ def json2plus_populate(populator, filename, j):
     relate(job_defn, pathway, 60)
 
     # Create the audit events in a first pass.
+    previous_fragment = None
     for event in j['Events']:
         # Create audit event definition.
         fragment = populator.m.new('Fragment')
@@ -352,6 +353,9 @@ def json2plus_populate(populator, filename, j):
         if 'SequenceEnd' in event and event['SequenceEnd']:
             relate(seq_defn, aed, 15)
             logger.debug( f'json2plus: detected end event {aed.Name}' )
+        if previous_fragment:
+            relate(fragment, previous_fragment, 57, 'follows')
+        previous_fragment = fragment
 
     # Loop through and link events and constraints in a second pass.
     for event in j['Events']:
