@@ -7,7 +7,7 @@ import sys
 import xtuml
 import zipapp
 
-VERSION = '1.3.0'
+VERSION = '1.3.1-midstage'
 
 
 def gen_grammar():
