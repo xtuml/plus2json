@@ -105,6 +105,9 @@ class PlusPopulator(PlusVisitor):
             pathway = self.m.new('Pathway', Number=next(self.id_factory))
             relate(job, pathway, 60)
 
+        # Detect empty Fork Tines (if without else) and patch additional event successions.
+        self.patch_empty_tines(job)
+
         self.current_job = None
         return job
 
@@ -188,6 +191,26 @@ class PlusPopulator(PlusVisitor):
                 return flatten(map(lambda f: self.get_last_events(f), many(many(sub).Tine[55](lambda sel: not sel.IsTerminal)).Fragment[52]()))
             case 'AuditEventDefn':
                 return [sub]
+
+    # Patch event successions around empty Fork Tines.
+    # This is to support if without else.
+    def patch_empty_tines(self, job):
+        # select all tines in this job
+        tines = many(job).Pathway[60].Alternative[61].Tine[63]()
+        for tine in tines:
+            frag = any(tine).Fragment[59]()
+            if not frag:
+                # emtpy tine
+                prev_frag = any(tine).Fork[54].Fragment[56].Fragment[57,'follows']()
+                prev_evts = self.get_last_events(prev_frag)
+                next_frag = any(tine).Fork[54].Fragment[56].Fragment[57,'precedes']()
+                next_evts = self.get_first_events(next_frag)
+                for prev_evt in prev_evts:
+                    for next_evt in next_evts:
+                        if not any(prev_evt).EvtSucc[3, 'precedes'](lambda sel: one(sel).AuditEventDefn[3, 'precedes']() == next_evt):
+                            evt_succ = self.m.new('EvtSucc')
+                            relate(prev_evt, evt_succ, 3, 'precedes')
+                            relate(evt_succ, next_evt, 3, 'precedes')
 
     def visitEvent_defn(self, ctx: PlusParser.Event_defnContext):
         name, occurrence = self.visit(ctx.event_name())
@@ -361,7 +384,10 @@ class PlusPopulator(PlusVisitor):
 
         # create/relate an alternative on XOR tines
         if ConstraintType.XOR == type:
-            alternative = self.m.new('Alternative', Name=self.visitIdentifier(ctx.label) if ctx.label else "")
+            alternative_name = ""
+            if ctx and ctx.label:
+                alternative_name = ctx.label
+            alternative = self.m.new('Alternative', Name=alternative_name)
             relate(tine, alternative, 63)
             # walk downwards from the top of the stack of tines looking for alternatives
             for t in list(reversed(self.current_tine)):
@@ -372,26 +398,31 @@ class PlusPopulator(PlusVisitor):
 
         self.current_tine.append(tine)
 
-        for smt in ctx.statement():
-            # process the statement
-            frag = self.visit(smt)
-            relate(frag, tine, 59)
+        # Add statements unless this is an empty tine (if without else).
+        if ctx:
+            for smt in ctx.statement():
+                # process the statement
+                frag = self.visit(smt)
+                relate(frag, tine, 59)
 
-            # link the first fragment
-            if not one(tine).Fragment[51]():
-                relate(frag, tine, 51)
+                # link the first fragment
+                if not one(tine).Fragment[51]():
+                    relate(frag, tine, 51)
 
-            # link the fragments in order
-            if self.current_fragment:
-                relate(self.current_fragment, frag, 57, 'precedes')
+                # link the fragments in order
+                if self.current_fragment:
+                    relate(self.current_fragment, frag, 57, 'precedes')
 
-            # set the current fragment
-            self.current_fragment = frag
+                # set the current fragment
+                self.current_fragment = frag
+        else:
+            frag = None
 
         self.current_tine.pop()
 
         # link the last fragment
-        relate(frag, tine, 52)
+        if frag:
+            relate(frag, tine, 52)
         return tine
 
     def visitIf(self, ctx: PlusParser.IfContext):
