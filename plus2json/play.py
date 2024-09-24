@@ -93,7 +93,7 @@ def Fragment_play(self, job, branch_count=1, prev_evts=[[]]):
     next_frag = one(self).Fragment[57, 'precedes']()
     if next_frag:
 
-        # if this event is a branch count user, muliply the branch count and previoius events
+        # if this event is a branch count user, multiply the branch count and previous events
         bcnt = any(any(self).AuditEventDefn[56].EvtDataDefn[12](lambda sel: sel.Type == EventDataType.BCNT)).EventData[108](lambda sel: sel.IsSource)
         if bcnt:
             branch_count *= int(bcnt.Value)
@@ -278,7 +278,12 @@ def Fork_play(self, job, branch_count, prev_evts):
         pathway = one(job).Pathway[104]()
         for tine in many(self).Tine[54]():
             if pathway in many(tine).Alternative[63].Pathway[61]():
-                return Tine_play(tine, job, branch_count, prev_evts)
+                frag = one(tine).Fragment[51]()
+                if frag:
+                    return Tine_play(tine, job, branch_count, prev_evts)
+                else:
+                    # if tine has no Fragment (if without else), return previous events
+                    return prev_evts
         # WARNING:  report error and play any tine to avoid crashing
         logger.debug(f'no eligible tine for pathway:{pathway.JobDefnName}:{pathway.Number}', exc_info=True)
         return Tine_play(any(self).Tine[54](), job, branch_count, prev_evts)

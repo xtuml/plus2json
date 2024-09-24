@@ -16,10 +16,10 @@ within plus is
     class 'Sequence Definition' is plus::definition::'Sequence Definition';
     class 'Unhappy Event Definition' is plus::definition::'Unhappy Event Definition';
     relationship R51 is Fragment conditionally relates to one Tine,
-                        Tine unconditionally has_first one Fragment;
+                        Tine conditionally has_first one Fragment;
 
     relationship R52 is Fragment conditionally relates to one Tine,
-                        Tine unconditionally has_last one Fragment;
+                        Tine conditionally has_last one Fragment;
 
     relationship R53 is 'Package Definition' conditionally has many Fragment,
                         Fragment conditionally relates to one 'Package Definition';
@@ -39,7 +39,7 @@ within plus is
                         Fragment conditionally relates to one 'Sequence Definition';
 
     relationship R59 is Fragment conditionally relates to one Tine,
-                        Tine unconditionally is_made_of many Fragment;
+                        Tine conditionally is_made_of many Fragment;
 
     relationship R60 is 'Job Definition' unconditionally has many Pathway,
                         Pathway unconditionally relates to one 'Job Definition';

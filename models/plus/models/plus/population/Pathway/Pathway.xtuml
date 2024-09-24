@@ -12,7 +12,7 @@ within plus::population is
     Number: integer;
 
     @ref_mode("referred_to");
-    @use_prefix(prefix="JobDefn", root_name="Name");
+    @use_prefix(prefix="JobDefn");
     JobDefnName: referential (R60.'Job Definition'.Name) string;
 
     preferred identifier is (Number, JobDefnName);
