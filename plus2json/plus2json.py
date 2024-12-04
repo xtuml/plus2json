@@ -82,6 +82,7 @@ def main():
     play_options.add_argument('--topic', help='Specify message broker publish topic <topic name>')
     play_options.add_argument('--integer-ids', action='store_true', help='Use deterministic integer IDs')
     play_options.add_argument('--shuffle', action='store_true', help='Shuffle the events before writing to a file.')
+    play_options.add_argument('--event-array', action='store_true', help='Group an array of audit events by job.')
     play_options.add_argument('--num-events', type=int, default=0, help='The number of events to produce. If omitted, each job will be played one time.')
     play_options.add_argument('--batch-size', type=int, default=500, help='The number of events per file. Default is 500. Only valid if "--num-events" is present.')
     play_options.add_argument('--rate', type=int, default=500, help='The number of events per second to be produced.')
@@ -323,9 +324,13 @@ class Plus2Json:
 
                 # dump to JSON
                 if opts.msgbroker:
-                    for event in events:
-                        msg = self.preprocess_payload(json.dumps(event, indent=4))
+                    if opts.event_array:
+                        msg = self.preprocess_payload(json.dumps(events, indent=4))
                         self.producer.send(opts.topic, msg)
+                    else:
+                        for event in events:
+                            msg = self.preprocess_payload(json.dumps(event, indent=4))
+                            self.producer.send(opts.topic, msg)
                 else:
                     output = json.dumps(events, indent=4)
                     if self.outdir:
@@ -341,7 +346,8 @@ class Plus2Json:
         job_defn_iter = cycle(job_defns)
 
         num_events_produced = 0
-        events = []
+        events = []         # This list contains all events (typically then shuffled).
+        events_by_job = []  # This is a list of lists of events by job (typically kept ordered).
 
         t0 = time.monotonic()
         # keep generating until we produce the specified number of events
@@ -351,7 +357,8 @@ class Plus2Json:
             while len(events) < min(opts.batch_size, opts.num_events - num_events_produced):
                 jobs = JobDefn_play(next(job_defn_iter))
                 for job in jobs:
-                    events.extend(Job_json(job, dispose=True))
+                    events.extend(Job_json(job, dispose=False))
+                    events_by_job.append(Job_json(job, dispose=True))
                 jobs = []
 
             # shuffle the events
@@ -360,10 +367,15 @@ class Plus2Json:
 
             # write the batch of events
             if opts.msgbroker:
-                fn = opts.msgbroker
-                for event in events:
-                    msg = self.preprocess_payload(json.dumps(event, indent=4))
-                    self.producer.send(opts.topic, msg)
+                if opts.event_array:
+                    for job_events in events_by_job:
+                        # This message contains an array of events for a job.
+                        msg = self.preprocess_payload(json.dumps(job_events, indent=4))
+                        self.producer.send(opts.topic, msg)
+                else:
+                    for event in events:
+                        msg = self.preprocess_payload(json.dumps(event, indent=4))
+                        self.producer.send(opts.topic, msg)
             else:
                 output = json.dumps(events, indent=4)
                 if self.outdir:
@@ -380,6 +392,7 @@ class Plus2Json:
                 logger.info(f'{num_events_produced} of {opts.num_events}')
                 t0 = t1
             events = []
+            events_by_job = []
             # sleep time = event batch size / rate
             time.sleep(opts.batch_size / opts.rate)
 
