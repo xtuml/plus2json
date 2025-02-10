@@ -82,7 +82,8 @@ def main():
     play_options.add_argument('--topic', help='Specify message broker publish topic <topic name>')
     play_options.add_argument('--integer-ids', action='store_true', help='Use deterministic integer IDs')
     play_options.add_argument('--shuffle', action='store_true', help='Shuffle the events before writing to a file.')
-    play_options.add_argument('--event-array', action='store_true', help='Group an array of audit events by job.')
+    play_options.add_argument('--event-array', action='store_true', help='Group and send audit events as an array.')
+    play_options.add_argument('--batch-by-job', action='store_true', help='Send arrays of audit events as complete jobs.')
     play_options.add_argument('--num-events', type=int, default=0, help='The number of events to produce. If omitted, each job will be played one time.')
     play_options.add_argument('--batch-size', type=int, default=500, help='The number of events per file. Default is 500. Only valid if "--num-events" is present.')
     play_options.add_argument('--rate', type=int, default=500, help='The number of events per second to be produced.')
@@ -368,12 +369,18 @@ class Plus2Json:
             # write the batch of events
             if opts.msgbroker:
                 if opts.event_array:
-                    for job_events in events_by_job:
-                        # This message contains an array of events for a job.
-                        msg = self.preprocess_payload(json.dumps(job_events, indent=4))
+                    if opts.batch_by_job:
+                        for job_events in events_by_job:
+                            # This message contains an array of events for a job.
+                            msg = self.preprocess_payload(json.dumps(job_events, indent=4))
+                            self.producer.send(opts.topic, msg)
+                    else:
+                        # This message contains an array of events for multiple jobs.
+                        msg = self.preprocess_payload(json.dumps(events, indent=4))
                         self.producer.send(opts.topic, msg)
                 else:
                     for event in events:
+                        # This message contains a single audit event.
                         msg = self.preprocess_payload(json.dumps(event, indent=4))
                         self.producer.send(opts.topic, msg)
             else:
