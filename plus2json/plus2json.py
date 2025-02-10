@@ -82,6 +82,8 @@ def main():
     play_options.add_argument('--topic', help='Specify message broker publish topic <topic name>')
     play_options.add_argument('--integer-ids', action='store_true', help='Use deterministic integer IDs')
     play_options.add_argument('--shuffle', action='store_true', help='Shuffle the events before writing to a file.')
+    play_options.add_argument('--event-array', action='store_true', help='Group and send audit events as an array.')
+    play_options.add_argument('--batch-by-job', action='store_true', help='Send arrays of audit events as complete jobs.')
     play_options.add_argument('--num-events', type=int, default=0, help='The number of events to produce. If omitted, each job will be played one time.')
     play_options.add_argument('--batch-size', type=int, default=500, help='The number of events per file. Default is 500. Only valid if "--num-events" is present.')
     play_options.add_argument('--rate', type=int, default=500, help='The number of events per second to be produced.')
@@ -323,9 +325,13 @@ class Plus2Json:
 
                 # dump to JSON
                 if opts.msgbroker:
-                    for event in events:
-                        msg = self.preprocess_payload(json.dumps(event, indent=4))
+                    if opts.event_array:
+                        msg = self.preprocess_payload(json.dumps(events, indent=4))
                         self.producer.send(opts.topic, msg)
+                    else:
+                        for event in events:
+                            msg = self.preprocess_payload(json.dumps(event, indent=4))
+                            self.producer.send(opts.topic, msg)
                 else:
                     output = json.dumps(events, indent=4)
                     if self.outdir:
@@ -341,7 +347,8 @@ class Plus2Json:
         job_defn_iter = cycle(job_defns)
 
         num_events_produced = 0
-        events = []
+        events = []         # This list contains all events (typically then shuffled).
+        events_by_job = []  # This is a list of lists of events by job (typically kept ordered).
 
         t0 = time.monotonic()
         # keep generating until we produce the specified number of events
@@ -351,7 +358,8 @@ class Plus2Json:
             while len(events) < min(opts.batch_size, opts.num_events - num_events_produced):
                 jobs = JobDefn_play(next(job_defn_iter))
                 for job in jobs:
-                    events.extend(Job_json(job, dispose=True))
+                    events.extend(Job_json(job, dispose=False))
+                    events_by_job.append(Job_json(job, dispose=True))
                 jobs = []
 
             # shuffle the events
@@ -360,10 +368,21 @@ class Plus2Json:
 
             # write the batch of events
             if opts.msgbroker:
-                fn = opts.msgbroker
-                for event in events:
-                    msg = self.preprocess_payload(json.dumps(event, indent=4))
-                    self.producer.send(opts.topic, msg)
+                if opts.event_array:
+                    if opts.batch_by_job:
+                        for job_events in events_by_job:
+                            # This message contains an array of events for a job.
+                            msg = self.preprocess_payload(json.dumps(job_events, indent=4))
+                            self.producer.send(opts.topic, msg)
+                    else:
+                        # This message contains an array of events for multiple jobs.
+                        msg = self.preprocess_payload(json.dumps(events, indent=4))
+                        self.producer.send(opts.topic, msg)
+                else:
+                    for event in events:
+                        # This message contains a single audit event.
+                        msg = self.preprocess_payload(json.dumps(event, indent=4))
+                        self.producer.send(opts.topic, msg)
             else:
                 output = json.dumps(events, indent=4)
                 if self.outdir:
@@ -380,60 +399,11 @@ class Plus2Json:
                 logger.info(f'{num_events_produced} of {opts.num_events}')
                 t0 = t1
             events = []
+            events_by_job = []
             # sleep time = event batch size / rate
             time.sleep(opts.batch_size / opts.rate)
 
         logger.info(f'Total events produced: {num_events_produced}')
-
-    def play_rate_mode(self, job_defns):
-        opts = self.metamodel.select_any('_Options')
-
-        # create an infinite cycle iterator of job definitions
-        job_defn_iter = cycle(job_defns)
-
-        # create an event queue
-        event_queue = []
-        buffer_len_low = opts.rate * 1    # start refill when there's 1 seconds of buffer left/
-        buffer_len_high = opts.rate * 2  # maintain a 2 second buffer
-        delay = 1 / opts.rate
-
-        # refill the queue if it needs more events
-        async def fill_queue():
-            while True:
-                if len(event_queue) < buffer_len_low:
-                    # refill
-                    new_events = []
-                    while len(new_events) < buffer_len_high - len(event_queue):
-                        jobs = JobDefn_play(next(job_defn_iter))
-                        if jobs:
-                            new_events.extend(Job_json(jobs[0], dispose=True))
-                    # shuffle the events
-                    if opts.shuffle:
-                        random.shuffle(new_events)
-                    event_queue.extend(new_events)
-                await asyncio.sleep(0)  # give up control
-
-        # publish the messages from the queue
-        async def publish():
-            while True:
-                if len(event_queue) > 0:
-                    t0 = time.time()
-                    msg = self.preprocess_payload(json.dumps(event_queue.pop(0)))  # remove from the front
-                    self.producer.send(opts.topic, msg)
-                    elapsed = time.time() - t0
-                    await asyncio.sleep(delay - elapsed)
-                else:
-                    await asyncio.sleep(0)
-
-        # start event loop
-        loop = asyncio.get_event_loop()
-        tasks = asyncio.gather(fill_queue(), publish())
-        try:
-            loop.run_until_complete(tasks)
-        except KeyboardInterrupt:
-            tasks.cancel()
-        finally:
-            loop.close()
 
     # atomically write output to a file
     def write_output_file(self, output, filename):
