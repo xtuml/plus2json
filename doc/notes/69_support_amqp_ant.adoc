@@ -1,0 +1,31 @@
+= Support AMQP
+
+xtUML Project Analysis Note
+
+== 1 Abstract
+
+This document provides requirements, analysis and work required to support
+AMQP in `plus2json'.
+
+== 2 Introduction and Background
+
+
+== 3 Requirements
+
+
+== 4 Analysis
+
+
+== 5 Work Required
+
+== 6 Acceptance Test
+
+== 7 Document References
+
+. [[dr-1]] https://github.com/xtuml/plus2json/issues/69[69 - Support AMQP]
+
+---
+
+This work is licensed under the Creative Commons CC0 License
+
+---
