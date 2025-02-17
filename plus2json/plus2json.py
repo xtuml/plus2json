@@ -24,6 +24,7 @@ from antlr4.error.Errors import CancellationException
 from importlib.resources import files
 from itertools import cycle
 from kafka3 import KafkaProducer
+from stomp import Connection
 
 from xtuml import navigate_any as any
 
@@ -78,7 +79,8 @@ def main():
     # play specific options
     play_options = parser.add_argument_group(title='Play Options')
     play_options.add_argument('--all', action='store_true', help='Play all pathways through the job definition')
-    play_options.add_argument('--msgbroker', help='Play audit events to message broker <host:port>')
+    play_options.add_argument('--msgbroker', help='Play audit events to Kafka message broker at <host:port>')
+    play_options.add_argument('--amqpbroker', help='Play audit events to AMQP message broker at <host:port>')
     play_options.add_argument('--topic', help='Specify message broker publish topic <topic name>')
     play_options.add_argument('--integer-ids', action='store_true', help='Use deterministic integer IDs')
     play_options.add_argument('--shuffle', action='store_true', help='Shuffle the events before writing to a file.')
@@ -281,13 +283,17 @@ class Plus2Json:
             # invalid:  get out
             return
 
-        # initialise the message broker
-        if opts.msgbroker:
+        # initialise the message broker (Kafka or AMQP)
+        if opts.msgbroker or opts.amqpbroker:
             if not opts.topic:
-                logger.error('--msgbroker specified without --topic')
+                logger.error('--msgbroker or --amqpbroker specified without --topic')
                 sys.exit(1)
             else:
-                self.producer = KafkaProducer(bootstrap_servers=opts.msgbroker)
+                if opts.msgbroker:
+                    self.producer = KafkaProducer(bootstrap_servers=opts.msgbroker)
+                else:
+                    self.producer = Connection([opts.amqpbroker.split(':',1)])
+                    self.producer.connect(username='ProtocolVerifier', passcode='ProtocolVerifier', wait=True)
 
         # play a specific number of events
         if opts.num_events != 0:
@@ -301,6 +307,8 @@ class Plus2Json:
         if opts.msgbroker:
             self.producer.flush()
             self.producer.close()
+        if opts.amqpbroker:
+            self.producer.disconnect()
 
     def play_normal_mode(self, job_defns):
         opts = self.metamodel.select_any('_Options')
@@ -324,14 +332,24 @@ class Plus2Json:
                     random.shuffle(events)
 
                 # dump to JSON
-                if opts.msgbroker:
+                if opts.msgbroker or opts.amqpbroker:
                     if opts.event_array:
                         msg = self.preprocess_payload(json.dumps(events, indent=4))
-                        self.producer.send(opts.topic, msg)
+                        if opts.msgbroker:
+                            # Kafka
+                            self.producer.send(opts.topic, msg)
+                        else:
+                            # AMQP
+                            self.producer.send(destination=opts.topic, body=msg)
                     else:
                         for event in events:
                             msg = self.preprocess_payload(json.dumps(event, indent=4))
-                            self.producer.send(opts.topic, msg)
+                            if opts.msgbroker:
+                                # Kafka
+                                self.producer.send(opts.topic, msg)
+                            else:
+                                # AMQP
+                                self.producer.send(destination=opts.topic, body=msg)
                 else:
                     output = json.dumps(events, indent=4)
                     if self.outdir:
@@ -367,22 +385,37 @@ class Plus2Json:
                 random.shuffle(events)
 
             # write the batch of events
-            if opts.msgbroker:
+            if opts.msgbroker or opts.amqpbroker:
                 if opts.event_array:
                     if opts.batch_by_job:
                         for job_events in events_by_job:
                             # This message contains an array of events for a job.
                             msg = self.preprocess_payload(json.dumps(job_events, indent=4))
-                            self.producer.send(opts.topic, msg)
+                            if opts.msgbroker:
+                                # Kafka
+                                self.producer.send(opts.topic, msg)
+                            else:
+                                # AMQP
+                                self.producer.send(destination=opts.topic, body=msg)
                     else:
                         # This message contains an array of events for multiple jobs.
                         msg = self.preprocess_payload(json.dumps(events, indent=4))
-                        self.producer.send(opts.topic, msg)
+                        if opts.msgbroker:
+                            # Kafka
+                            self.producer.send(opts.topic, msg)
+                        else:
+                            # AMQP
+                            self.producer.send(destination=opts.topic, body=msg)
                 else:
                     for event in events:
                         # This message contains a single audit event.
                         msg = self.preprocess_payload(json.dumps(event, indent=4))
-                        self.producer.send(opts.topic, msg)
+                        if opts.msgbroker:
+                            # Kafka
+                            self.producer.send(opts.topic, msg)
+                        else:
+                            # AMQP
+                            self.producer.send(destination=opts.topic, body=msg)
             else:
                 output = json.dumps(events, indent=4)
                 if self.outdir:
