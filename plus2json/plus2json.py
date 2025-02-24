@@ -81,7 +81,10 @@ def main():
     play_options.add_argument('--all', action='store_true', help='Play all pathways through the job definition')
     play_options.add_argument('--msgbroker', help='Play audit events to Kafka message broker at <host:port>')
     play_options.add_argument('--amqpbroker', help='Play audit events to AMQP message broker at <host:port>')
-    play_options.add_argument('--topic', help='Specify message broker publish topic <topic name>')
+    play_options.add_argument('--keyfile', help='SSL key file')
+    play_options.add_argument('--certfile', help='SSL certificate file')
+    play_options.add_argument('--certbroker', help='SSL certificate file for the message broker')
+    play_options.add_argument('--topic', help='Specify message broker publish topic (queue) <topic name>')
     play_options.add_argument('--integer-ids', action='store_true', help='Use deterministic integer IDs')
     play_options.add_argument('--shuffle', action='store_true', help='Shuffle the events before writing to a file.')
     play_options.add_argument('--event-array', action='store_true', help='Group and send audit events as an array.')
@@ -292,7 +295,11 @@ class Plus2Json:
                 if opts.msgbroker:
                     self.producer = KafkaProducer(bootstrap_servers=opts.msgbroker)
                 else:
-                    self.producer = Connection([opts.amqpbroker.split(':',1)])
+                    host, port = opts.amqpbroker.split(':')
+                    self.producer = Connection(host_and_ports=[(host, int(port))])
+                    if opts.keyfile and opts.certfile and opts.certbroker:
+                        # SSL connection
+                        self.producer.set_ssl(for_hosts=[(host,int(port))], key_file=opts.keyfile, cert_file=opts.certfile, ca_certs=opts.certbroker)
                     self.producer.connect(username='ProtocolVerifier', passcode='ProtocolVerifier', wait=True)
 
         # play a specific number of events

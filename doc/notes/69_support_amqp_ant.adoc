@@ -35,23 +35,24 @@ Use a new command line option `--amqpbroker` when running AMPQ.
 . Write proxy bridge to read from an ActiveMQ queue and write to a Kafka
   topic.
 . Use broker browsers for initial debug.
-. Run end-to-end benchmarking with the addition of the 
+. Run end-to-end benchmarking with the addition of the AMQP to Kafka bridge.
 
 == 5 Work Required
 
-. Add stomp requirement to requirements.txt.
-. Hack `plus2json` to speak amqp with kafka commented out.
-. Test by seeing messages in ActiveMQ queue.
+. Add `stomp.py` requirement to requirements.txt.
+. Hack `plus2json` to speak AMQP with Kafka commented out.
+. Test by seeing messages in the ActiveMQ queue.
 . Write `amqp2kakfa.py` which reads from an ActiveMQ queue and writes to a
   Kafka topic.
-  ** Keep this in the corresponding munin branch (254_support_amqp) at
+  ** Keep this in the corresponding 'munin' branch (254_support_amqp) at
   `doc/notes/247_deployment_readiness/activemq/amqp2kafka.py`.
 . Test by running the above with a Kafka broker running.  Browse the Kafka
   broker with Kadeck.
 . Test by running the above with full PV running.
-  ** Bundle plus2json.pyz and temporarily copy it into munin/bin.
-  ** Update the run_benchmark script to launch the `amqp2kafka.py` bridge.
+  ** Bundle plus2json.pyz and temporarily copy it into `munin/bin`.
+  ** Update the `run_benchmark.sh` script to launch the `amqp2kafka.py` bridge.
 . Unhack `plus2json` to support both AMQP and Kafka.
+. Run the acceptance test.
 
 == 6 Acceptance Test
 
