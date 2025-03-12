@@ -84,6 +84,8 @@ def main():
     play_options.add_argument('--keyfile', help='SSL key file')
     play_options.add_argument('--certfile', help='SSL certificate file')
     play_options.add_argument('--certbroker', help='SSL certificate file for the message broker')
+    play_options.add_argument('--username', help='User name for the message broker')
+    play_options.add_argument('--passcode', help='Passcode for the message broker')
     play_options.add_argument('--topic', help='Specify message broker publish topic (queue) <topic name>')
     play_options.add_argument('--integer-ids', action='store_true', help='Use deterministic integer IDs')
     play_options.add_argument('--shuffle', action='store_true', help='Shuffle the events before writing to a file.')
@@ -300,7 +302,10 @@ class Plus2Json:
                     if opts.keyfile and opts.certfile and opts.certbroker:
                         # SSL connection
                         self.producer.set_ssl(for_hosts=[(host,int(port))], key_file=opts.keyfile, cert_file=opts.certfile, ca_certs=opts.certbroker)
-                    self.producer.connect(username='ProtocolVerifier', passcode='ProtocolVerifier', wait=True)
+                    if opts.username and opts.passcode:
+                        self.producer.connect(username=opts.username, passcode=opts.passcode, wait=True)
+                    else:
+                        self.producer.connect(username='ProtocolVerifier', passcode='ProtocolVerifier', wait=True)
 
         # play a specific number of events
         if opts.num_events != 0:
