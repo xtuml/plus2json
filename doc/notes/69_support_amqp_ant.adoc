@@ -1,0 +1,80 @@
+= Support AMQP in `plus2json`
+
+xtUML Project Analysis Note
+
+== 1 Abstract
+
+This document provides requirements, analysis and work required to support
+AMQP in `plus2json`.
+
+== 2 Introduction and Background
+
+As of 2023 through February 2025, the Munin Protocol Verifier and
+`plus2json` support the <<dr-2,Apache Kafka>> message broker (and also
+vanilla file I/O).  The Protocol Verifier is now required to communicate
+through AMQP using the <<dr-3,Apache ActiveMQ>> message broker.
+
+== 3 Requirements
+
+=== 3.1 `plus2json` Support for AMQP
+
+`plus2json --play` shall support sending messages to a configured AMQP queue.
+
+=== 3.2 `plus2json` Support for ActiveMQ
+
+`plus2json --play` shall support the specific requirements of the Apache
+ActiveMQ message broker.
+
+Use a new command line option `--amqpbroker` when running AMPQ.
+
+== 4 Analysis
+
+=== 4.1 Testing
+
+. Update `plus2json` to send to ActiveMQ broker.
+. Write proxy bridge to read from an ActiveMQ queue and write to a Kafka
+  topic.
+. Use broker browsers for initial debug.
+. Run end-to-end benchmarking with the addition of the AMQP to Kafka bridge.
+
+== 5 Work Required
+
+. Add `stomp.py` requirement to requirements.txt.
+. Hack `plus2json` to speak AMQP with Kafka commented out.
+. Test by seeing messages in the ActiveMQ queue.
+. Write `amqp2kakfa.py` which reads from an ActiveMQ queue and writes to a
+  Kafka topic.
+  ** Keep this in the corresponding 'munin' branch (254_support_amqp) at
+  `doc/notes/247_deployment_readiness/activemq/amqp2kafka.py`.
+. Test by running the above with a Kafka broker running.  Browse the Kafka
+  broker with Kadeck.
+. Test by running the above with full PV running.
+  ** Bundle plus2json.pyz and temporarily copy it into `munin/bin`.
+  ** Update the `run_benchmark.sh` script to launch the `amqp2kafka.py` bridge.
+. Unhack `plus2json` to support both AMQP and Kafka.
+. Run the acceptance test.
+
+== 6 Acceptance Test
+
+=== 6.1 Regression
+
+Run the regression test to confirm that file I/O based communication is
+unaffected and still works with the new `plus2json`.
+
+=== 6.2 Benchmarking
+
+Run the benchmarking script with the AMQP to Kafka bridge in place.  See
+good behaviour expecting a bit of a performance impact from the double
+relay of the message and the loading of the ActiveMQ broker.
+
+== 7 Document References
+
+. [[dr-1]] https://github.com/xtuml/plus2json/issues/69[69 - Support AMQP]
+. [[dr-2]] https://kafka.apache.org/[Apache Kafka]
+. [[dr-3]] https://activemq.apache.org/[Apache ActiveMQ]
+
+---
+
+This work is licensed under the Creative Commons CC0 License
+
+---
