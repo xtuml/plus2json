@@ -147,18 +147,20 @@ class PlusPopulator(PlusVisitor):
             # process the statement
             frag = self.visit(smt)
 
-            # set the start event(s)
-            if not any(self.current_sequence).AuditEventDefn[13]():
-                relate(frag, self.current_sequence, 58)
-                for start_evt in self.get_first_events(frag):
-                    relate(start_evt, self.current_sequence, 13)
-
             # link the fragments in order
             if self.current_fragment:
                 relate(self.current_fragment, frag, 57, 'precedes')
+            else:
+                if not any(self.current_sequence).Fragment[58]():
+                    relate(frag, self.current_sequence, 58)
 
             # set the current fragment
             self.current_fragment = frag
+
+        # set the start event(s)
+        for evt in many(self.current_sequence).AuditEventDefn[2]():
+            if not any(evt).EvtSucc[3,'follows']():
+                relate(evt, self.current_sequence, 13)
 
         # set the end event(s)
         # all the last events of the most recent fragment and the last event in any terminal
