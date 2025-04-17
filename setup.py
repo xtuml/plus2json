@@ -11,7 +11,7 @@ if __name__ == '__main__':
           keywords='xtuml bridgepoint protocol verifier',
           packages=['plus2json', 'plus2json.plus', 'plus2json.schema'],
           package_data={'plus2json': ['version.json'], 'plus2json.plus': ['*.interp', '*.tokens'], 'plus2json.schema': ['plus_schema.sql']},
-          install_requires=['antlr4-python3-runtime==4.13.0', 'pyxtuml==3.0.0', 'kafka-python3==3.0.0', 'stomp.py==8.2.0'],
+          install_requires=['antlr4-python3-runtime==4.13.0', 'pyxtuml==3.0.0', 'kafka-python==2.1.4', 'stomp.py==8.2.0'],
           test_suite='tests',
           include_package_data=True,
           zip_safe=True)
