@@ -23,9 +23,7 @@ from .pretty_print import JobDefn_pretty_print
 from antlr4.error.Errors import CancellationException
 from importlib.resources import files
 from itertools import cycle
-# This works around a bug in python-kafka3 dependencies.
-if sys.version_info >= (3, 12, 0): sys.modules['kafka.vendor.six.moves'] = six.moves
-from kafka3 import KafkaProducer
+from kafka import KafkaProducer
 from stomp import Connection
 
 from xtuml import navigate_any as any
