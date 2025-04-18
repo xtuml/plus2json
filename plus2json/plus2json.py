@@ -23,7 +23,7 @@ from .pretty_print import JobDefn_pretty_print
 from antlr4.error.Errors import CancellationException
 from importlib.resources import files
 from itertools import cycle
-from kafka3 import KafkaProducer
+from kafka import KafkaProducer
 from stomp import Connection
 
 from xtuml import navigate_any as any

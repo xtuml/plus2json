@@ -7,12 +7,12 @@ import sys
 import xtuml
 import zipapp
 
-VERSION = '1.5.0'
+VERSION = '1.5.1'
 
 
 def gen_grammar():
     # generate Plus
-    print('Genearting Antlr Parser...')
+    print('Generating Antlr Parser...')
     argv = sys.argv
     sys.argv = ['', '-v', '4.13.0', '-Dlanguage=Python3', '-no-listener', '-visitor', '-o', 'plus2json/plus', '-Xexact-output-dir', 'grammar/Plus.g4']
     antlr4_tool_runner.tool()
