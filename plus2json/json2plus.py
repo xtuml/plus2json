@@ -2,18 +2,11 @@
 # event after loop at end of fork tine
 # event data items
 
-import sys
-import xtuml
-import time
 import logging
 
-from datetime import datetime, timedelta
+from xtuml import relate, navigate_many as many, navigate_one as one, navigate_any as any
 
-from xtuml import relate, unrelate, delete, order_by, navigate_many as many, navigate_one as one, navigate_any as any
-
-from .populate import EventDataType  # TODO
 from .populate import ConstraintType  # TODO
-from .populate import flatten
 
 logger = logging.getLogger(__name__)
 
@@ -77,10 +70,10 @@ def Fragment_plus(audit_event_defn):
     else:
         return p, next_aed
     # Detect fork, loop, audit event definition.
-    if Fork_detect( audit_event_defn ): 
+    if Fork_detect( audit_event_defn ):
         s, next_aed = Fork_plus( audit_event_defn )
         p += s
-    elif Loop_detect( audit_event_defn ): 
+    elif Loop_detect( audit_event_defn ):
         s, next_aed = Loop_plus( audit_event_defn )
         p += s
     else:
@@ -113,9 +106,9 @@ def Fork_plus(audit_event_defn):
         p += '    fork\n'
     elif const_defn.Type == ConstraintType.XOR:
         p += f'    switch ( "{const_defn.Id}" )\n'
-        p += f'    case ( "1" )\n'
+        p += '    case ( "1" )\n'
     else:
-        logger.error( f'Fork_plus:  unsupported constraint type' )
+        logger.error( 'Fork_plus:  unsupported constraint type' )
         p += '    UNSUPPORTED FORK\n'
     i = 1
     j = len(next_aeds)
@@ -153,7 +146,7 @@ def Loop_plus(audit_event_defn):
     p += s
     p += "    repeat while\n"
     loop_count -= 1
-        
+
     logger.debug( f'Loop_plus:  exiting {audit_event_defn.Name}' )
     return p, next_aed
 
@@ -238,7 +231,7 @@ def UnhappyEventDefn_plus(unhappy_event_defn):
     logger.debug( f'UnhappyEventDefn_plus: {unhappy_event_defn.Name}' )
     p = ""
     p += f'    :{unhappy_event_defn.Name};\n'
-    p += f'    kill\n'
+    p += '    kill\n'
     return p
 
 def Fork_detect(audit_event_defn):
@@ -313,7 +306,7 @@ def Loop_end_detect(audit_event_defn):
                     loop_end_detected = True
         # TODO - Detect the end of loop when the fragment is a fork.
         if not loop_end_detected:
-            logger.debug( f'Loop_end_detect: attempting fork in loop' )
+            logger.debug( 'Loop_end_detect: attempting fork in loop' )
             if audit_event_defn:
                 if Fork_detect( audit_event_defn ):
                     logger.debug( f'Loop_end_detect: fork in loop at {audit_event_defn.Name}' )

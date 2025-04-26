@@ -1,11 +1,10 @@
 import antlr4
 import argparse
-import asyncio
 import json
 import logging
 import os
-import os.path
 import random
+import stat
 import sys
 import tempfile
 import textwrap
@@ -176,7 +175,7 @@ class Plus2Json:
             # load JSON
             for fn in filenames:
                 with open(fn, 'r') as f:
-                   self.inputs += [(fn.replace(' ','_'), json.load(f))]
+                    self.inputs += [(fn.replace(' ','_'), json.load(f))]
         else:
             logger.error(f'unrecognised input file suffix  "{os.path.basename(filenames[0])}".')
 
@@ -458,6 +457,7 @@ class Plus2Json:
             f.write(output)
             f.flush()
             tmpfilename = f.name
+        os.chmod(tmpfilename, os.stat(tmpfilename).st_mode | stat.S_IRGRP | stat.S_IROTH)
         os.replace(tmpfilename, outfile)
 
     # pre-process message payload
