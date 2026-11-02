@@ -378,7 +378,7 @@ def AuditEvent_json(self):
         j['eventType'] = one(self).UnhappyEventDefn[109]().Name
     j['eventId'] = id_to_str(self.Id)
     j['timestamp'] = datetime.utcfromtimestamp(self.TimeStamp).isoformat() + 'Z'
-    j['applicationName'] = 'default_application_name'  # backwards compatibility
+    j['applicationName'] = self.__metaclass__.metamodel.select_any('_Options').application
     prev_evts = many(self).AuditEvent[106, 'must_follow']()
     if len(prev_evts) > 0:
         j['previousEventIds'] = list(map(lambda e: id_to_str(e.Id), prev_evts))
