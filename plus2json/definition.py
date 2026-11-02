@@ -22,7 +22,7 @@ def AuditEventDefn_json(self):
     j['EventName'] = self.Name
     j['OccurrenceId'] = self.OccurrenceId
     j['SequenceName'] = one(self).SeqDefn[2]().Name
-    j['Application'] = 'default_application_name'  # backward compatibility
+    j['Application'] = self.__metaclass__.metamodel.select_any('_Options').application
     if self.Config_JSON:
         j.update(json.loads(self.Config_JSON).items())
 
@@ -110,6 +110,6 @@ def UnhappyEventDefn_json(self):
     # basic information
     j['EventName'] = self.Name
     j['PackageName'] = one(self).PkgDefn[21]().Name
-    j['Application'] = 'default_application_name'  # backward compatibility
+    j['Application'] = self.__metaclass__.metamodel.select_any('_Options').application
 
     return j

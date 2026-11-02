@@ -73,6 +73,7 @@ def main():
     global_options.add_argument('--debug', action='store_true', help='Enable debug logging')
     global_options.add_argument('-p', '--pretty-print', action='store_true', help='Print human readable debug output')
     global_options.add_argument('-o', '--outdir', help='Path to output directory')
+    global_options.add_argument( '--application', default='default_application_name', help='Default application name for generated messages (default: default_application_name)')
     global_options.add_argument('filenames', nargs='*', help='Input .puml files')
 
     # play specific options
