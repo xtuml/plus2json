@@ -48,6 +48,7 @@ Global Options:
   --debug               Enable debug logging
   -p, --pretty-print    Print human readable debug output
   -o dir, --outdir dir  Path to output directory
+  --application name    Default application name for generated messages (default: default_application_name)
   filenames             Input .puml files
 
 Play Options:
@@ -60,8 +61,12 @@ Examples:
     # convert Tutorial_1.puml into JSON and output to the console
     python plus2json.pyz job Tutorial_1.puml
 
+    # emit job JSON with a custom application name (overrides default_application_name)
+    python plus2json.pyz --job --application my_protocol_app Tutorial_1.puml
+
     # convert all .puml files in the 'puml' directory and write each to a JSON file in 'job_definitions'
     python plus2json.pyz job -o job_definitions puml/*.puml
+
     # load Tutorial_1.puml and print a human readable stream of events to the console
     python plus2json.pyz play Tutorial_1.puml --pretty-print
 
